@@ -9,8 +9,6 @@ class MainTests(unittest.TestCase):
     def test_hello(self):
         self.assertEqual(main.hello(), 'Hello, World!')
 
-	def test_hello2(self):
-		self.assertEqual(main.hello(), 'Hello, World2!')
 
 if __name__ == '__main__':
     unittest.main()
