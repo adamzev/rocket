@@ -1,0 +1,40 @@
+{
+	"rocketEngines" : [
+		{
+			"name" : "RD-171M",
+			"fuselage" : [30.00, 296.00, 146.67],
+			"ADC K" : 0.70100
+		}
+	]
+}
+
+
+engines = [
+	{
+		"name": "RD-171",
+		"thrust_sl"  : 1632000.0,
+		"thrust_vac" : 1777000.0,
+		"throt" : 1.0,
+		"engine_count" : 1.0,
+		"specImp_sl" : 309.68,
+		"specImp_vac" : 337.19
+	},
+	{
+		"name": "SSME",
+		"thrust_sl"  : 418130.0,
+		"thrust_vac" : 512410.0,
+		"throt" : 0.95,
+		"engine_count" : 1.0,
+		"specImp_sl" : 370.35,
+		"specImp_vac" : 453.86
+	},
+	{
+		"name": "SRB",
+		"thrust_sl"  : 3600000.0,
+		"thrust_vac" : 3600000.0,
+		"throt" : 1.0,
+		"engine_count" : 1.0,
+		"specImp_sl" : 242.00,
+		"specImp_vac" : 268.20
+	}
+]
