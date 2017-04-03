@@ -4,8 +4,6 @@ from vehicle import *
 from generalEquations import *
 
 
-
-
 engineData = [
 	{
 		"name": "RD-171",
@@ -36,6 +34,11 @@ engineData = [
 	}
 ]
 
+data = {'rec1': {'col1': 99.88, 'col2': 108.79, 'label': 'rec1'},
+'rec2': {'col1': 99.88, 'col2': 108.79, 'label': 'rec2'}
+}
+
+
 HLV = Vehicle("HLV * 4-6/2-6 MK: 3-30 Ver: 03-27-2017", 15674000, 1.204)
 
 for engine in engineData:
@@ -61,17 +64,28 @@ def hello():
     return "Hello, World!"
 
 
+
+
 for engine in  HLV.engines:
 	engine.setThrottle(0.95)
+
+i = 1
 while (time <= endTime):
 	HLV.updatePrev() #sets all "prev" variables
 	HLV.updateAlt(time_inc)
 	HLV.updateIncVertV()
 	HLV.updateVertA()
 	HLV.updateVertV(time_inc)
-	HLV.updateHorizA()
 
+	print ("Time {} :Alt {}".format(time, HLV.alt)),
+	for key, value in HLV.V.iteritems():
+		print "V:",
+		print("{}: {}".format(key,value)),
+	for key, value in HLV.A.iteritems():
+		print "A:",
+		print("{}: {}".format(key,value)),
 
+	print ""
 	# ***************THRUST*****************
 	totalThrust = 0
 	for engine in  HLV.engines:
@@ -94,10 +108,10 @@ while (time <= endTime):
 	horizA = 0
 
 
-	print ("Time {} :Alt {}".format(time, HLV.alt))
+
 	if time < 24:
 		pass
 
 
-
+	i +=1
 	time += time_inc
