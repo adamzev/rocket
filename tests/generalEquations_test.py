@@ -9,7 +9,7 @@ def almost_equal(x,y,threshold=0.0001):
   return abs(x-y) < threshold
 
 
-class MainTests(unittest.TestCase):
+class GeneralEquationTests(unittest.TestCase):
     def test_hello(self):
         self.assertEqual(ge.helloGE(), 'Hello, World!')
     def test_PATM_at_sea_level(self):

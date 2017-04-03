@@ -94,7 +94,7 @@ while (time <= endTime):
 	horizA = 0
 
 
-
+	print ("Time {} :Alt {}".format(time, HLV.alt))
 	if time < 24:
 		pass
 
