@@ -3,7 +3,7 @@ from generalEquations import *
 
 class Vehicle:
 	alt = 0
-
+	orbitalV = 0
 	#VELOCITY
 	V_prev = V = {
 		"vert" : 0.0,
@@ -59,10 +59,28 @@ class Vehicle:
 		A = self.A
 		A_prev = self.A_prev
 		orbitalV = orbitalVelocity(self.alt)
-		A["vert"] = A["vert_eff"] = average(A["vert"], A_prev["vert"]) - gravity(self.V["horiz"], orbitalV) #does vertA equal vertA_eff?
+		self.orbitalV = orbitalVelocity(self.alt)
+		A["vert"] = A["vert_eff"] = average(A["vert"], A_prev["vert"]) - bigG(self.V["horiz"], orbitalV) #does vertA equal vertA_eff?
 		self.A = A
 	def updateVertV(self, time_inc):
 		self.V["vert_inc"] = self.A["vert_eff"] * time_inc * ACCEL_OF_GRAVITY
 
 	def getAirSpeed(self):
 		return pythag(self.V["vert"], self.V["horiz"])
+
+	def getTotalThrust(self):
+		totalThrust = 0
+		for engine in self.engines:
+			totalThrust += engine.thrustAtAlt(self.alt)
+		self.totalThrust = totalThrust
+		return totalThrust
+
+	def burnFuel(self, time_inc):
+		for engine in self.engines:
+			 engine.burnFuel(self.alt, time_inc)
+
+	def getTotalFuelUsed(self):
+		fuelUsed = 0
+		for engine in self.engines:
+			fuelUsed += engine.fuelUsed
+		return fuelUsed

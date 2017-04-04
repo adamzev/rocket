@@ -1,8 +1,10 @@
 import math
+import logging
 from rocketEngine import *
 from vehicle import *
 from generalEquations import *
-
+from util import *
+log = logging.basicConfig(level=logging.INFO)
 
 engineData = [
 	{
@@ -44,15 +46,14 @@ HLV = Vehicle("HLV * 4-6/2-6 MK: 3-30 Ver: 03-27-2017", 15674000, 1.204)
 for engine in engineData:
 	HLV.attachEngine(engine)
 
-
-
-for altitude in range (0, 30000, 1000):
-	patm  = percentOfAtmosphericPressure(altitude)
-	pctVac = 1 - patm
-	print ("{} : Perc ATM {}, OV {}".format(altitude, patm, orbitalVelocity(altitude)))
-	for engine in HLV.engines:
-		thrust_alt = engine.thrustAtAlt(altitude)
-		print("{}: {}".format(engine.name, thrust_alt))
+def showPatmAndThrustAtAlts(minAlt, maxAlt, step):
+	for altitude in range (minAlt, maxAlt+1, stepBy):
+		patm  = percentOfAtmosphericPressure(altitude)
+		pctVac = 1 - patm
+		print ("{} : Perc ATM {}, OV {}".format(altitude, patm, orbitalVelocity(altitude)))
+		for engine in HLV.engines:
+			thrust_alt = engine.thrustAtAlt(altitude)
+			print("{}: {}".format(engine.name, thrust_alt))
 
 
 alt = 0.0
@@ -70,48 +71,74 @@ for engine in  HLV.engines:
 	engine.setThrottle(0.95)
 
 i = 1
+table_data = []
+
+headerRow = ["Time", "Alt"]
+
+for key, value in HLV.V.iteritems():
+	headerRow.append("V_" + str(key))
+for key, value in HLV.A.iteritems():
+	headerRow.append("A_" + str(key))
+
+headerRow.append("Fuel Used")
+headerRow.append("Thrust")
+headerRow.append("W")
+table_data.append(headerRow)
+
 while (time <= endTime):
+	row = []
+	row.append(time)
 	HLV.updatePrev() #sets all "prev" variables
-	HLV.updateAlt(time_inc)
+
 	HLV.updateIncVertV()
 	HLV.updateVertA()
 	HLV.updateVertV(time_inc)
 
-	print ("Time {} :Alt {}".format(time, HLV.alt)),
-	for key, value in HLV.V.iteritems():
-		print "V:",
-		print("{}: {}".format(key,value)),
-	for key, value in HLV.A.iteritems():
-		print "A:",
-		print("{}: {}".format(key,value)),
 
-	print ""
 	# ***************THRUST*****************
 	totalThrust = 0
-	for engine in  HLV.engines:
-		thrust_alt = engine.thrustAtAlt(alt)
-		totalThrust += thrust_alt
-	# up to Solid Rocket Booster Thrust (TSRB)
+
+	totalThrust = HLV.getTotalThrust()
+	HLV.burnFuel(time_inc)
+	fuelUsed = HLV.getTotalFuelUsed()
+
 
 	HLV.getAirSpeed()
 
 	K = HLV.adc_K
-	ADC = ((HLV.getAirSpeed() / 1000.0)**2) * patm * K # with resultant ADC in  "g" units
+	ADC = ((HLV.getAirSpeed() / 1000.0)**2) * percentOfAtmosphericPressure(alt) * K # with resultant ADC in  "g" units
 	HLV.updateWeight(time_inc)
 	totalWeight = HLV.currentWeight
 	totalA = totalThrust / totalWeight
 
 	# A = pythag(horizA, vertA)
 	A = totalA - ADC
-	'''   *** How much of the A is vert and how much is horiz? Right now assuming all vert '''
-	vertA = A
-	horizA = 0
+	print A
+	''' MOVE TO CLASS '''
+	if A > 0.6 + bigG(HLV.V['horiz'], HLV.orbitalV):
+		HLV.A["vert"] = vertA = 0.6 + bigG(HLV.V['horiz'], HLV.orbitalV)
+	else:
+		HLV.A["vert"] = A
+	HLV.A["horiz"] = math.sqrt(A**2 - HLV.A["vert"]**2)
 
+	HLV.updateAlt(time_inc)
+	row.append("{:.1f}".format(HLV.alt))
 
+	for key, value in HLV.V.iteritems():
+		row.append("{:.1f}".format(value))
+	for key, value in HLV.A.iteritems():
+		row.append("{:.1f}".format(value))
+	row.append("{:.1f}".format(fuelUsed))
 
+	row.append("{:.1f}".format(totalThrust))
+	row.append("{:.1f}".format(totalWeight))
+	table_data.append(row)
 	if time < 24:
 		pass
 
 
 	i +=1
 	time += time_inc
+printTable(table_data)
+
+#showPatmAndThrustAtAlts(0, 30000, 1000)

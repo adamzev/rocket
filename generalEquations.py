@@ -61,5 +61,5 @@ ______________________________________________________________________
 _________________________________________________________________________
 '''
 
-def gravity(horizontalVelocity, orbitalVelocity):
+def bigG(horizontalVelocity, orbitalVelocity):
   return 1 - ( (horizontalVelocity / orbitalVelocity)**2 )
