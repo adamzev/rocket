@@ -8,32 +8,67 @@ log = logging.basicConfig(level=logging.INFO)
 
 engineData = [
 	{
+		"name": "SRM",
+		"thrust_sl"  : 3600000.0,
+		"thrust_vac" : 3600000.0,
+		"throt" : 1.0,
+		"engine_count" : 4.0,
+		"specImp_sl" : 242.00,
+		"specImp_vac" : 268.20,
+		"thrust_controlled" : True
+	},
+	{
 		"name": "RD-171",
 		"thrust_sl"  : 1632000.0,
 		"thrust_vac" : 1777000.0,
 		"throt" : 1.0,
-		"engine_count" : 1.0,
+		"engine_count" : 6.0,
 		"specImp_sl" : 309.68,
 		"specImp_vac" : 337.19
+	},
+	{
+		"name": "RS-68A",
+		"thrust_sl"  : 702000.0,
+		"thrust_vac" : 797000.0,
+		"throt" : 1.0,
+		"engine_count" : 2.0,
+		"burn_rate" : 1924.0#only need burn rate not specIn
 	},
 	{
 		"name": "SSME",
 		"thrust_sl"  : 418130.0,
 		"thrust_vac" : 512410.0,
 		"throt" : 0.95,
+		"engine_count" : 6.0,
+		"burn_rate" : 1129.0
+	},
+	{
+		"name": "RL-10A4-2",
+		"thrust_sl"  : 22300.0,
+		"thrust_vac" : 22300.0,
+		"throt" : 0.95,
 		"engine_count" : 1.0,
 		"specImp_sl" : 370.35,
 		"specImp_vac" : 453.86
 	},
 	{
-		"name": "SRB",
-		"thrust_sl"  : 3600000.0,
-		"thrust_vac" : 3600000.0,
-		"throt" : 1.0,
-		"engine_count" : 1.0,
-		"specImp_sl" : 242.00,
-		"specImp_vac" : 268.20
-	}
+		"name": "OME",
+		"thrust_sl"  : 6002.0,
+		"thrust_vac" : 6002.0,
+		"throt" : 0.95,
+		"engine_count" : 2.0,
+		"specImp_sl" : 370.35,
+		"specImp_vac" : 453.86
+	},
+	{
+		"name": "GE90-115B",
+		"thrust_sl"  : 115300.0,
+		"thrust_vac" : 115300.0,
+		"throt" : 0.95,
+		"engine_count" : 3.0,
+		"specImp_sl" : 370.35,
+		"specImp_vac" : 453.86
+	},
 ]
 
 data = {'rec1': {'col1': 99.88, 'col2': 108.79, 'label': 'rec1'},
@@ -61,11 +96,6 @@ time = 0.0
 endTime = 10.0
 time_inc = 1.0
 
-def hello():
-    return "Hello, World!"
-
-
-
 
 for engine in  HLV.engines:
 	engine.setThrottle(0.95)
@@ -87,39 +117,22 @@ table_data.append(headerRow)
 
 while (time <= endTime):
 	row = []
+
 	row.append(time)
 	HLV.updatePrev() #sets all "prev" variables
-
-	HLV.updateIncVertV()
-	HLV.updateVertA()
-	HLV.updateVertV(time_inc)
-
-
-	# ***************THRUST*****************
-	totalThrust = 0
-
+	# GUESS AERO DRAG (see how much your previous guess was off, and sub or add)
 	totalThrust = HLV.getTotalThrust()
 	HLV.burnFuel(time_inc)
 	fuelUsed = HLV.getTotalFuelUsed()
 
+#	HLV.getAirSpeed()
 
-	HLV.getAirSpeed()
-
-	K = HLV.adc_K
-	ADC = ((HLV.getAirSpeed() / 1000.0)**2) * percentOfAtmosphericPressure(alt) * K # with resultant ADC in  "g" units
 	HLV.updateWeight(time_inc)
-	totalWeight = HLV.currentWeight
-	totalA = totalThrust / totalWeight
-
-	# A = pythag(horizA, vertA)
-	A = totalA - ADC
-	print A
-	''' MOVE TO CLASS '''
-	if A > 0.6 + bigG(HLV.V['horiz'], HLV.orbitalV):
-		HLV.A["vert"] = vertA = 0.6 + bigG(HLV.V['horiz'], HLV.orbitalV)
-	else:
-		HLV.A["vert"] = A
-	HLV.A["horiz"] = math.sqrt(A**2 - HLV.A["vert"]**2)
+	HLV.updateA()
+	HLV.updateVertA()
+	HLV.updateHorizA()
+	HLV.updateIncVertV()
+	HLV.updateVertV(time_inc)
 
 	HLV.updateAlt(time_inc)
 	row.append("{:.1f}".format(HLV.alt))
@@ -131,7 +144,7 @@ while (time <= endTime):
 	row.append("{:.1f}".format(fuelUsed))
 
 	row.append("{:.1f}".format(totalThrust))
-	row.append("{:.1f}".format(totalWeight))
+	row.append("{:.1f}".format(HLV.currentWeight))
 	table_data.append(row)
 	if time < 24:
 		pass

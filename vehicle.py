@@ -8,13 +8,15 @@ class Vehicle:
 	V_prev = V = {
 		"vert" : 0.0,
 		"vert_inc" : 0.0,
-		"horiz" : 0.0,
+		"horiz" : 912.67,
 	}
 
 	A_prev = A = {
 		"vert_eff" : 0.0,
 		"vert" : 0.0,
-		"horiz" : 0.0
+		"horiz" : 0.0,
+		"total" : 0.0,
+		"total_eff" : 0.0
 	}
 
 
@@ -55,13 +57,35 @@ class Vehicle:
 	def updateIncVertV(self):
 		self.V['vert'] = self.V_prev['vert'] + self.V_prev['vert_inc']
 
+	def updateA(self):
+		ADC = ((self.getAirSpeed() / 1000.0)**2) * percentOfAtmosphericPressure(self.alt) * self.adc_K  # with resultant ADC in  "g" units
+		totalA = self.totalThrust / self.currentWeight
+		self.A["total"] = totalA
+		self.A["total_eff"] = totalA - ADC
+
+
 	def updateVertA(self):
 		A = self.A
 		A_prev = self.A_prev
 		orbitalV = orbitalVelocity(self.alt)
 		self.orbitalV = orbitalVelocity(self.alt)
-		A["vert"] = A["vert_eff"] = average(A["vert"], A_prev["vert"]) - bigG(self.V["horiz"], orbitalV) #does vertA equal vertA_eff?
+		A["vert"] = 1.6
+		avgVertV = average(A["vert"], A_prev["vert"])
+		if avgVertV<= 0:
+			avgVertV = A["total"]
+		A["vert_eff"] = avgVertV - bigG(self.V["horiz"], orbitalV) #does vertA equal vertA_eff?
+		print("A: total {}, A: vert {}".format(A['total'], A['vert']))
 		self.A = A
+	def updateHorizA(self):
+		'''if self.A["total"]**2 >= self.A["vert"]**2:
+			self.A["horiz"] = math.sqrt(self.A["total"]**2 - self.A["vert"]**2)
+		else:
+			self.A["horiz"] = 0
+			logging.debug("ERROR: VertA is greater than total A: A: {} A vert: {} ".format(self.A["total"], self.A["vert"]))
+			'''
+		self.A["horiz"] = 0
+
+
 	def updateVertV(self, time_inc):
 		self.V["vert_inc"] = self.A["vert_eff"] * time_inc * ACCEL_OF_GRAVITY
 
