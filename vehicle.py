@@ -2,31 +2,27 @@ from rocketEngine import *
 from generalEquations import *
 
 class Vehicle:
-	alt = 0
-	orbitalV = 0
-	#VELOCITY
-	V_prev = V = {
-		"vert" : 0.0,
-		"vert_inc" : 0.0,
-		"horiz" : 912.67,
-	}
-
-	A_prev = A = {
-		"vert_eff" : 0.0,
-		"vert" : 0.0,
-		"horiz" : 0.0,
-		"total" : 0.0,
-		"total_eff" : 0.0
-	}
-
-
-	engines = []
 
 	def __init__(self, name, initialWeight, adc_K):
 		self.name = name
 		self.initialWeight = initialWeight
 		self.currentWeight = initialWeight
 		self.adc_K = adc_K
+		self.engines = []
+		self.alt = 30.0
+		self.orbitalV = 0
+		self.A_prev = self.A = {
+			"vert_eff" : 0.0,
+			"vert" : 0.0,
+			"horiz" : 0.0,
+			"total" : 0.0,
+			"total_eff" : 0.0
+		}
+		self.V_prev = self.V = {
+			"vert" : 0.0,
+			"vert_inc" : 0.0,
+			"horiz" : 912.67,
+		}
 
 	def setAlt(self, alt):
 		self.alt = alt
@@ -51,8 +47,7 @@ class Vehicle:
 		fuelBurn = 0.0
 		for engine in self.engines:
 			fuelUsed += engine.fuelUsed
-			fuelBurn += engine.fuelBurnRate(self.alt) * time_inc
-		self.currentWeight = self.initialWeight - fuelUsed - fuelBurn
+		self.currentWeight = self.initialWeight - fuelUsed
 
 	def updateIncVertV(self):
 		self.V['vert'] = self.V_prev['vert'] + self.V_prev['vert_inc']
@@ -64,17 +59,16 @@ class Vehicle:
 		self.A["total_eff"] = totalA - ADC
 
 
-	def updateVertA(self):
+	def updateVertA(self, assignedA):
 		A = self.A
 		A_prev = self.A_prev
 		orbitalV = orbitalVelocity(self.alt)
 		self.orbitalV = orbitalVelocity(self.alt)
-		A["vert"] = 1.6
+		A["vert"] = assignedA
 		avgVertV = average(A["vert"], A_prev["vert"])
 		if avgVertV<= 0:
 			avgVertV = A["total"]
-		A["vert_eff"] = avgVertV - bigG(self.V["horiz"], orbitalV) #does vertA equal vertA_eff?
-		print("A: total {}, A: vert {}".format(A['total'], A['vert']))
+		A["vert_eff"] = avgVertV - bigG(self.V["horiz"], orbitalV) 
 		self.A = A
 	def updateHorizA(self):
 		'''if self.A["total"]**2 >= self.A["vert"]**2:
@@ -101,10 +95,23 @@ class Vehicle:
 
 	def burnFuel(self, time_inc):
 		for engine in self.engines:
-			 engine.burnFuel(self.alt, time_inc)
+			 engine.burnFuel(time_inc)
 
 	def getTotalFuelUsed(self):
 		fuelUsed = 0
 		for engine in self.engines:
 			fuelUsed += engine.fuelUsed
 		return fuelUsed
+
+	def setEngineThrottle(self, engineName, throt):
+		for engine in  self.engines:
+			if engine.name == engineName:
+				if throt == "max":
+					engine.setThrottle(engine.max_throt)
+				else:
+					engine.setThrottle(throt)
+
+	def getEngineThrottle(self, engineName):
+		for engine in  self.engines:
+			if engine.name == engineName:
+				return engine.throt

@@ -9,32 +9,76 @@
 }
 
 
-engines = [
+engineData = [
 	{
-		"name": "RD-171",
+		"name": "SRM",
+		"thrust_sl"  : 3600000.0,
+		"thrust_vac" : 3600000.0,
+		"min_throt" : 0.56,
+		"max_throt" : 1.0,
+		"engine_count" : 4.0,
+		"burn_rate" : 59504.13,
+		"thrust_controlled" : "True"
+	},
+	{
+		"name": "RD-171M",
 		"thrust_sl"  : 1632000.0,
 		"thrust_vac" : 1777000.0,
-		"throt" : 1.0,
-		"engine_count" : 1.0,
-		"specImp_sl" : 309.68,
-		"specImp_vac" : 337.19
+		"min_throt" : 0.56,
+		"max_throt" : 1.0,
+		"engine_count" : 8.0,
+		"burn_rate" : 5270.0,
+	},
+	{
+		"name": "RD-180",
+		"thrust_sl"  : 861270.0,
+		"thrust_vac" : 934245.0,
+		"min_throt" : 0.40,
+		"max_throt" : 1.0,
+		"engine_count" : 6.0,
+		"burn_rate" : 2770.0
+	},
+	{
+		"name": "RS-68A",
+		"thrust_sl"  : 702000.0,
+		"thrust_vac" : 797000.0,
+		"max_throt" : 1.0,
+		"engine_count" : 2.0,
+		"burn_rate" : 1924.0
 	},
 	{
 		"name": "SSME",
 		"thrust_sl"  : 418130.0,
 		"thrust_vac" : 512410.0,
-		"throt" : 0.95,
+		"min_throt" : 0.40,
+		"max_throt" : 0.95,
+		"engine_count" : 6.0,
+		"burn_rate" : 1129.0
+	},
+	{
+		"name": "RL-10A4-2",
+		"thrust_sl"  : 22300.0,
+		"thrust_vac" : 22300.0,
+		"max_throt" : 0.95,
 		"engine_count" : 1.0,
+		"burn_rate" : 494457.0
+	},
+	{
+		"name": "OME",
+		"thrust_sl"  : 6002.0,
+		"thrust_vac" : 6002.0,
+		"max_throt" : 0.95,
+		"engine_count" : 2.0,
+		"burn_rate" : 18.993671,
+	},
+	{
+		"name": "GE90-115B",
+		"thrust_sl"  : 115300.0,
+		"thrust_vac" : 115300.0,
+		"max_throt" : 0.95,
+		"engine_count" : 3.0,
+		"burn_rate" : 8.0069444,
 		"specImp_sl" : 370.35,
 		"specImp_vac" : 453.86
 	},
-	{
-		"name": "SRB",
-		"thrust_sl"  : 3600000.0,
-		"thrust_vac" : 3600000.0,
-		"throt" : 1.0,
-		"engine_count" : 1.0,
-		"specImp_sl" : 242.00,
-		"specImp_vac" : 268.20
-	}
 ]
