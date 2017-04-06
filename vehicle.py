@@ -23,6 +23,9 @@ class Vehicle:
 			"vert_inc" : 0.0,
 			"horiz" : 912.67,
 		}
+		self.ADC_predicted = [0.0]
+		self.ADC_actual = [0.0]
+		self.orbitalV = orbitalVelocity(self.alt)
 
 	def setAlt(self, alt):
 		self.alt = alt
@@ -52,23 +55,26 @@ class Vehicle:
 	def updateIncVertV(self):
 		self.V['vert'] = self.V_prev['vert'] + self.V_prev['vert_inc']
 
-	def updateA(self):
-		ADC = ((self.getAirSpeed() / 1000.0)**2) * percentOfAtmosphericPressure(self.alt) * self.adc_K  # with resultant ADC in  "g" units
+	def updateA(self, predictedADC):
+		self.ADC_actual.append(((self.getAirSpeed() / 1000.0)**2) * percentOfAtmosphericPressure(self.alt) * self.adc_K)  # with resultant ADC in  "g" units
+		self.ADC_predicted.append(predictedADC)
+		error = prev(self.ADC_predicted) - current(self.ADC_actual)
 		totalA = self.totalThrust / self.currentWeight
 		self.A["total"] = totalA
-		self.A["total_eff"] = totalA - ADC
+		self.A["total_eff"] = totalA - predictedADC + error
 
 
-	def updateVertA(self, assignedA):
+	def updateVertA(self, assignedA_vert):
 		A = self.A
 		A_prev = self.A_prev
+
 		orbitalV = orbitalVelocity(self.alt)
 		self.orbitalV = orbitalVelocity(self.alt)
-		A["vert"] = assignedA
+		A["vert"] = assignedA_vert
 		avgVertV = average(A["vert"], A_prev["vert"])
 		if avgVertV<= 0:
 			avgVertV = A["total"]
-		A["vert_eff"] = avgVertV - bigG(self.V["horiz"], orbitalV) 
+		A["vert_eff"] = avgVertV - bigG(self.V["horiz"], orbitalV)
 		self.A = A
 	def updateHorizA(self):
 		'''if self.A["total"]**2 >= self.A["vert"]**2:
@@ -103,13 +109,21 @@ class Vehicle:
 			fuelUsed += engine.fuelUsed
 		return fuelUsed
 
-	def setEngineThrottle(self, engineName, throt):
+	def setEngineThrottleOverride(self, engineName, throt):
 		for engine in  self.engines:
 			if engine.name == engineName:
 				if throt == "max":
-					engine.setThrottle(engine.max_throt)
+					engine.setThrottleOverride(engine.max_throt)
 				else:
-					engine.setThrottle(throt)
+					engine.setThrottleOverride(throt)
+
+	def setEngineThrottle(self, engineName, throt, time_inc):
+		for engine in  self.engines:
+			if engine.name == engineName:
+				if throt == "max":
+					engine.setThrottle(engine.max_throt, time_inc)
+				else:
+					engine.setThrottle(throt, time_inc)
 
 	def getEngineThrottle(self, engineName):
 		for engine in  self.engines:

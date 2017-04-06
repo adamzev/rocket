@@ -14,6 +14,10 @@ engineData = [
 		"min_throt" : 0.56,
 		"max_throt" : 1.0,
 		"engine_count" : 4.0,
+		"lbm_dry" : 20503,
+		"fuel" : 5932224.827,
+		"residual" : 0.015,
+		"throt_rate_of_change_limit" : 0.15,
 		"burn_rate" : 14876.0325,
 		"thrust_controlled" : True
 	},
@@ -21,8 +25,12 @@ engineData = [
 		"name": "RD-171M",
 		"thrust_sl"  : 1632000.0,
 		"thrust_vac" : 1777000.0,
+		"lbm_dry" : 20503,
+		"fuel" : 5932224.827,
 		"min_throt" : 0.56,
 		"max_throt" : 1.0,
+		"residual" : 0.015,
+		"throt_rate_of_change_limit" : 0.15,
 		"engine_count" : 8.0,
 		"burn_rate" : 5270.0,
 	},
@@ -30,18 +38,26 @@ engineData = [
 		"name": "RD-180",
 		"thrust_sl"  : 861270.0,
 		"thrust_vac" : 934245.0,
+		"lbm_dry" : 20503,
+		"fuel" : 5932224.827,
 		"min_throt" : 0.40,
 		"max_throt" : 0.95,
 		"engine_count" : 6.0,
-		"burn_rate" : 2770.0
+		"burn_rate" : 2770.0,
+		"residual" : 0.015,
+		"throt_rate_of_change_limit" : 0.15,
 	},
 	{
 		"name": "GE90-115B",
 		"thrust_sl"  : 115300.0,
 		"thrust_vac" : 115300.0,
+		"lbm_dry" : 20503,
+		"fuel" : 5932224.827,
 		"max_throt" : 0.95,
 		"engine_count" : 3.0,
 		"burn_rate" : 8.0069444,
+		"residual" : 0.015,
+		"throt_rate_of_change_limit" : 0.15,
 		"specImp_sl" : 370.35,
 		"specImp_vac" : 453.86
 	},
@@ -49,8 +65,12 @@ engineData = [
 		"name": "SSME",
 		"thrust_sl"  : 418130.0,
 		"thrust_vac" : 512410.0,
+		"lbm_dry" : 20503,
+		"fuel" : 5932224.827,
 		"min_throt" : 0.40,
 		"max_throt" : 0.95,
+		"residual" : 0.015,
+		"throt_rate_of_change_limit" : 0.15,
 		"engine_count" : 9.0,
 		"burn_rate" : 1129.0
 	},
@@ -58,7 +78,11 @@ engineData = [
 		"name": "RL-10A4-2",
 		"thrust_sl"  : 22300.0,
 		"thrust_vac" : 22300.0,
+		"lbm_dry" : 20503,
+		"fuel" : 5932224.827,
 		"max_throt" : 0.95,
+		"residual" : 0.015,
+		"throt_rate_of_change_limit" : 0.15,
 		"engine_count" : 3.0,
 		"burn_rate" : 49.4457
 	},
@@ -66,7 +90,11 @@ engineData = [
 		"name": "OME",
 		"thrust_sl"  : 6002.0,
 		"thrust_vac" : 6002.0,
+		"lbm_dry" : 20503,
+		"fuel" : 5932224.827,
 		"max_throt" : 0.95,
+		"residual" : 0.015,
+		"throt_rate_of_change_limit" : 0.15,
 		"engine_count" : 3.0,
 		"burn_rate" : 18.993671,
 	},
@@ -102,10 +130,10 @@ table_data = []
 def setInitialConditions():
 	for i in range(2):
 		# set each weight twice to set average weight
-		HLV.setEngineThrottle("RD-180", "max")
-		HLV.setEngineThrottle("SSME", "max")
-		HLV.setEngineThrottle("RD-171M", 0.56)
-		HLV.setEngineThrottle("SRM", "max")
+		HLV.setEngineThrottleOverride("RD-180", "max")
+		HLV.setEngineThrottleOverride("SSME", "max")
+		HLV.setEngineThrottleOverride("RD-171M", 0.56)
+		HLV.setEngineThrottleOverride("SRM", "max")
 
 
 
@@ -115,19 +143,21 @@ def thrustWeightAccelLoop():
 	totalThrust = HLV.getTotalThrust()
 	edRow(big_G, V_vert_inc, time,totalWeight, totalA, V_horiz, V_as, A_v, A_h, V_vert, HLV.alt, totalThrust)
 	time = 0
+	#time_inc = float(raw_input("Enter the time inc:"))
+	time_inc = 1.0
 	while True:
-		time_inc = float(raw_input("Enter the time inc:"))
-		throt = float(raw_input("Enter the RD-171 throt:"))
 
-		HLV.setEngineThrottle("RD-171M", throt)
-		#HLV.alt = float(raw_input("Enter the alt:"))
+
+		HLV.setEngineThrottle("RD-171M", "max", time_inc)
 		totalThrust = HLV.getTotalThrust()
 
-		edRow(big_G, HLV.V['vert_inc'], time,HLV.currentWeight, HLV.A['total'], HLV.V['horiz'], V_as, HLV.A['vert_eff'], HLV.A['horiz'], HLV.V['vert'], HLV.alt, totalThrust)
+		edRow(bigG(HLV.V["horiz"], HLV.orbitalV), HLV.V['vert_inc'], time,HLV.currentWeight, HLV.A['total'], HLV.V['horiz'], HLV.getAirSpeed(), HLV.A['vert_eff'], HLV.A['horiz'], HLV.V['vert'], HLV.alt, totalThrust)
 		HLV.burnFuel(time_inc)
 		#fuelUsed = HLV.getTotalFuelUsed()
 		HLV.updateWeight(time_inc)
-		HLV.updateA()
+
+		predictedADC = float(raw_input("Predict ADC:"))
+		HLV.updateA(predictedADC)
 		HLV.updateVertA(HLV.A['total'])
 		HLV.updateHorizA()
 		HLV.updateIncVertV()

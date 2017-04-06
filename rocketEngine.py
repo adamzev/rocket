@@ -1,14 +1,34 @@
 import logging
 from generalEquations import *
+from util import *
 class RocketEngine:
 	def __init__(self, engineStats):
 		self.throt = [0.0]
 		self.fuelUsed = 0.0
 		for key, value in engineStats.iteritems():
 			setattr(self, key, value)
+		self.usable_fuel = (1.0/ (1.0+self.residual)) * self.fuel
 
-	def setThrottle(self, perc):
-		self.throt.append(perc)
+	def setThrottleOverride(self, requested_throt):
+		# allows setting throttle without powering up the engine
+		self.throt.append(requested_throt)
+
+
+	def setThrottle(self, requested_throt, time_inc):
+		#Limit the throttle to its max change limit
+		if abs(requested_throt - current(self.throt)) > (self.throt_rate_of_change_limit * time_inc):
+			# requested_throt/math.abs(requested_throt returns 1 for pos and -1 for neg changes
+			throt = current(self.throt) + time_inc * self.throt_rate_of_change_limit * (requested_throt/abs(requested_throt))
+		else:
+			throt = requested_throt
+		if throt > self.max_throt:
+			logging.info("Max Throt achieved for {}".format(self.name))
+			self.throt.append(self.max_throt)
+		elif throt < self.min_throt:
+			logging.info("{} Engine shutoff".format(self.name))
+			self.throt.append(0)
+		else:
+			self.throt.append(throt)
 
 	def thrustAtAlt(self, alt):
 		patm = percentOfAtmosphericPressure(alt)
@@ -32,11 +52,13 @@ class RocketEngine:
 		self.throt -= lbf / (currentLBF / self.throt)
 	'''
 	def burnFuel(self, time_inc):
-		n = len(self.throt)-1
-		throt_avg = average(self.throt[n], self.throt[n-1])
-		self.fuelUsed += throt_avg * self.burn_rate * self.engine_count
+		throt_avg = average(current(self.throt), prev(self.throt))
+		self.fuelUsed += throt_avg * self.burn_rate * self.engine_count * time_inc
 
-
+	def getUsableFuelRemaining(self):
+		return self.usable_fuel-self.fuelUsed
+	def getFuelRemaining(self):
+		return self.fuel-self.fuelUsed
 
 '''
 	def fuelBurnRate(self, alt):

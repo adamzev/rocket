@@ -1,1 +1,4 @@
-{}
+{
+  "tests/engine_test.py": true, 
+  "tests/main_test.py": true
+}

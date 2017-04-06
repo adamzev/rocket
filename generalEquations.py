@@ -52,6 +52,9 @@ def helloGE():
 def orbitalVelocity(alt):
   return 17683.9567 * ( ( 1.0 / ( 1+ ( alt / 20902230.99 ) ) )** 0.5 )
 
+def mphToFps(mph):
+	return 5280*mph/(60.0*60.0)
+
 def average(*args):
 	return sum(args)/float(len(args))
 
@@ -66,5 +69,5 @@ ______________________________________________________________________
 _________________________________________________________________________
 '''
 
-def bigG(horizontalVelocity, orbitalVelocity):
-  return 1 - ( (horizontalVelocity / orbitalVelocity)**2 )
+def bigG(horizontalVelocity, orbitalV):
+  return 1 - ( (horizontalVelocity / orbitalV)**2 )
