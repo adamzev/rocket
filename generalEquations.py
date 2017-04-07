@@ -55,12 +55,21 @@ def orbitalVelocity(alt):
 def mphToFps(mph):
 	return 5280*mph/(60.0*60.0)
 
+def fpsToMph(fps):
+	return fps*(60.0*60.0)/5280
+
 def average(*args):
 	return sum(args)/float(len(args))
 
 
 def pythag(a, b):
 	return math.sqrt(a**2 + b**2)
+
+def ADC(airSpeed, alt, K):
+	return ((airSpeed / 1000.0)**2) * percentOfAtmosphericPressure(alt) * K  # with resultant ADC in  "g" units
+
+def altitude(alt_prev, V_vert_prev, V_vert_inc, time_inc):
+	return alt_prev + V_vert_prev * time_inc + (V_vert_inc * time_inc) / 2.0
 
 '''
 ______________________________________________________________________

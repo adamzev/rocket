@@ -8,6 +8,10 @@ from rocket import generalEquations as ge
 def almost_equal(x,y,threshold=0.0001):
 	return abs(x-y) < threshold
 
+def accurateToPercent(result, expected,threshold=0.9999):
+	if expected == 0:
+		return result == expected
+	return (1 - abs(result-expected)/expected) > threshold
 
 class GeneralEquationTests(unittest.TestCase):
 	def test_PATM_at_sea_level(self):
@@ -18,6 +22,7 @@ class GeneralEquationTests(unittest.TestCase):
 	def test_PctVac_at_30000(self):
 		PctVac = 1 - ge.percentOfAtmosphericPressure(30000)
 		assert almost_equal(PctVac, 0.70304, 0.00001)
+		assert accurateToPercent(PctVac, 0.70304)
 
 	def test_pythag(self):
 		self.assertEqual(ge.pythag(3,4),5)
@@ -33,6 +38,7 @@ class GeneralEquationTests(unittest.TestCase):
 
 	def test_orbitalV(self):
 		assert almost_equal(ge.orbitalVelocity(0), 17683.9567, 0.001)
+		assert accurateToPercent(ge.orbitalVelocity(0), 17683.9567)
 
 	def test_orbitalV_3000(self):
 		assert almost_equal(ge.orbitalVelocity(3000), 17682.6878, 0.001)
@@ -50,6 +56,22 @@ class GeneralEquationTests(unittest.TestCase):
 		orbitalV = ge.orbitalVelocity(407030)
 		horizontalVelocity = 11598.89186
 		assert almost_equal(ge.bigG(horizontalVelocity, orbitalV), .561418429, 0.00001)
+
+	def test_altitude(self):
+		alt_prev = 5345
+		V_vert_prev = 438.7465593
+		V_vert_inc = 51.4
+		time_inc = 3
+		assert almost_equal(ge.altitude(alt_prev, V_vert_prev, V_vert_inc, time_inc), 6738, 1)
+
+	def test_ADC(self):
+		airSpeed = 437.057
+		alt = 6738
+		K = 1.832
+		result = 0.272734938
+		assert almost_equal(ge.ADC(airSpeed, alt, K), result, 0.0001)
+		assert accurateToPercent(ge.ADC(airSpeed, alt, K), result)
+
 
 if __name__ == '__main__':
 	unittest.main()

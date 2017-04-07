@@ -102,7 +102,7 @@ engineData = [
 ]
 
 
-HLV = Vehicle("HLV * 4-8/6-9 MK: 3-36 Ver: 08-12-2016", 22191271.27, 1.204)
+HLV = Vehicle("HLV * 4-8/6-9 MK: 3-36 Ver: 08-12-2016", 22191271.27, 1.832)
 
 for engine in engineData:
 	HLV.attachEngine(engine)
@@ -139,45 +139,74 @@ def setInitialConditions():
 
 def thrustWeightAccelLoop():
 
-	time = -1
 	totalThrust = HLV.getTotalThrust()
-	edRow(big_G, V_vert_inc, time,totalWeight, totalA, V_horiz, V_as, A_v, A_h, V_vert, HLV.alt, totalThrust)
 	time = 0
+	time_inc = 1.0
+	predictedADC = 0.0
+	HLV.updateA(predictedADC)
+	HLV.updateVertA(HLV.get_A_total_eff())
+	#HLV.updateHorizA()
+	#HLV.updateIncVertV()
+	HLV.updateVertV()
+	HLV.setEngineThrottle("RD-171M", "max", time_inc)
+	HLV.burnFuel(time_inc)
+	edRow(
+		bigG(HLV.get_V_horiz(), HLV.get_OrbitalV()),
+		HLV.get_V_vert_inc(),
+		time,
+		HLV.get_currentWeight(),
+		HLV.get_A_total(),
+		HLV.get_A_horiz(),
+		HLV.get_airSpeed(),
+		HLV.get_A_vert_eff(),
+		HLV.get_A_horiz(),
+		HLV.get_V_vert(),
+		HLV.get_alt(),
+		totalThrust)
+
 	#time_inc = float(raw_input("Enter the time inc:"))
 	time_inc = 1.0
-	while True:
+	time += time_inc
+	predictedADCs = [0.0, 0.00012, 0.00086, 0.0022, 0.0043]
+	for predictedADC in predictedADCs:
 
 
-		HLV.setEngineThrottle("RD-171M", "max", time_inc)
+
 		totalThrust = HLV.getTotalThrust()
-
-		edRow(bigG(HLV.V["horiz"], HLV.orbitalV), HLV.V['vert_inc'], time,HLV.currentWeight, HLV.A['total'], HLV.V['horiz'], HLV.getAirSpeed(), HLV.A['vert_eff'], HLV.A['horiz'], HLV.V['vert'], HLV.alt, totalThrust)
-		HLV.burnFuel(time_inc)
-		#fuelUsed = HLV.getTotalFuelUsed()
+		HLV.setEngineThrottle("RD-171M", "max", time_inc)
 		HLV.updateWeight(time_inc)
-
-		predictedADC = float(raw_input("Predict ADC:"))
 		HLV.updateA(predictedADC)
-		HLV.updateVertA(HLV.A['total'])
+		HLV.updateVertA(HLV.get_A_total_eff())
 		HLV.updateHorizA()
-		HLV.updateIncVertV()
-		HLV.updateVertV(time_inc)
+		HLV.updateIncVertV(time_inc)
+		HLV.updateVertV()
+
+
+		HLV.burnFuel(time_inc)
+		edRow(
+			bigG(HLV.get_V_horiz(), HLV.get_OrbitalV()),
+			HLV.get_V_vert_inc(),
+			time,
+			HLV.get_currentWeight(),
+			HLV.get_A_total(),
+			HLV.get_A_horiz(),
+			HLV.get_airSpeed(),
+			HLV.get_A_vert_eff(),
+			HLV.get_A_horiz(),
+			HLV.get_V_vert(),
+			HLV.get_alt(),
+			totalThrust)
+		#fuelUsed = HLV.getTotalFuelUsed()
+		#predictedADC = float(raw_input("Predict ADC:"))
 
 		HLV.updateAlt(time_inc)
 
 		time += time_inc
 
-V_vert= alt = big_G = V_vert_inc=  time = totalWeight = totalA = V_horiz =  V_as = A_v= A_h = 0.0
+#V_vert= alt = big_G = V_vert_inc=  time = totalWeight = totalA = V_horiz =  V_as = A_v= A_h = 0.0
 setInitialConditions()
 thrustWeightAccelLoop()
-row = []
 
-
-totalThrust = HLV.getTotalThrust()
-
-row.append("ALT = {:.1f}".format(HLV.alt))
-row.append("T: {:.5f}".format(totalThrust))
-table_data.append(row)
 
 
 

@@ -1,5 +1,6 @@
 from rocketEngine import *
 from generalEquations import *
+from util import *
 
 class Vehicle:
 
@@ -9,29 +10,67 @@ class Vehicle:
 		self.currentWeight = initialWeight
 		self.adc_K = adc_K
 		self.engines = []
-		self.alt = 30.0
+		self.alt = [30.0]
 		self.orbitalV = 0
-		self.A_prev = self.A = {
-			"vert_eff" : 0.0,
-			"vert" : 0.0,
-			"horiz" : 0.0,
-			"total" : 0.0,
-			"total_eff" : 0.0
-		}
-		self.V_prev = self.V = {
-			"vert" : 0.0,
-			"vert_inc" : 0.0,
-			"horiz" : 912.67,
-		}
+		self.A_vert_eff = [0.0]
+		self.A_vert = [0.0]
+		self.A_horiz = [0.0]
+		self.A_total = [0.0]
+		self.A_total_eff = [0.0]
+		self.V_vert = [0.0]
+		self.V_vert_eff = [0.0]
+		self.V_vert = [0.0]
+		self.V_vert_inc = [0.0]
+		self.V_horiz =[912.67]
+		self.V_total = [0.0]
+		self.total_eff = [0.0]
 		self.ADC_predicted = [0.0]
 		self.ADC_actual = [0.0]
-		self.orbitalV = orbitalVelocity(self.alt)
+		self.orbitalV = orbitalVelocity(current(self.alt))
 
-	def setAlt(self, alt):
-		self.alt = alt
+	def set_alt(self, alt):
+		self.alt.append(alt)
+
+
+	def get_alt(self, when = "current"):
+		return get_value(self.alt, when)
+
+	def get_V_horiz(self, when = "current"):
+		return get_value(self.V_horiz, when)
+
+	def get_V_vert_inc(self, when = "current"):
+		return get_value(self.V_vert_inc, when)
+
+	def get_V_vert(self, when = "current"):
+		return get_value(self.V_vert, when)
+
+	def get_OrbitalV(self):
+		return self.orbitalV
+
+	def get_A_total(self, when = "current"):
+		return get_value(self.A_total, when)
+
+	def get_A_total_eff(self, when = "current"):
+		return get_value(self.A_total_eff, when)
+
+	def get_A_horiz(self, when = "current"):
+		return get_value(self.A_horiz, when)
+
+	def get_A_vert(self, when = "current"):
+		return get_value(self.A_vert, when)
+
+
+	def get_A_vert_eff(self, when = "current"):
+		return get_value(self.A_vert_eff, when)
+
+	def get_currentWeight(self):
+		return self.currentWeight
+
+
+
 
 	def updateAlt (self, time_inc):
-		self.alt = self.alt + (self.V_prev['vert'] * time_inc) + ((self.V_prev['vert_inc'] * time_inc) / 2.0 )
+		self.alt.append(altitude(self.get_alt(), self.get_V_vert("prev"), self.get_V_vert_inc(), time_inc))
 
 	def updatePrev(self):
 		self.V_prev = self.V
@@ -52,30 +91,30 @@ class Vehicle:
 			fuelUsed += engine.fuelUsed
 		self.currentWeight = self.initialWeight - fuelUsed
 
-	def updateIncVertV(self):
-		self.V['vert'] = self.V_prev['vert'] + self.V_prev['vert_inc']
+	def updateVertV(self):
+		self.V_vert.append(self.get_V_vert() + self.get_V_vert_inc())
+
+
 
 	def updateA(self, predictedADC):
-		self.ADC_actual.append(((self.getAirSpeed() / 1000.0)**2) * percentOfAtmosphericPressure(self.alt) * self.adc_K)  # with resultant ADC in  "g" units
+		self.ADC_actual.append(ADC(self.get_airSpeed(), self.get_alt(), self.adc_K))  # with resultant ADC in  "g" units
 		self.ADC_predicted.append(predictedADC)
 		error = prev(self.ADC_predicted) - current(self.ADC_actual)
 		totalA = self.totalThrust / self.currentWeight
-		self.A["total"] = totalA
-		self.A["total_eff"] = totalA - predictedADC + error
+		self.A_total.append(totalA)
+		self.A_total_eff.append(totalA - predictedADC + error)
 
 
 	def updateVertA(self, assignedA_vert):
-		A = self.A
-		A_prev = self.A_prev
+		orbitalV = orbitalVelocity(current(self.alt))
+		self.orbitalV = orbitalVelocity(current(self.alt))
+		self.A_vert.append(assignedA_vert)
+		if(len(self.A_vert)>2):
+			avgVertV = average(self.get_A_vert(), self.get_A_vert("prev"))
+		else:
+			avgVertV = self.get_A_vert()
+		self.A_vert_eff.append(avgVertV - bigG(self.get_V_horiz(), orbitalV))
 
-		orbitalV = orbitalVelocity(self.alt)
-		self.orbitalV = orbitalVelocity(self.alt)
-		A["vert"] = assignedA_vert
-		avgVertV = average(A["vert"], A_prev["vert"])
-		if avgVertV<= 0:
-			avgVertV = A["total"]
-		A["vert_eff"] = avgVertV - bigG(self.V["horiz"], orbitalV)
-		self.A = A
 	def updateHorizA(self):
 		'''if self.A["total"]**2 >= self.A["vert"]**2:
 			self.A["horiz"] = math.sqrt(self.A["total"]**2 - self.A["vert"]**2)
@@ -83,19 +122,18 @@ class Vehicle:
 			self.A["horiz"] = 0
 			logging.debug("ERROR: VertA is greater than total A: A: {} A vert: {} ".format(self.A["total"], self.A["vert"]))
 			'''
-		self.A["horiz"] = 0
+		self.A_horiz.append(0)
 
+	def updateIncVertV(self, time_inc):
+		self.V_vert_inc.append(self.get_A_vert_eff() * time_inc * ACCEL_OF_GRAVITY)
 
-	def updateVertV(self, time_inc):
-		self.V["vert_inc"] = self.A["vert_eff"] * time_inc * ACCEL_OF_GRAVITY
-
-	def getAirSpeed(self):
-		return pythag(self.V["vert"], self.V["horiz"])
+	def get_airSpeed(self):
+		return fpsToMph(pythag(self.get_V_vert(), self.get_V_horiz()-912.67))
 
 	def getTotalThrust(self):
 		totalThrust = 0
 		for engine in self.engines:
-			totalThrust += engine.thrustAtAlt(self.alt)
+			totalThrust += engine.thrustAtAlt(self.get_alt())
 		self.totalThrust = totalThrust
 		return totalThrust
 
