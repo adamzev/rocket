@@ -109,11 +109,11 @@ class Vehicle:
 		orbitalV = orbitalVelocity(current(self.alt))
 		self.orbitalV = orbitalVelocity(current(self.alt))
 		self.A_vert.append(assignedA_vert)
-		if(len(self.A_vert)>2):
-			avgVertV = average(self.get_A_vert(), self.get_A_vert("prev"))
+		'''if(len(self.A_vert)>2):
+			avgVertA = average(self.get_A_vert(), self.get_A_vert("prev"))
 		else:
-			avgVertV = self.get_A_vert()
-		self.A_vert_eff.append(avgVertV - bigG(self.get_V_horiz(), orbitalV))
+			avgVertA = self.get_A_vert()'''
+		self.A_vert_eff.append(assignedA_vert - bigG(self.get_V_horiz(), orbitalV))
 
 	def updateHorizA(self):
 		'''if self.A["total"]**2 >= self.A["vert"]**2:
@@ -125,7 +125,8 @@ class Vehicle:
 		self.A_horiz.append(0)
 
 	def updateIncVertV(self, time_inc):
-		self.V_vert_inc.append(self.get_A_vert_eff() * time_inc * ACCEL_OF_GRAVITY)
+		avg_A_vert_eff = average(self.get_A_vert_eff(), self.get_A_vert_eff("prev"))
+		self.V_vert_inc.append(avg_A_vert_eff * time_inc * ACCEL_OF_GRAVITY)
 
 	def get_airSpeed(self):
 		return fpsToMph(pythag(self.get_V_vert(), self.get_V_horiz()-912.67))
