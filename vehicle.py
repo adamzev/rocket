@@ -132,9 +132,9 @@ class Vehicle:
 
 	def updateHorizA(self):
 		try:
-			self.A_horiz.append(math.sqrt(self.get_A_total()**2 - self.get_A_vert()**2))
+			self.A_horiz.append(math.sqrt(self.get_A_total_eff()**2 - self.get_A_vert()**2))
 		except:
-			raise ValueError("Sqrt of negative, A total={} which is > A_vert={}".format(self.get_A_total(), self.get_A_vert()))
+			raise ValueError("Sqrt of negative, A total={} which is > A_vert={}".format(self.get_A_total_eff(), self.get_A_vert()))
 
 	def updateIncVertV(self, time_inc):
 		avg_A_vert_eff = average(self.get_A_vert_eff(), self.get_A_vert_eff("prev"))
