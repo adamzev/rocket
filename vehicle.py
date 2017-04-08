@@ -117,7 +117,7 @@ class Vehicle:
 	def ADC_prediction_report(self, predictedADC, error):
 		print ("Actual ADC={} predictedADC={} error={}".format(self.get_ADC_actual(), predictedADC, error))
 
-	def updateVertA(self, assignedA_vert):
+	def updateVertA(self, assignedA_vert, calcG = True):
 		orbitalV = orbitalVelocity(current(self.alt))
 		self.orbitalV = orbitalVelocity(current(self.alt))
 		self.A_vert.append(assignedA_vert)
@@ -125,16 +125,16 @@ class Vehicle:
 			avgVertA = average(self.get_A_vert(), self.get_A_vert("prev"))
 		else:
 			avgVertA = self.get_A_vert()'''
-		self.A_vert_eff.append(assignedA_vert - bigG(self.get_V_horiz(), orbitalV))
+		if calcG:
+			self.A_vert_eff.append(assignedA_vert - bigG(self.get_V_horiz(), orbitalV))
+		else:
+			self.A_vert_eff.append(assignedA_vert)
 
 	def updateHorizA(self):
-		'''if self.A["total"]**2 >= self.A["vert"]**2:
-			self.A["horiz"] = math.sqrt(self.A["total"]**2 - self.A["vert"]**2)
-		else:
-			self.A["horiz"] = 0
-			logging.debug("ERROR: VertA is greater than total A: A: {} A vert: {} ".format(self.A["total"], self.A["vert"]))
-			'''
-		self.A_horiz.append(0)
+		try:
+			self.A_horiz.append(math.sqrt(self.get_A_total()**2 - self.get_A_vert()**2))
+		except:
+			raise ValueError("Sqrt of negative, A total={} which is > A_vert={}".format(self.get_A_total(), self.get_A_vert()))
 
 	def updateIncVertV(self, time_inc):
 		avg_A_vert_eff = average(self.get_A_vert_eff(), self.get_A_vert_eff("prev"))

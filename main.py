@@ -200,7 +200,16 @@ def simRocket():
 		HLV.setEngineThrottle("RD-171M", "max", time_inc)
 		HLV.updateWeight(time_inc)
 		HLV.updateA(predictedADC)
-		HLV.updateVertA(HLV.get_A_total_eff())
+		assigned_V = raw_input("Enter the assigned A_vert:")
+		if assigned_V == "a" or assigned_V == "all":
+			assigned_V = HLV.get_A_total_eff()
+			HLV.updateVertA(assigned_V)
+		else:
+			assigned_V = float(assigned_V)
+			HLV.updateVertA(assigned_V, False)
+
+
+
 		HLV.updateHorizA()
 		HLV.updateIncVertV(time_inc)
 		HLV.updateVertV()
