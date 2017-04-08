@@ -176,7 +176,8 @@ def initializeRocket():
 def simRocket():
 	time = 1
 	time_inc = 1.0
-	predictedADCs = [0.0, 0.00012, 0.00086, 0.0022, 0.0043, 0.01106, 0.0268, 0.0448, 0.0777, 0.127, 0.171, 0.2148, 0.2798, 0.3239, 0.3615, 0.4135, 0.4147, 0.487,
+
+	predictedADCs = [0.00012, 0.00086, 0.0022, 0.0043, 0.01106, 0.0268, 0.0448, 0.0777, 0.127, 0.171, 0.2148, 0.2798, 0.3239, 0.3615, 0.4135, 0.4147, 0.487,
 		0.5109, 0.5284, 0.5370, 0.5540, 0.5533, 0.555, 0.5515, 0.5376, 0.5222, 0.5016, 0.4678, 0.4739, 0.4359, 0.4089, 0.3864, 0.356, 0.3248, 0.2945]
 	time_incs = [
 		{
@@ -193,10 +194,7 @@ def simRocket():
 		}
 	]
 	for predictedADC in predictedADCs:
-		for timeIncrements in time_incs:
-			if time<timeIncrements["until"]:
-				time_inc = timeIncrements["time_inc"]
-				break
+
 		totalThrust = HLV.getTotalThrust()
 		#HLV.engine_status()
 		HLV.setEngineThrottle("RD-171M", "max", time_inc)
@@ -206,11 +204,15 @@ def simRocket():
 		HLV.updateHorizA()
 		HLV.updateIncVertV(time_inc)
 		HLV.updateVertV()
-
-
+		HLV.updateAlt(time_inc)
+		for timeIncrements in time_incs:
+			if time<timeIncrements["until"]:
+				time_inc = timeIncrements["time_inc"]
+				break
 		HLV.burnFuel(time_inc)
 		printEdRow(time, totalThrust)
-		HLV.updateAlt(time_inc)
+
+
 		time += time_inc
 
 

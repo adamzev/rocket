@@ -11,6 +11,7 @@ class Vehicle:
 		self.adc_K = adc_K
 		self.engines = []
 		self.alt = [30.0]
+		self.ADC_error = [0.0]
 		self.orbitalV = 0
 		self.A_vert_eff = [0.0]
 		self.A_vert = [0.0]
@@ -66,8 +67,14 @@ class Vehicle:
 	def get_currentWeight(self):
 		return self.currentWeight
 
+	def get_ADC_actual(self, when = "current"):
+		return get_value(self.ADC_actual, when)
 
+	def get_ADC_predicted(self, when = "current"):
+		return get_value(self.ADC_predicted, when)
 
+	def get_ADC_error(self, when = "current"):
+		return get_value(self.ADC_error, when)
 
 	def updateAlt (self, time_inc):
 		self.alt.append(altitude(self.get_alt(), self.get_V_vert("prev"), self.get_V_vert_inc(), time_inc))
@@ -99,11 +106,16 @@ class Vehicle:
 	def updateA(self, predictedADC):
 		self.ADC_actual.append(ADC(self.get_airSpeed(), self.get_alt(), self.adc_K))  # with resultant ADC in  "g" units
 		self.ADC_predicted.append(predictedADC)
-		error = prev(self.ADC_predicted) - current(self.ADC_actual)
-		totalA = self.totalThrust / self.currentWeight
-		self.A_total.append(totalA)
-		self.A_total_eff.append(totalA - predictedADC + error)
 
+		self.ADC_error.append(self.get_ADC_predicted("prev") - self.get_ADC_actual())
+		totalA = self.totalThrust / self.currentWeight
+
+		self.A_total.append(totalA)
+		self.A_total_eff.append(totalA - predictedADC + self.get_ADC_error())
+		self.ADC_prediction_report(predictedADC, self.get_ADC_error())
+
+	def ADC_prediction_report(self, predictedADC, error):
+		print ("Actual ADC={} predictedADC={} error={}".format(self.get_ADC_actual(), predictedADC, error))
 
 	def updateVertA(self, assignedA_vert):
 		orbitalV = orbitalVelocity(current(self.alt))
