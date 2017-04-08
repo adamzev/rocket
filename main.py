@@ -18,7 +18,10 @@ engineData = [
 		"fuel" : 5932224.827,
 		"residual" : 0.015,
 		"throt_rate_of_change_limit" : 0.15,
-		"burn_rate" : 14876.0325,
+		"burn_rate" : [14876.0325],
+		"assigned_thrust" : 0.0,
+		"specImp_sl" : 242.00,
+		"specImp_vac" : 268.20,
 		"thrust_controlled" : True
 	},
 	{
@@ -32,7 +35,7 @@ engineData = [
 		"residual" : 0.015,
 		"throt_rate_of_change_limit" : 0.15,
 		"engine_count" : 8.0,
-		"burn_rate" : 5270.0,
+		"burn_rate" : [5270.0],
 	},
 	{
 		"name": "RD-180",
@@ -43,7 +46,7 @@ engineData = [
 		"min_throt" : 0.40,
 		"max_throt" : 0.95,
 		"engine_count" : 6.0,
-		"burn_rate" : 2770.0,
+		"burn_rate" : [2770.0],
 		"residual" : 0.015,
 		"throt_rate_of_change_limit" : 0.15,
 	},
@@ -55,7 +58,7 @@ engineData = [
 		"fuel" : 5932224.827,
 		"max_throt" : 0.95,
 		"engine_count" : 3.0,
-		"burn_rate" : 8.0069444,
+		"burn_rate" : [8.0069444],
 		"residual" : 0.015,
 		"throt_rate_of_change_limit" : 0.15,
 		"specImp_sl" : 370.35,
@@ -72,7 +75,7 @@ engineData = [
 		"residual" : 0.015,
 		"throt_rate_of_change_limit" : 0.15,
 		"engine_count" : 9.0,
-		"burn_rate" : 1129.0
+		"burn_rate" : [1129.0]
 	},
 	{
 		"name": "RL-10A4-2",
@@ -84,7 +87,7 @@ engineData = [
 		"residual" : 0.015,
 		"throt_rate_of_change_limit" : 0.15,
 		"engine_count" : 3.0,
-		"burn_rate" : 49.4457
+		"burn_rate" : [49.4457]
 	},
 	{
 		"name": "OME",
@@ -96,7 +99,7 @@ engineData = [
 		"residual" : 0.015,
 		"throt_rate_of_change_limit" : 0.15,
 		"engine_count" : 3.0,
-		"burn_rate" : 18.993671,
+		"burn_rate" : [18.993671],
 	},
 
 ]
@@ -133,7 +136,8 @@ def setInitialConditions():
 		HLV.setEngineThrottleOverride("RD-180", "max")
 		HLV.setEngineThrottleOverride("SSME", "max")
 		HLV.setEngineThrottleOverride("RD-171M", 0.56)
-		HLV.setEngineThrottleOverride("SRM", "max")
+		HLV.setEngineThrottleOverride("SRM", 1)
+		HLV.setEngineAssignedThrust("SRM", "max")
 
 
 
@@ -172,10 +176,29 @@ def initializeRocket():
 def simRocket():
 	time = 1
 	time_inc = 1.0
-	predictedADCs = [0.0, 0.00012, 0.00086, 0.0022, 0.0043]
+	predictedADCs = [0.0, 0.00012, 0.00086, 0.0022, 0.0043, 0.01106, 0.0268, 0.0448, 0.0777, 0.127, 0.171, 0.2148, 0.2798, 0.3239, 0.3615, 0.4135, 0.4147, 0.487,
+		0.5109, 0.5284, 0.5370, 0.5540, 0.5533, 0.555, 0.5515, 0.5376, 0.5222, 0.5016, 0.4678, 0.4739, 0.4359, 0.4089, 0.3864, 0.356, 0.3248, 0.2945]
+	time_incs = [
+		{
+			"time_inc" : 1.0,
+			"until" : 4.0
+		},
+		{
+			"time_inc" : 2.0,
+			"until" : 6.0
+		},
+		{
+			"time_inc" : 3.0,
+			"until" : 114.0
+		}
+	]
 	for predictedADC in predictedADCs:
+		for timeIncrements in time_incs:
+			if time<timeIncrements["until"]:
+				time_inc = timeIncrements["time_inc"]
+				break
 		totalThrust = HLV.getTotalThrust()
-
+		#HLV.engine_status()
 		HLV.setEngineThrottle("RD-171M", "max", time_inc)
 		HLV.updateWeight(time_inc)
 		HLV.updateA(predictedADC)

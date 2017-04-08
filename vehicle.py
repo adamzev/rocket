@@ -140,7 +140,7 @@ class Vehicle:
 
 	def burnFuel(self, time_inc):
 		for engine in self.engines:
-			 engine.burnFuel(time_inc)
+			 engine.burnFuel(time_inc, self.get_alt())
 
 	def getTotalFuelUsed(self):
 		fuelUsed = 0
@@ -149,22 +149,40 @@ class Vehicle:
 		return fuelUsed
 
 	def setEngineThrottleOverride(self, engineName, throt):
-		for engine in  self.engines:
-			if engine.name == engineName:
-				if throt == "max":
-					engine.setThrottleOverride(engine.max_throt)
-				else:
-					engine.setThrottleOverride(throt)
+		engine = self.findEngine(engineName)
+		if throt == "max":
+			engine.setThrottleOverride(engine.max_throt)
+		else:
+			engine.setThrottleOverride(throt)
 
 	def setEngineThrottle(self, engineName, throt, time_inc):
-		for engine in  self.engines:
-			if engine.name == engineName:
-				if throt == "max":
-					engine.setThrottle(engine.max_throt, time_inc)
-				else:
-					engine.setThrottle(throt, time_inc)
+		engine = self.findEngine(engineName)
+		if throt == "max":
+			engine.setThrottle(engine.max_throt, time_inc)
+		else:
+			engine.setThrottle(throt, time_inc)
+
+	def setEngineAssignedThrust(self, engineName, thrust):
+		engine = self.findEngine(engineName)
+		if thrust == "max":
+			engine.set_assigned_thrust(engine.thrust_sl)
+		else:
+			engine.set_assigned_thrust(thrust)
+
 
 	def getEngineThrottle(self, engineName):
-		for engine in  self.engines:
+		engine = self.findEngine(engineName)
+		return engine.throt
+
+	def findEngine(self, engineName):
+		for engine in self.engines:
 			if engine.name == engineName:
-				return engine.throt
+				return engine
+
+	def engine_status(self, engineName = None):
+		if engineName:
+			engines = [self.findEngine(engineName)]
+		else:
+			engines = self.engines
+		for engine in engines:
+			print "Name: {}\nThrottle: {}\nThrust: {}\nFuel Used: {}".format(engine.name, engine.get_throt(),engine.get_thrust(), engine.get_fuelUsed())

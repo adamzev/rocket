@@ -4,7 +4,9 @@ from util import *
 class RocketEngine:
 	def __init__(self, engineStats):
 		self.throt = [0.0]
+		self.burn_rate = []
 		self.fuelUsed = 0.0
+		self.thrust = [0.0]
 		for key, value in engineStats.iteritems():
 			setattr(self, key, value)
 		self.usable_fuel = (1.0/ (1.0+self.residual)) * self.fuel
@@ -13,8 +15,24 @@ class RocketEngine:
 		# allows setting throttle without powering up the engine
 		self.throt.append(requested_throt)
 
+	def get_fuelUsed(self):
+		return self.fuelUsed
 
-	def setThrottle(self, requested_throt, time_inc):
+	def get_throt(self, when = "current"):
+		return get_value(self.throt, when)
+
+	def get_burn_rate(self, when = "current"):
+		return get_value(self.burn_rate, when)
+
+
+	def get_thrust(self, when = "current"):
+		return get_value(self.thrust, when)
+
+	def set_assigned_thrust(self, thrust):
+		self.assigned_thrust = thrust * self.engine_count
+		self.thrust.append(thrust)
+
+	def setThrottle(self, requested_throt, time_inc = 1):
 		#Limit the throttle to its max change limit
 		if abs(requested_throt - current(self.throt)) > (self.throt_rate_of_change_limit * time_inc):
 			# requested_throt/math.abs(requested_throt returns 1 for pos and -1 for neg changes
@@ -33,9 +51,12 @@ class RocketEngine:
 	def thrustAtAlt(self, alt):
 		patm = percentOfAtmosphericPressure(alt)
 		pctVac = 1 - patm
-		n = len(self.throt)-1
-		self.thrust = self.engine_count * self.throt[n] * (self.thrust_sl + (pctVac * (self.thrust_vac - self.thrust_sl)))
-		return self.thrust
+		try: #if assigned_thrust exists
+			self.thrust.append(self.assigned_thrust)
+			return self.assigned_thrust
+		except:
+			self.thrust.append(self.engine_count * self.get_throt() * (self.thrust_sl + (pctVac * (self.thrust_vac - self.thrust_sl))))
+			return self.get_thrust()
 
 	def reduceThrottlePerc(self, perc):
 		self.throt.append(self.throt - perc)
@@ -51,14 +72,27 @@ class RocketEngine:
 		currentLBF = self.thrustAtAlt(alt)
 		self.throt -= lbf / (currentLBF / self.throt)
 	'''
-	def burnFuel(self, time_inc):
+	def burnFuel(self, time_inc, alt = None):
 		throt_avg = average(current(self.throt), prev(self.throt))
-		self.fuelUsed += throt_avg * self.burn_rate * self.engine_count * time_inc
+
+		try:
+			thrust_controlled = self.thrust_controlled
+			self.burn_rate.append(self.get_thrust()  / self.specific_impulse_at_alt(alt))
+			self.fuelUsed += self.get_burn_rate() * time_inc
+
+		except:
+			self.fuelUsed += throt_avg * self.get_burn_rate() * self.engine_count * time_inc
 
 	def getUsableFuelRemaining(self):
 		return self.usable_fuel-self.fuelUsed
 	def getFuelRemaining(self):
 		return self.fuel-self.fuelUsed
+
+	def specific_impulse_at_alt(self, alt):
+		patm = percentOfAtmosphericPressure(alt)
+		pctVac = 1 - patm
+		return self.specImp_sl + (pctVac * (self.specImp_vac - self.specImp_sl))
+
 
 '''
 	def fuelBurnRate(self, alt):
@@ -70,11 +104,4 @@ class RocketEngine:
 		fuelUsedInc = self.fuelBurnRate(alt) * time_inc
 		self.fuelUsed += self.fuelBurnRate(alt) * time_inc
 		logging.debug("Burn Used by {}: {}, {} total ".format(self.name, fuelUsedInc, self.fuelUsed))
-'''
-
-
-'''	def specificImpulseAtAlt(self, alt):
-		patm = percentOfAtmosphericPressure(alt)
-		pctVac = 1 - patm
-		return self.specImp_sl + (pctVac * (self.specImp_vac - self.specImp_sl))
 '''
