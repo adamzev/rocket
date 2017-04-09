@@ -6,7 +6,7 @@ class RocketEngine:
 		self.throt = [0.0]
 		self.burn_rate = []
 		self.fuelUsed = 0.0
-		self.thrust = [0.0]
+		self.thrust_total = [0.0]
 		for key, value in engineStats.iteritems():
 			setattr(self, key, value)
 		self.usable_fuel = (1.0/ (1.0+self.residual)) * self.fuel
@@ -25,12 +25,15 @@ class RocketEngine:
 		return get_value(self.burn_rate, when)
 
 
-	def get_thrust(self, when = "current"):
-		return get_value(self.thrust, when)
+	def get_thrust_total(self, when = "current"):
+		return get_value(self.thrust_total, when)
 
-	def set_assigned_thrust(self, thrust):
-		self.assigned_thrust = thrust * self.engine_count
-		self.thrust.append(thrust)
+	def get_thrust_per_engine(self, when = "current"):
+		return get_value(self.thrust_total, when) / self.engine_count
+
+
+	def set_assigned_thrust_per_engine(self, thrust):
+		self.thrust_total.append(thrust * self.engine_count)
 
 	def setThrottle(self, requested_throt, time_inc = 1):
 		#Limit the throttle to its max change limit
@@ -51,12 +54,12 @@ class RocketEngine:
 	def thrustAtAlt(self, alt):
 		patm = percentOfAtmosphericPressure(alt)
 		pctVac = 1 - patm
-		try: #if assigned_thrust exists
-			self.thrust.append(self.assigned_thrust)
-			return self.assigned_thrust
+		try: #if thrust controlled
+			thrust_controlled = self.thrust_controlled
+			return self.get_thrust_total()
 		except:
-			self.thrust.append(self.engine_count * self.get_throt() * (self.thrust_sl + (pctVac * (self.thrust_vac - self.thrust_sl))))
-			return self.get_thrust()
+			self.thrust_total.append(self.engine_count * self.get_throt() * (self.thrust_sl + (pctVac * (self.thrust_vac - self.thrust_sl))))
+			return self.get_thrust_total()
 
 	def reduceThrottlePerc(self, perc):
 		self.throt.append(self.throt - perc)
@@ -77,7 +80,7 @@ class RocketEngine:
 
 		try:
 			thrust_controlled = self.thrust_controlled
-			self.burn_rate.append(self.get_thrust()  / self.specific_impulse_at_alt(alt))
+			self.burn_rate.append(self.get_thrust_total()  / self.specific_impulse_at_alt(alt))
 			self.fuelUsed += self.get_burn_rate() * time_inc
 
 		except:

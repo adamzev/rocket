@@ -137,24 +137,24 @@ def setInitialConditions():
 		HLV.setEngineThrottleOverride("SSME", "max")
 		HLV.setEngineThrottleOverride("RD-171M", 0.56)
 		HLV.setEngineThrottleOverride("SRM", 1)
-		HLV.setEngineAssignedThrust("SRM", "max")
+		HLV.setEngineAssignedThrustPerEngine("SRM", "max")
 
 
 
-def printEdRow(time, totalThrust):
+def printEdRow(time):
 	edRow(
-		bigG(HLV.get_V_horiz(), HLV.get_OrbitalV()),
+		bigG(HLV.get_V_horiz_mph(), HLV.get_OrbitalV()),
 		HLV.get_V_vert_inc(),
 		time,
 		HLV.get_currentWeight(),
 		HLV.get_A_total(),
-		HLV.get_A_horiz(),
+		HLV.get_V_horiz_mph(),
 		HLV.get_airSpeed(),
 		HLV.get_A_vert_eff(),
 		HLV.get_A_horiz(),
 		HLV.get_V_vert(),
 		HLV.get_alt(),
-		totalThrust)
+		HLV.getTotalThrust())
 
 
 def initializeRocket():
@@ -165,10 +165,10 @@ def initializeRocket():
 	predictedADC = 0.0
 	HLV.updateA(predictedADC)
 	HLV.updateVertA(HLV.get_A_total_eff())
-	HLV.updateVertV()
+	HLV.update_V_vert()
 	HLV.setEngineThrottle("RD-171M", "max", time_inc)
 	HLV.burnFuel(time_inc)
-	printEdRow(time, totalThrust)
+	printEdRow(time)
 	#time_inc = float(raw_input("Enter the time inc:"))
 	time_inc = 1.0
 	time += time_inc
@@ -177,8 +177,13 @@ def simRocket():
 	time = 1
 	time_inc = 1.0
 
-	predictedADCs = [0.00012, 0.00086, 0.0022, 0.0043, 0.01106, 0.0268, 0.0448, 0.0777, 0.127, 0.171, 0.2148, 0.2798, 0.3239, 0.3615, 0.4135, 0.4147, 0.487,
-		0.5109, 0.5284, 0.5370, 0.5540, 0.5533, 0.555, 0.5515, 0.5376, 0.5222, 0.5016, 0.4678, 0.4739, 0.4359, 0.4089, 0.3864, 0.356, 0.3248, 0.2945]
+	predictedADCs = [0.00012, 0.00086, 0.0022, 0.0043, 0.01106, 0.0268, 0.0448, 0.0777, 0.127, 0.171, 0.2148, 0.2798, 0.3239, 0.3615, 0.4135, 0.4497, 0.487,
+		0.5109, 0.5284, 0.5370, 0.5540, 0.5533, 0.555, 0.5515, 0.5376, 0.5222, 0.5016, 0.4678, 0.4739, 0.4359, 0.4089, 0.3864, 0.356, 0.3248, 0.2945
+	]
+
+	asssigned_vs = ["a", "a", "a", "a", "a", 0.55, 0.563, 0.56, 0.55, 0.55, 0.55, 0.515, 0.518, 0.51, 0.489, 0.495, 0.494, 0.510, 0.534, 0.560,
+		0.570, 0.58, 0.59, 0.6, 0.59, 0.58, 0.57, 0.56, 0.55, 0.54
+	]
 	time_incs = [
 		{
 			"time_inc" : 1.0,
@@ -193,14 +198,49 @@ def simRocket():
 			"until" : 114.0
 		}
 	]
-	for predictedADC in predictedADCs:
 
-		totalThrust = HLV.getTotalThrust()
+	events = [
+		{
+			"name" : "Reduce Thrust",
+			"engine": "SRM",
+			"start_time": 24.00,
+			"end_time" : 45.00,
+			"rate" : -20000.0,
+		},
+		{
+			"name" : "Reduce Thrust Until Depleted",
+			"engine": "SRM",
+			"start_time": 99.00,
+			"end_time" : 114.00,
+		},
+		{
+			"name" : "Jettison",
+			"engine": "SRM",
+			"start_time": 114.00,
+			"end_time" : 114.00,
+		},
+		{
+			"name" : "Reduce Throttle",
+			"engine": "RD-171M",
+			"start_time": 137.00,
+			"end_time" : 140.00,
+		},
+	]
+
+	for i in range(len(predictedADCs)):
+		for event in events:
+			if time >= event["start_time"] and time <= event["end_time"]:
+				HLV.handle_event(event, time, time_inc)
+		predictedADC = predictedADCs[i]
+		assigned_V = asssigned_vs[i]
+		print ("predADC={} assigned_V = {}".format(predictedADC, assigned_V))
 		#HLV.engine_status()
 		HLV.setEngineThrottle("RD-171M", "max", time_inc)
 		HLV.updateWeight(time_inc)
 		HLV.updateA(predictedADC)
-		assigned_V = raw_input("Enter the assigned A_vert:")
+		#assigned_V = raw_input("Enter the assigned A_vert:")
+
+
 		if assigned_V == "a" or assigned_V == "all":
 			assigned_V = HLV.get_A_total_eff()
 			HLV.updateVertA(assigned_V)
@@ -211,15 +251,14 @@ def simRocket():
 
 
 		HLV.updateHorizA()
-		HLV.updateIncVertV(time_inc)
-		HLV.updateVertV()
+		HLV.update_V(time_inc)
 		HLV.updateAlt(time_inc)
 		for timeIncrements in time_incs:
 			if time<timeIncrements["until"]:
 				time_inc = timeIncrements["time_inc"]
 				break
 		HLV.burnFuel(time_inc)
-		printEdRow(time, totalThrust)
+		printEdRow(time)
 
 
 		time += time_inc

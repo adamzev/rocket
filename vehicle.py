@@ -22,7 +22,8 @@ class Vehicle:
 		self.V_vert_eff = [0.0]
 		self.V_vert = [0.0]
 		self.V_vert_inc = [0.0]
-		self.V_horiz =[912.67]
+		self.V_horiz_mph =[912.67]
+		self.V_horiz_mph_inc = [0.0]
 		self.V_total = [0.0]
 		self.total_eff = [0.0]
 		self.ADC_predicted = [0.0]
@@ -36,11 +37,14 @@ class Vehicle:
 	def get_alt(self, when = "current"):
 		return get_value(self.alt, when)
 
-	def get_V_horiz(self, when = "current"):
-		return get_value(self.V_horiz, when)
+	def get_V_horiz_mph(self, when = "current"):
+		return get_value(self.V_horiz_mph, when)
 
 	def get_V_vert_inc(self, when = "current"):
 		return get_value(self.V_vert_inc, when)
+
+	def get_V_horiz_mph_inc(self, when = "current"):
+		return get_value(self.V_horiz_mph_inc, when)
 
 	def get_V_vert(self, when = "current"):
 		return get_value(self.V_vert, when)
@@ -98,8 +102,28 @@ class Vehicle:
 			fuelUsed += engine.fuelUsed
 		self.currentWeight = self.initialWeight - fuelUsed
 
-	def updateVertV(self):
+	def update_V(self, time_inc):
+		self.updateIncVertV(time_inc)
+		self.update_V_vert()
+		self.update_V_horiz_mph_inc(time_inc)
+		self.update_V_horiz_mph()
+
+
+	def updateIncVertV(self, time_inc):
+		avg_A_vert_eff = average(self.get_A_vert_eff(), self.get_A_vert_eff("prev"))
+		self.V_vert_inc.append(avg_A_vert_eff * time_inc * ACCEL_OF_GRAVITY)
+
+	def update_V_vert(self):
 		self.V_vert.append(self.get_V_vert() + self.get_V_vert_inc())
+
+	def update_V_horiz_mph_inc(self, time_inc):
+		avg_A_horiz = average(self.get_A_horiz(), self.get_A_horiz("prev"))
+		self.V_horiz_mph_inc.append(avg_A_horiz * time_inc * ACCEL_OF_GRAVITY)
+
+
+	def update_V_horiz_mph(self):
+		self.V_horiz_mph.append(self.get_V_horiz_mph() + fpsToMph(self.get_V_horiz_mph_inc()))
+
 
 
 
@@ -112,36 +136,35 @@ class Vehicle:
 
 		self.A_total.append(totalA)
 		self.A_total_eff.append(totalA - predictedADC + self.get_ADC_error())
-		self.ADC_prediction_report(predictedADC, self.get_ADC_error())
+		#self.ADC_prediction_report(predictedADC, self.get_ADC_error())
 
 	def ADC_prediction_report(self, predictedADC, error):
 		print ("Actual ADC={} predictedADC={} error={}".format(self.get_ADC_actual(), predictedADC, error))
 
 	def updateVertA(self, assignedA_vert, calcG = True):
 		orbitalV = orbitalVelocity(current(self.alt))
+		G = bigG(self.get_V_horiz_mph(), orbitalV)
 		self.orbitalV = orbitalVelocity(current(self.alt))
-		self.A_vert.append(assignedA_vert)
-		'''if(len(self.A_vert)>2):
-			avgVertA = average(self.get_A_vert(), self.get_A_vert("prev"))
-		else:
-			avgVertA = self.get_A_vert()'''
+
+
 		if calcG:
-			self.A_vert_eff.append(assignedA_vert - bigG(self.get_V_horiz(), orbitalV))
+			self.A_vert.append(assignedA_vert)
+			self.A_vert_eff.append(assignedA_vert - G)
 		else:
+			self.A_vert.append(assignedA_vert + G)
 			self.A_vert_eff.append(assignedA_vert)
 
 	def updateHorizA(self):
 		try:
 			self.A_horiz.append(math.sqrt(self.get_A_total_eff()**2 - self.get_A_vert()**2))
-		except:
-			raise ValueError("Sqrt of negative, A total={} which is > A_vert={}".format(self.get_A_total_eff(), self.get_A_vert()))
 
-	def updateIncVertV(self, time_inc):
-		avg_A_vert_eff = average(self.get_A_vert_eff(), self.get_A_vert_eff("prev"))
-		self.V_vert_inc.append(avg_A_vert_eff * time_inc * ACCEL_OF_GRAVITY)
+		except:
+			raise ValueError("Sqrt of negative, A total={} which is > A_vert={}".format(self.get_A_total_eff("prev"), self.get_A_vert()))
+
+
 
 	def get_airSpeed(self):
-		return fpsToMph(pythag(self.get_V_vert(), self.get_V_horiz()-912.67))
+		return pythag(fpsToMph(self.get_V_vert()), self.get_V_horiz_mph()-912.67)
 
 	def getTotalThrust(self):
 		totalThrust = 0
@@ -174,12 +197,12 @@ class Vehicle:
 		else:
 			engine.setThrottle(throt, time_inc)
 
-	def setEngineAssignedThrust(self, engineName, thrust):
+	def setEngineAssignedThrustPerEngine(self, engineName, thrust):
 		engine = self.findEngine(engineName)
 		if thrust == "max":
-			engine.set_assigned_thrust(engine.thrust_sl)
+			engine.set_assigned_thrust_per_engine(engine.thrust_sl)
 		else:
-			engine.set_assigned_thrust(thrust)
+			engine.set_assigned_thrust_per_engine(thrust)
 
 
 	def getEngineThrottle(self, engineName):
@@ -198,3 +221,42 @@ class Vehicle:
 			engines = self.engines
 		for engine in engines:
 			print "Name: {}\nThrottle: {}\nThrust: {}\nFuel Used: {}".format(engine.name, engine.get_throt(),engine.get_thrust(), engine.get_fuelUsed())
+
+	def handle_event(self, event, time, time_inc):
+
+		'''
+		SAMPLE EVENTS
+		events = [
+				{
+					"name" : "Reduce Thrust",
+					"engine": "SRM",
+					"start_time": 24.00,
+					"end_time" : 45.00,
+					"rate" : -20000.0,
+				},
+				{
+					"name" : "Reduce Thrust Until Depleted",
+					"engine": "SRM",
+					"start_time": 99.00,
+					"end_time" : 114.00,
+				},
+				{
+					"name" : "Jettison",
+					"engine": "SRM",
+					"start_time": 114.00,
+					"end_time" : 114.00,
+				},
+				{
+					"name" : "Reduce Throttle",
+					"engine": "RD-171M",
+					"start_time": 137.00,
+					"end_time" : 140.00,
+				},
+			]
+		'''
+		if event["name"] == "Reduce Thrust" and time < event["end_time"]:
+			engine = self.findEngine(event["engine"])
+			currentThrust = engine.get_thrust_per_engine()
+			newThrust = currentThrust + event["rate"] * time_inc
+			engine.set_assigned_thrust_per_engine(newThrust)
+			print("\nEVENT: Reduced thrust of {} to {}".format(engine.name, newThrust))

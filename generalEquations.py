@@ -46,9 +46,6 @@ OV decreases as you increase your radial distance from the center of the Earth, 
 Alt in feet
 
 '''
-def helloGE():
-	return "Hello, World!"
-
 def orbitalVelocity(alt):
   return 17683.9567 * ( ( 1.0 / ( 1+ ( alt / 20902230.99 ) ) )** 0.5 )
 
