@@ -109,13 +109,13 @@ class Vehicle:
 		self.currentWeight = self.initialWeight - fuelUsed
 
 	def update_V(self, time_inc):
-		self.updateIncVertV(time_inc)
+		self.update_V_vert_inc(time_inc)
 		self.update_V_vert()
 		self.update_V_horiz_mph_inc(time_inc)
 		self.update_V_horiz_mph()
 
 
-	def updateIncVertV(self, time_inc):
+	def update_V_vert_inc(self, time_inc):
 		avg_A_vert_eff = average(self.get_A_vert_eff(), self.get_A_vert_eff("prev"))
 		self.V_vert_inc.append(avg_A_vert_eff * time_inc * ACCEL_OF_GRAVITY)
 
@@ -199,46 +199,46 @@ class Vehicle:
 		return fuelUsed
 
 	def setEngineThrottleOverride(self, engineName, throt):
-		engine = self.findEngine(engineName)
+		engine = self.find_engine(engineName)
 		if throt == "max":
 			engine.setThrottleOverride(engine.max_throt)
 		else:
 			engine.setThrottleOverride(throt)
 
 	def setEngineThrottle(self, engineName, throt, time_inc):
-		engine = self.findEngine(engineName)
+		engine = self.find_engine(engineName)
 		if throt == "max":
 			engine.setThrottle(engine.max_throt, time_inc)
 		else:
 			engine.setThrottle(throt, time_inc)
 
 	def setEngineAssignedThrustPerEngine(self, engineName, thrust):
-		engine = self.findEngine(engineName)
+		engine = self.find_engine(engineName)
 		if thrust == "max":
 			engine.set_assigned_thrust_per_engine(engine.thrust_sl)
 		else:
 			engine.set_assigned_thrust_per_engine(thrust)
 
 
-	def getEngineThrottle(self, engineName):
-		engine = self.findEngine(engineName)
+	def get_engine_throttle(self, engineName):
+		engine = self.find_engine(engineName)
 		return engine.throt
 
-	def findEngine(self, engineName):
+	def find_engine(self, engineName):
 		for engine in self.engines:
 			if engine.name == engineName:
 				return engine
 
 	def engine_status(self, engineName = None):
 		if engineName:
-			engines = [self.findEngine(engineName)]
+			engines = [self.find_engine(engineName)]
 		else:
 			engines = self.engines
 		for engine in engines:
 			print "Name: {}\nThrottle: {}\nThrust: {}\nFuel Used: {}".format(engine.name, engine.get_throt(),engine.get_thrust_total(), engine.get_fuelUsed())
 
 	def handle_event(self, event, time, time_inc):
-		engine = self.findEngine(event["engine"])
+		engine = self.find_engine(event["engine"])
 		'''
 		SAMPLE EVENTS
 		events = [
@@ -292,6 +292,22 @@ class Vehicle:
 			if srm_entry_mode == "cube root":
 				pass
 		if event["name"] == "Jettison":
-			print("Jettisoned {}".format(engine.name))
+			print("\nEVENT: Jettisoned {}".format(engine.name))
 			engine.setThrottleOverride(0)
 			engine.fuelUsed = engine.weight_fueled
+			self.adc_K -= engine.adc_K
+		if event["name"] == "Increase Throttle By Max Rate-Of-Change":
+			startThrottle = engine.get_throt()
+			engine.setThrottle(engine.max_throt)
+			endThrottle = engine.get_throt()
+			print("\nEVENT: {} Throttle increased from {} to {}".format(engine.name, startThrottle, endThrottle))
+		if event["name"] == "Reduce Throttle By Max Rate-Of-Change":
+			startThrottle = engine.get_throt()
+			engine.setThrottle(engine.min_throt)
+			endThrottle = engine.get_throt()
+			print("\nEVENT: {} Throttle reduced from {} to {}".format(engine.name, startThrottle, endThrottle))
+
+		if event["name"] == "Engine Cut-off":
+			engine.setThrottleOverride(0.0)
+			engine.setThrottleOverride(0.0)
+			print("\nEVENT: {} cut-off".format(engine.name))

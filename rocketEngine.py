@@ -37,16 +37,20 @@ class RocketEngine:
 
 	def setThrottle(self, requested_throt, time_inc = 1):
 		#Limit the throttle to its max change limit
-		if abs(requested_throt - current(self.throt)) > (self.throt_rate_of_change_limit * time_inc):
-			# requested_throt/math.abs(requested_throt returns 1 for pos and -1 for neg changes
-			throt = current(self.throt) + time_inc * self.throt_rate_of_change_limit * (requested_throt/abs(requested_throt))
+		if abs(requested_throt - self.get_throt()) > (self.throt_rate_of_change_limit * time_inc):
+			if requested_throt > self.get_throt():
+				direction = 1.0
+			else:
+				direction = -1.0
+			#direction 1 for pos and -1 for neg changes
+			throt = self.get_throt() + time_inc * self.throt_rate_of_change_limit * direction
 		else:
 			throt = requested_throt
 		if throt > self.max_throt:
-			logging.info("Max Throt achieved for {}".format(self.name))
+			logging.debug("Max Throt achieved for {}".format(self.name))
 			self.throt.append(self.max_throt)
 		elif throt < self.min_throt:
-			logging.info("{} Engine shutoff".format(self.name))
+			logging.debug("{} Engine shutoff".format(self.name))
 			self.throt.append(0)
 		else:
 			self.throt.append(throt)
