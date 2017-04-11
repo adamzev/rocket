@@ -2,6 +2,7 @@ from rocketEngine import *
 from generalEquations import *
 from util import *
 
+
 class Vehicle:
 
 	def __init__(self, name, initialWeight, adc_K):
@@ -11,7 +12,7 @@ class Vehicle:
 		self.adc_K = adc_K
 		self.engines = []
 		self.alt = [30.0]
-		self.ADC_error = [0.0]
+
 		self.orbitalV = 0
 		self.A_vert_eff = [0.0]
 		self.A_vert = [0.0]
@@ -26,10 +27,12 @@ class Vehicle:
 		self.V_horiz_mph_inc = [0.0]
 		self.V_total = [0.0]
 		self.total_eff = [0.0]
+		self.ADC_adjusted = [0.0]
+		self.ADC_error = [0.0]
 		self.ADC_predicted = [0.0]
 		self.ADC_actual = [0.0]
 		self.orbitalV = orbitalVelocity(current(self.alt))
-
+		self.assigned_burn_rates_for_SRM_power_down=[10195.695, 8750, 5500, 3500, 2150]
 	def set_alt(self, alt):
 		self.alt.append(alt)
 
@@ -76,6 +79,9 @@ class Vehicle:
 
 	def get_ADC_predicted(self, when = "current"):
 		return get_value(self.ADC_predicted, when)
+
+	def get_ADC_adjusted(self, when = "current"):
+		return get_value(self.ADC_adjusted, when)
 
 	def get_ADC_error(self, when = "current"):
 		return get_value(self.ADC_error, when)
@@ -126,17 +132,19 @@ class Vehicle:
 
 
 
-
-	def updateA(self, predictedADC):
-		self.ADC_actual.append(ADC(self.get_airSpeed(), self.get_alt(), self.adc_K))  # with resultant ADC in  "g" units
+	def set_ADC_predicted(self, predictedADC):
 		self.ADC_predicted.append(predictedADC)
 
-		self.ADC_error.append(self.get_ADC_predicted("prev") - self.get_ADC_actual())
+	def updateA(self):
 		totalA = self.totalThrust / self.currentWeight
-
 		self.A_total.append(totalA)
-		self.A_total_eff.append(totalA - predictedADC + self.get_ADC_error())
+		self.ADC_adjusted.append(self.get_ADC_predicted() - self.get_ADC_error())
+		self.A_total_eff.append(totalA - self.get_ADC_adjusted())
 		#self.ADC_prediction_report(predictedADC, self.get_ADC_error())
+
+	def update_ADC_actual(self, time_inc):
+		self.ADC_actual.append(ADC(self.get_airSpeed(), self.get_alt(), self.adc_K))  # with resultant ADC in  "g" units
+		self.ADC_error.append(self.get_ADC_predicted() - self.get_ADC_actual())
 
 	def ADC_prediction_report(self, predictedADC, error):
 		print ("Actual ADC={} predictedADC={} error={}".format(self.get_ADC_actual(), predictedADC, error))
@@ -155,16 +163,23 @@ class Vehicle:
 			self.A_vert_eff.append(assignedA_vert)
 
 	def updateHorizA(self):
+		self.A_horiz.append(
+			pythag(None, self.get_A_vert(), self.get_A_total_eff())
+		)
 		try:
-			self.A_horiz.append(math.sqrt(self.get_A_total_eff()**2 - self.get_A_vert()**2))
+			pass
 
 		except:
 			raise ValueError("Sqrt of negative, A total={} which is > A_vert={}".format(self.get_A_total_eff("prev"), self.get_A_vert()))
 
 
 
-	def get_airSpeed(self):
-		return pythag(fpsToMph(self.get_V_vert()), self.get_V_horiz_mph()-912.67)
+	def get_airSpeed(self, when = "current"):
+		if when == "current":
+			return pythag(fpsToMph(self.get_V_vert()), self.get_V_horiz_mph()-912.67)
+		if when == "prev":
+			return pythag(fpsToMph(self.get_V_vert("prev")), self.get_V_horiz_mph("prev")-912.67)
+
 
 	def getTotalThrust(self):
 		totalThrust = 0
@@ -220,10 +235,10 @@ class Vehicle:
 		else:
 			engines = self.engines
 		for engine in engines:
-			print "Name: {}\nThrottle: {}\nThrust: {}\nFuel Used: {}".format(engine.name, engine.get_throt(),engine.get_thrust(), engine.get_fuelUsed())
+			print "Name: {}\nThrottle: {}\nThrust: {}\nFuel Used: {}".format(engine.name, engine.get_throt(),engine.get_thrust_total(), engine.get_fuelUsed())
 
 	def handle_event(self, event, time, time_inc):
-
+		engine = self.findEngine(event["engine"])
 		'''
 		SAMPLE EVENTS
 		events = [
@@ -237,7 +252,7 @@ class Vehicle:
 				{
 					"name" : "Reduce Thrust Until Depleted",
 					"engine": "SRM",
-					"start_time": 99.00,
+					"start_time": 102.00,
 					"end_time" : 114.00,
 				},
 				{
@@ -255,8 +270,28 @@ class Vehicle:
 			]
 		'''
 		if event["name"] == "Reduce Thrust" and time < event["end_time"]:
-			engine = self.findEngine(event["engine"])
 			currentThrust = engine.get_thrust_per_engine()
 			newThrust = currentThrust + event["rate"] * time_inc
 			engine.set_assigned_thrust_per_engine(newThrust)
 			print("\nEVENT: Reduced thrust of {} to {}".format(engine.name, newThrust))
+
+		if event["name"] == "Reduce Thrust Until Depleted":
+			eventTime = event["end_time"] - event["start_time"]
+			fuelRemaining = engine.getFuelRemaining()
+			srm_entry_mode = "array"
+			for eng in self.engines:
+				print("{} burning at {} count {} ".format(eng.name, eng.get_burn_rate()*eng.get_throt(), eng.engine_count))
+			print ("Fuel used in SRM is {}".format(engine.get_fuelUsed()/4.0 ))
+			if srm_entry_mode == "manual":
+				thrust = raw_input("Enter the assigned SRM thrust per engine:")
+			if srm_entry_mode == "array" and len(self.assigned_burn_rates_for_SRM_power_down)>0:
+				burn_rate = self.assigned_burn_rates_for_SRM_power_down.pop(0)
+				engine.adjust_throttle_to_burn_at_rate_per_engine(burn_rate, self.alt)
+			if srm_entry_mode == "linear":
+				pass
+			if srm_entry_mode == "cube root":
+				pass
+		if event["name"] == "Jettison":
+			print("Jettisoned {}".format(engine.name))
+			engine.setThrottleOverride(0)
+			engine.fuelUsed = engine.weight_fueled

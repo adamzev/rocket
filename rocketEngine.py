@@ -56,7 +56,7 @@ class RocketEngine:
 		pctVac = 1 - patm
 		try: #if thrust controlled
 			thrust_controlled = self.thrust_controlled
-			return self.get_thrust_total()
+			return self.get_thrust_total() * self.get_throt()
 		except:
 			self.thrust_total.append(self.engine_count * self.get_throt() * (self.thrust_sl + (pctVac * (self.thrust_vac - self.thrust_sl))))
 			return self.get_thrust_total()
@@ -64,17 +64,15 @@ class RocketEngine:
 	def reduceThrottlePerc(self, perc):
 		self.throt.append(self.throt - perc)
 
-	'''
-	def reduceThrottleToLBF(self, lbf, alt):
-		currentLBF = self.thrustAtAlt(alt)
-		self.throt = lbf / (currentLBF / self.throt)
+	def adjust_throttle_to_burn_at_rate_per_engine(self, rate, alt):
+		assert self.name == "SRM"
+		thrust = rate * self.specific_impulse_at_alt(alt)
 
+		throt = thrust / self.thrust_sl
 
+		print("Rate ={} \nThrust={} \n Throt={}".format(rate, thrust,throt))
+		self.setThrottleOverride(throt)
 
-	def reduceThrottleByLBF(self, lbf, alt):
-		currentLBF = self.thrustAtAlt(alt)
-		self.throt -= lbf / (currentLBF / self.throt)
-	'''
 	def burnFuel(self, time_inc, alt = None):
 		throt_avg = average(current(self.throt), prev(self.throt))
 
@@ -95,16 +93,3 @@ class RocketEngine:
 		patm = percentOfAtmosphericPressure(alt)
 		pctVac = 1 - patm
 		return self.specImp_sl + (pctVac * (self.specImp_vac - self.specImp_sl))
-
-
-'''
-	def fuelBurnRate(self, alt):
-		rate = self.thrustAtAlt(alt) / self.burn_rate
-		logging.debug("Burn Rate of {}: {}".format(self.name, rate))
-		return rate
-
-	def burnFuel(self, alt, time_inc):
-		fuelUsedInc = self.fuelBurnRate(alt) * time_inc
-		self.fuelUsed += self.fuelBurnRate(alt) * time_inc
-		logging.debug("Burn Used by {}: {}, {} total ".format(self.name, fuelUsedInc, self.fuelUsed))
-'''

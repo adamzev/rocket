@@ -1,8 +1,7 @@
 import unittest
 
-from vehicle import Vehicle as V
-
-HLV = V.Vehicle()
+from rocket import vehicle as V
+HLV = V.Vehicle("HLV * 4-8/6-9 MK: 3-36 Ver: 08-12-2016", 22191271.27, 1.832)
 # test cases adapted from `x-common//canonical-data.json` @ version: 1.0.0
 
 def almost_equal(x,y,threshold=0.0001):
