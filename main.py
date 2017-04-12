@@ -1,5 +1,7 @@
 import math
 import logging
+import copy
+
 from rocketEngine import *
 from vehicle import *
 from generalEquations import *
@@ -112,6 +114,44 @@ HLV = Vehicle("HLV * 4-8/6-9 MK: 3-36 Ver: 08-12-2016", 22191271.27, 1.832)
 for engine in engineData:
 	HLV.attachEngine(engine)
 
+def compute_row(rocket, time, time_inc, time_incs, events, predictedADC, assigned_V, printRow = True):
+	rocket.set_ADC_predicted(predictedADC)
+	print time_inc
+	for event in events:
+		if time >= event["start_time"] and time <= event["end_time"]:
+			rocket.handle_event(event, time, time_inc)
+
+	#HLV.engine_status()
+
+	rocket.updateWeight(time_inc)
+	rocket.updateA()
+	#assigned_V = raw_input("Enter the assigned A_vert:")
+
+
+	if assigned_V == "a" or assigned_V == "all":
+		assigned_V = rocket.get_A_total_eff()
+		rocket.updateVertA(assigned_V)
+	else:
+		assigned_V = float(assigned_V)
+		rocket.updateVertA(assigned_V, False)
+
+
+
+	rocket.updateHorizA()
+	rocket.update_V(time_inc)
+	rocket.updateAlt(time_inc)
+	rocket.update_ADC_actual(time_inc)
+	for timeIncrements in time_incs:
+		if time<timeIncrements["until"]:
+			time_inc = timeIncrements["time_inc"]
+			break
+	rocket.burnFuel(time_inc)
+
+	if printRow:
+		printEdRow(time)
+	return time_inc
+
+
 def showPatmAndThrustAtAlts(minAlt, maxAlt, step):
 	for altitude in range (minAlt, maxAlt+1, stepBy):
 		patm  = percentOfAtmosphericPressure(altitude)
@@ -165,6 +205,21 @@ def printEdRow(time):
 	)
 
 
+def predict_ADC(rocket, time, time_inc, time_incs, events, assigned_V):
+	threshold = 0.0000001
+	ADC_error = 100000.0
+	ADC_prediction = 0.0
+	while abs(ADC_error) > threshold:
+		rocketCopy = copy.deepcopy(rocket)
+		stopPrinting(lambda: compute_row(rocketCopy, time, time_inc, time_incs, events, ADC_prediction, assigned_V, False))
+		ADC_error = rocketCopy.get_ADC_error()
+		ADC_actual = rocketCopy.get_ADC_actual()
+		#print ("Predicted ADC = {}\nerror={}\n=his prediction {}\nadc_calc={}".format(ADC_prediction*10000.0, ADC_error*10000.0, hisPredictedADC*10000.0, ADC_actual*10000.0))
+		ADC_prediction -= ADC_error/2.0
+		#print ("New Prediction = {}".format(ADC_prediction*10000.0))
+		rocketCopy = None
+	return ADC_prediction
+
 def initializeRocket():
 
 	totalThrust = HLV.getTotalThrust()
@@ -177,8 +232,6 @@ def initializeRocket():
 	HLV.update_ADC_actual(time_inc)
 	HLV.setEngineThrottle("RD-171M", "max", time_inc)
 	HLV.burnFuel(time_inc)
-	predictedADC = 0.00012
-	HLV.set_ADC_predicted(0.00012)
 	printEdRow(time)
 	#time_inc = float(raw_input("Enter the time inc:"))
 	time_inc = 1.0
@@ -189,16 +242,6 @@ def simRocket():
 	time_inc = 1.0
 
 
-	# MISSING A PREDICTED ADC DURING A SMALL ODD INTERVAL WHERE ONE ISN"T GIVEN
-	predictedADCs = [0.00086, 0.0022, 0.0043, 0.01106, 0.0268, 0.0448, 0.077, 0.127, 0.171, 0.2148, 0.2798, 0.3239, 0.3615, 0.4135, 0.4497, 0.487,
-		0.5109, 0.5284, 0.5370, 0.5540, 0.5533, 0.555, 0.5515, 0.5376, 0.5222, 0.5016, 0.4678, 0.4739, 0.4359, 0.4089, 0.3864, 0.356, 0.3248, 0.2945,
-		0.2725, 0.239, 0.211, 0.184, 0.156, 0.131, 0.131, 0.0932, 0.0793, 0.06756, 0.0587, 0.04904, 0.04285, 0.03535, 0.3295, 0.03085, 0.0296,
-		0.02785, 0.02596, 0.02284, 0.01744, 0.01363, 0.011103, 0.0091, 0.007155, 0.00605, 0.004758, 0.003829, 0.003124, 0.002476, 0.002020, 0.001613, 0.001284,
-		0.001284, 0.001038, 0.0008304, 0.000654, 0.00052, 0.0004133, 0.000326, 0.000254, 0.000197, 0.0001527, 0.000114, 0.000112, 0.000089, 0.0000915,
-		0.0000817, 0.0000022, 0.0000156, 0.00000102, 0.000007344, 0.00000437, 0.000003015, 0.000001269, 0.00000079, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-		0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-		0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
-	]
 
 	asssigned_vs = ["a", "a", "a", "a", "a", 0.55, 0.563, 0.56, 0.55, 0.55, 0.55, 0.515, 0.518, 0.51, 0.489, 0.495, 0.494, 0.510, 0.534, 0.560,
 		0.570, 0.58, 0.59, 0.6, 0.59, 0.58, 0.57, 0.56, 0.55, 0.54, 0.53, 0.52, 0.51, 0.5, 0.5, 0.5, 0.48, 0.46, 0.44, 0.42, 0.3, 0.3, 0.3,
@@ -206,52 +249,8 @@ def simRocket():
 		-0.20, -0.18, -0.16, -0.16, -0.13, -0.10, 0.012808983, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.20, -0.25, -0.40, -0.38,
 		-0.36, -0.34, -0.32, -0.30, -0.28, -0.26, -0.24, -0.22, -0.20, -0.18, -0.16, -0.14, -0.12, -0.10, -0.10, -0.10, -0.10, -0.10
 	]
-	time_incs = [
-		{
-			"time_inc" : 1.0,
-			"until" : 4.0
-		},
-		{
-			"time_inc" : 2.0,
-			"until" : 6.0
-		},
-		{
-			"time_inc" : 3.0,
-			"until" : 114.0
-		},
-		{
-			"time_inc" : 0.1,
-			"until" : 114.1
-		},
-		{
-			"time_inc" : 2.9,
-			"until" : 117.0
-		},
-		{
-			"time_inc" : 3.0,
-			"until" : 135.0
-		},
-		{
-			"time_inc" : 2.0,
-			"until" : 137.0
-		},
-		{
-			"time_inc" : 1.0,
-			"until" : 140.0
-		},
-		{
-			"time_inc" : 0.1,
-			"until" : 140.1
-		},
-		{
-			"time_inc" : 0.9,
-			"until" : 141.0
-		},
-		{
-			"time_inc" : 0.9,
-			"until" : 141.0
-		}
-	]
+	time_incs_json = load_json('time_incs.json')
+	time_incs = time_incs_json['time_incs']
 
 	events = [
 		{
@@ -293,59 +292,13 @@ def simRocket():
 
 		}
 	]
-
-	for i in range(len(predictedADCs)):
-		print HLV.adc_K
-		for event in events:
-			if time >= event["start_time"] and time <= event["end_time"]:
-				HLV.handle_event(event, time, time_inc)
-		predictedADC = predictedADCs[i]
+	for i in range(len(asssigned_vs)):
 		assigned_V = asssigned_vs[i]
-		#HLV.engine_status()
-
-		HLV.updateWeight(time_inc)
-		HLV.updateA()
-		#assigned_V = raw_input("Enter the assigned A_vert:")
-
-
-		if assigned_V == "a" or assigned_V == "all":
-			assigned_V = HLV.get_A_total_eff()
-			HLV.updateVertA(assigned_V)
-		else:
-			assigned_V = float(assigned_V)
-			HLV.updateVertA(assigned_V, False)
-
-
-
-		HLV.updateHorizA()
-		HLV.update_V(time_inc)
-		HLV.updateAlt(time_inc)
-		HLV.update_ADC_actual(time_inc)
-		for timeIncrements in time_incs:
-			if time<timeIncrements["until"]:
-				time_inc = timeIncrements["time_inc"]
-				break
-		HLV.burnFuel(time_inc)
-		HLV.set_ADC_predicted(predictedADC)
-		printEdRow(time)
-
-
+		predictedADC = predict_ADC(HLV, time, time_inc, time_incs, events, assigned_V)
+		time_inc = compute_row(HLV, time, time_inc, time_incs, events, predictedADC, assigned_V) #returns time_inc
 		time += time_inc
 
 
 setInitialConditions()
 initializeRocket()
 simRocket()
-
-'''
-def predict_ADC(self):
-	rocketCopy = copy.deepcopy(HLV)
-	threshold = 0.000001
-	ADC_error = 100000
-	while ADC_error>threshold:
-		guess an adc of 0
-		calculate a row
-		find error
-		repeat and guess an adc of prior guess + error
-		guess 0, drag is .4, guess .4, drag is .2 guess .2 drag is .3 and so on
-'''

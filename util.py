@@ -1,3 +1,12 @@
+import json
+import sys
+import os
+
+def stopPrinting(my_loud_function):
+	sys.stdout = open(os.devnull, "w")
+	my_loud_function()
+	sys.stdout = sys.__stdout__
+
 def printTable(table_data, cols):
 	maxWidth = 170
 	maxCellWidth = maxWidth / cols
@@ -29,6 +38,12 @@ def get_value(myArray, when="current"):
 		return current(myArray)
 	else:
 		return prev(myArray)
+
+
+def load_json(fileName):
+	with open(fileName) as data_file:
+		return json.load(data_file)
+
 
 ''' SET BREAKPOINTS BY '''
 # import pdb; pdb.set_trace()
