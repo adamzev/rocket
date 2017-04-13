@@ -1,108 +1,101 @@
 {
-	"rocketEngines" : [
-		{
-			"name": "SRM",
-			"thrust_sl"  : 3600000.0,
-			"thrust_vac" : 3600000.0,
-			"min_throt" : 0.56,
-			"max_throt" : 1.0,
-			"engine_count" : 4.0,
-			"lbm_dry" : 20503,
-			"fuel" : 5932224.827,
-			"weight_fueled" : 6320000,
-			"residual" : 0.015,
-			"throt_rate_of_change_limit" : 1.0,
-			"burn_rate" : [14876.0325],
-			"assigned_thrust" : 0.0,
-			"specImp_sl" : 242.00,
-			"specImp_vac" : 268.20,
-			"thrust_controlled" : "True",
-			"adc_K" : 0.28400
-		},
-		{
-			"name": "RD-171M",
-			"thrust_sl"  : 1632000.0,
-			"thrust_vac" : 1777000.0,
-			"lbm_dry" : 20503,
-			"fuel" : 5932224.827,
-			"min_throt" : 0.56,
-			"max_throt" : 1.0,
-			"residual" : 0.015,
-			"throt_rate_of_change_limit" : 0.15,
-			"engine_count" : 8.0,
-			"burn_rate" : [5270.0],
-		},
-		{
-			"name": "RD-180",
-			"thrust_sl"  : 861270.0,
-			"thrust_vac" : 934245.0,
-			"lbm_dry" : 20503,
-			"fuel" : 5932224.827,
-			"min_throt" : 0.40,
-			"max_throt" : 0.95,
-			"engine_count" : 6.0,
-			"burn_rate" : [2770.0],
-			"residual" : 0.015,
-			"throt_rate_of_change_limit" : 0.15,
-		},
-		{
-			"name": "GE90-115B",
-			"thrust_sl"  : 115300.0,
-			"thrust_vac" : 115300.0,
-			"lbm_dry" : 20503,
-			"fuel" : 5932224.827,
-			"max_throt" : 0.95,
-			"engine_count" : 3.0,
-			"burn_rate" : [8.0069444],
-			"residual" : 0.015,
-			"throt_rate_of_change_limit" : 0.15,
-			"specImp_sl" : 370.35,
-			"specImp_vac" : 453.86
-		},
-		{
-			"name": "SSME",
-			"thrust_sl"  : 418130.0,
-			"thrust_vac" : 512410.0,
-			"lbm_dry" : 20503,
-			"fuel" : 5932224.827,
-			"min_throt" : 0.40,
-			"max_throt" : 0.95,
-			"residual" : 0.015,
-			"throt_rate_of_change_limit" : 0.15,
-			"engine_count" : 9.0,
-			"burn_rate" : [1129.0]
-		},
-		{
-			"name": "RL-10A4-2",
-			"thrust_sl"  : 22300.0,
-			"thrust_vac" : 22300.0,
-			"lbm_dry" : 20503,
-			"fuel" : 5932224.827,
-			"max_throt" : 0.95,
-			"residual" : 0.015,
-			"throt_rate_of_change_limit" : 0.15,
-			"engine_count" : 3.0,
-			"burn_rate" : [49.4457]
-		},
-		{
-			"name": "OME",
-			"thrust_sl"  : 6002.0,
-			"thrust_vac" : 6002.0,
-			"lbm_dry" : 20503,
-			"fuel" : 5932224.827,
-			"max_throt" : 0.95,
-			"residual" : 0.015,
-			"throt_rate_of_change_limit" : 0.15,
-			"engine_count" : 3.0,
-			"burn_rate" : [18.993671],
-		},
-		{
-			"name": "RS-68A",
-			"thrust_sl"  : 702000.0,
-			"thrust_vac" : 797000.0,
-			"max_throt" : 1.0,
-			"engine_count" : 2.0,
-			"burn_rate" : 1924.0
-		}
-	]
+	"rocketEngines" : {
+		"SRM" :
+			{
+				"thrust_sl"  : 3600000.0,
+				"thrust_vac" : 3600000.0,
+				"min_throt" : 0.56,
+				"max_throt" : 1.0,
+				"engine_count" : 4.0,
+				"lbm_dry" : 20503,
+				"fuel" : 5932224.827,
+				"weight_fueled" : 6320000,
+				"residual" : 0.015,
+				"throt_rate_of_change_limit" : 1.0,
+				"burn_rate" : [14876.0325],
+				"assigned_thrust" : 0.0,
+				"specImp_sl" : 242.00,
+				"specImp_vac" : 268.20,
+				"thrust_controlled" : "True",
+				"adc_K" : 0.28400
+			},
+		"RD-171M" :
+			{
+				"thrust_sl"  : 1632000.0,
+				"thrust_vac" : 1777000.0,
+				"lbm_dry" : 20503,
+				"fuel" : 5932224.827,
+				"min_throt" : 0.56,
+				"max_throt" : 1.0,
+				"residual" : 0.015,
+				"throt_rate_of_change_limit" : 0.15,
+				"burn_rate" : [5270.0]
+			},
+		"RD-180" :
+			{
+				"thrust_sl"  : 861270.0,
+				"thrust_vac" : 934245.0,
+				"lbm_dry" : 20503,
+				"fuel" : 5932224.827,
+				"min_throt" : 0.40,
+				"max_throt" : 0.95,
+				"burn_rate" : [2770.0],
+				"residual" : 0.015,
+				"throt_rate_of_change_limit" : 0.15
+			},
+		"GE90-115B" :
+			{
+				"thrust_sl"  : 115300.0,
+				"thrust_vac" : 115300.0,
+				"lbm_dry" : 20503,
+				"fuel" : 5932224.827,
+				"max_throt" : 0.95,
+				"burn_rate" : [8.0069444],
+				"residual" : 0.015,
+				"throt_rate_of_change_limit" : 0.15,
+				"specImp_sl" : 370.35,
+				"specImp_vac" : 453.86
+			},
+		"SSME" :
+			{
+				"thrust_sl"  : 418130.0,
+				"thrust_vac" : 512410.0,
+				"lbm_dry" : 20503,
+				"fuel" : 5932224.827,
+				"min_throt" : 0.40,
+				"max_throt" : 0.95,
+				"residual" : 0.015,
+				"throt_rate_of_change_limit" : 0.15,
+				"burn_rate" : [1129.0]
+			},
+		"RL-10A4-2" :
+			{
+				"thrust_sl"  : 22300.0,
+				"thrust_vac" : 22300.0,
+				"lbm_dry" : 20503,
+				"fuel" : 5932224.827,
+				"max_throt" : 0.95,
+				"residual" : 0.015,
+				"throt_rate_of_change_limit" : 0.15,
+				"burn_rate" : [49.4457]
+			},
+		"OME" :
+			{
+				"thrust_sl"  : 6002.0,
+				"thrust_vac" : 6002.0,
+				"lbm_dry" : 20503,
+				"fuel" : 5932224.827,
+				"max_throt" : 0.95,
+				"residual" : 0.015,
+				"throt_rate_of_change_limit" : 0.15,
+				"burn_rate" : [18.993671]
+			},
+		"RS-68A" :
+			{
+				"thrust_sl"  : 702000.0,
+				"thrust_vac" : 797000.0,
+				"max_throt" : 1.0,
+				"burn_rate" : 1924.0
+			}
+	}
 }

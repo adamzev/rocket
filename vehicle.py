@@ -5,13 +5,17 @@ from util import *
 
 class Vehicle:
 
-	def __init__(self, name, initialWeight, adc_K):
-		self.name = name
-		self.initialWeight = initialWeight
-		self.currentWeight = initialWeight
-		self.adc_K = adc_K
+	def __init__(self, specs):
+		self.name = "{} MK {} VER: {}".format(specs["name"], specs["MK"], specs["ver"])
+
 		self.engines = []
-		self.alt = [30.0]
+		self.attach_engines(specs["engines"])
+		self.lift_off_weight = specs["lift_off_weight"]
+		self.set_adc_K(specs["ADC_K"])
+		self.currentWeight = self.lift_off_weight
+
+		self.alt = []
+		self.alt.append(specs["initial_alt"])
 
 		self.orbitalV = 0
 		self.A_vert_eff = [0.0]
@@ -33,6 +37,44 @@ class Vehicle:
 		self.ADC_actual = [0.0]
 		self.orbitalV = orbitalVelocity(current(self.alt))
 		self.assigned_burn_rates_for_SRM_power_down=[10195.695, 8750, 5500, 3500, 2150]
+
+	@staticmethod
+	def load_available_engines():
+		available_engines_json = load_json("rocketEngineData.json")
+		return available_engines_json["rocketEngines"]
+
+	@staticmethod
+	def load_engine_data(selected_engines):
+		available_engines  = Vehicle.load_available_engines()
+
+		engine_data = []
+		for selected_engine in selected_engines:
+			name = selected_engine["engine_name"]
+			count = selected_engine["engine_count"]
+			try:
+				engine = available_engines[name]
+				engine["engine_count"] = count
+				engine["name"] = name
+				engine_data.append(engine)
+			except:
+				print ("ERROR Engine {} not found".format(name))
+		return engine_data
+
+	def attach_engines(self, selected_engines):
+		''' loads engine data from file matching the given names
+		'''
+		engine_data = Vehicle.load_engine_data(selected_engines)
+		for engine in engine_data:
+			self.attachEngine(engine)
+
+	def set_adc_K(self, stages):
+		adc_K = 0.0
+		for stage in stages:
+			for adc in stage.itervalues():
+				adc_K += adc
+		self.adc_K = adc_K
+
+
 	def set_alt(self, alt):
 		self.alt.append(alt)
 
@@ -106,7 +148,7 @@ class Vehicle:
 		fuelBurn = 0.0
 		for engine in self.engines:
 			fuelUsed += engine.fuelUsed
-		self.currentWeight = self.initialWeight - fuelUsed
+		self.currentWeight = self.lift_off_weight - fuelUsed
 
 	def update_V(self, time_inc):
 		self.update_V_vert_inc(time_inc)

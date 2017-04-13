@@ -78,15 +78,18 @@ class RocketEngine:
 		self.setThrottleOverride(throt)
 
 	def burnFuel(self, time_inc, alt = None):
-		throt_avg = average(current(self.throt), prev(self.throt))
+		throt_avg = average(self.get_throt(), self.get_throt("prev"))
 
-		try:
-			thrust_controlled = self.thrust_controlled
-			self.burn_rate.append(self.get_thrust_total()  / self.specific_impulse_at_alt(alt))
-			self.fuelUsed += self.get_burn_rate() * time_inc
+		if throt_avg == 0:
+			return self.fuelUsed
+		else:
+			try:
+				thrust_controlled = self.thrust_controlled
+				self.burn_rate.append(self.get_thrust_total()  / self.specific_impulse_at_alt(alt))
+				self.fuelUsed += self.get_burn_rate() * time_inc
 
-		except:
-			self.fuelUsed += throt_avg * self.get_burn_rate() * self.engine_count * time_inc
+			except:
+				self.fuelUsed += throt_avg * self.get_burn_rate() * self.engine_count * time_inc
 
 	def getUsableFuelRemaining(self):
 		return self.usable_fuel-self.fuelUsed

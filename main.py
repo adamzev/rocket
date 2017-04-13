@@ -1,118 +1,118 @@
 import math
 import logging
 import copy
+import pprint
 
 from rocketEngine import *
 from vehicle import *
 from generalEquations import *
+
 from util import *
+
 log = logging.basicConfig(level=logging.INFO)
 
-engineData = [
-	{
-		"name": "SRM",
-		"thrust_sl"  : 3600000.0,
-		"thrust_vac" : 3600000.0,
-		"min_throt" : 0.56,
-		"max_throt" : 1.0,
-		"engine_count" : 4.0,
-		"lbm_dry" : 20503,
-		"fuel" : 5932224.827,
-		"weight_fueled" : 6320000,
-		"residual" : 0.015,
-		"throt_rate_of_change_limit" : 1.0,
-		"burn_rate" : [14876.0325],
-		"assigned_thrust" : 0.0,
-		"specImp_sl" : 242.00,
-		"specImp_vac" : 268.20,
-		"thrust_controlled" : True,
-		"adc_K" : 0.28400
-	},
-	{
-		"name": "RD-171M",
-		"thrust_sl"  : 1632000.0,
-		"thrust_vac" : 1777000.0,
-		"lbm_dry" : 20503,
-		"fuel" : 5932224.827,
-		"min_throt" : 0.56,
-		"max_throt" : 1.0,
-		"residual" : 0.015,
-		"throt_rate_of_change_limit" : 0.15,
-		"engine_count" : 8.0,
-		"burn_rate" : [5270.0],
-	},
-	{
-		"name": "RD-180",
-		"thrust_sl"  : 861270.0,
-		"thrust_vac" : 934245.0,
-		"lbm_dry" : 20503,
-		"fuel" : 5932224.827,
-		"min_throt" : 0.40,
-		"max_throt" : 0.95,
-		"engine_count" : 6.0,
-		"burn_rate" : [2770.0],
-		"residual" : 0.015,
-		"throt_rate_of_change_limit" : 0.15,
-	},
-	{
-		"name": "GE90-115B",
-		"thrust_sl"  : 115300.0,
-		"thrust_vac" : 115300.0,
-		"lbm_dry" : 20503,
-		"fuel" : 5932224.827,
-		"max_throt" : 0.95,
-		"engine_count" : 3.0,
-		"burn_rate" : [8.0069444],
-		"residual" : 0.015,
-		"throt_rate_of_change_limit" : 0.15,
-		"specImp_sl" : 370.35,
-		"specImp_vac" : 453.86
-	},
-	{
-		"name": "SSME",
-		"thrust_sl"  : 418130.0,
-		"thrust_vac" : 512410.0,
-		"lbm_dry" : 20503,
-		"fuel" : 5932224.827,
-		"min_throt" : 0.40,
-		"max_throt" : 0.95,
-		"residual" : 0.015,
-		"throt_rate_of_change_limit" : 0.15,
-		"engine_count" : 9.0,
-		"burn_rate" : [1129.0]
-	},
-	{
-		"name": "RL-10A4-2",
-		"thrust_sl"  : 22300.0,
-		"thrust_vac" : 22300.0,
-		"lbm_dry" : 20503,
-		"fuel" : 5932224.827,
-		"max_throt" : 0.95,
-		"residual" : 0.015,
-		"throt_rate_of_change_limit" : 0.15,
-		"engine_count" : 3.0,
-		"burn_rate" : [49.4457]
-	},
-	{
-		"name": "OME",
-		"thrust_sl"  : 6002.0,
-		"thrust_vac" : 6002.0,
-		"lbm_dry" : 20503,
-		"fuel" : 5932224.827,
-		"max_throt" : 0.95,
-		"residual" : 0.015,
-		"throt_rate_of_change_limit" : 0.15,
-		"engine_count" : 3.0,
-		"burn_rate" : [18.993671],
-	},
+create_new_specs = query_yes_no("Do you want to create a new spec file? ", "no")
+if create_new_specs:
+	name = raw_input("What is the vehicle called (for example: HLV * 4-8/6-9)? ")
+	MK = raw_input("MK? ")
+	ver = raw_input("Version? ")
+	lift_off_weight = query_float("What is the weight at lift off? ")
+	initial_alt = query_float("What is initial alt? ")
+	RSRB = query_float("What is the ADC K of the R SRB? ")
+	RDRLV = query_float("What is the ADC K of the RD/RD-RLV? ")
+	orbiter = query_float("What is the ADC K of the orbiter? ")
+	available_engines = Vehicle.load_available_engines()
+	selected_engines = []
+	for engine_name, engine_data in available_engines.iteritems():
+		print("\n{}\n".format(engine_name))
+		pretty_json(engine_data)
+		attach = query_yes_no("Do you want to attach any {} engines? ".format(engine_name), None)
+		if attach:
+			count = query_float("How many?")
+			engine_data["engine_count"] = count
+			engine_data["engine_name"] = engine_name
+			selected_engines.append(engine_data)
+		print("{} {} engines are now attached.".format(int(count), engine_name))
+	specs = {
+		"name" : name,
+		"MK" : MK,
+		"ver" : ver,
+		"lift_off_weight" : lift_off_weight,
+		"initial_alt" : initial_alt,
+		"ADC_K" : [
+			{"R-SRB" : RSRB},
+			{"RD/RD-RLV" : RDRLV},
+			{"Orbiter" : orbiter}
+		],
+		"engines" : selected_engines
+	}
+	save_specs = query_yes_no("Do you want to save these specs? ", None)
 
+	if save_specs:
+		file_name = "{}_MK_{}_VER_{}".format(
+			remove_non_alphanumeric(specs["name"]),
+			remove_non_alphanumeric(specs["MK"]),
+			remove_non_alphanumeric(specs["ver"])
+		)
+
+		save_json(specs, file_name)
+
+else:
+	spec_files = glob.glob("specs/*.json")
+	n = 1
+	for spec_file in spec_files:
+		spec_data = load_json(spec_file)
+		print("{}) {} MK {} VER {}".format(n,spec_data["name"], spec_data["MK"], spec_data["ver"]))
+		n += 1
+	file_num = query_int("Select a file number: ", None, 1, n-1)
+	specs = load_json(spec_files[file_num-1])
+
+
+pretty_json(specs)
+events = [
+	{
+		"name" : "Increase Throttle By Max Rate-Of-Change",
+		"engine": "RD-171M",
+		"start_time": 0.00,
+		"end_time" : 3.00,
+	},
+	{
+		"name" : "Reduce Thrust",
+		"engine": "SRM",
+		"start_time": 24.00,
+		"end_time" : 45.00,
+		"rate" : -20000.0,
+	},
+	{
+		"name" : "Reduce Thrust Until Depleted",
+		"engine": "SRM",
+		"start_time": 102.00,
+		"end_time" : 114.00,
+	},
+	{
+		"name" : "Jettison",
+		"engine": "SRM",
+		"start_time": 114.10,
+		"end_time" : 114.10,
+	},
+	{
+		"name" : "Reduce Throttle By Max Rate-Of-Change",
+		"engine": "RD-171M",
+		"start_time": 137.00,
+		"end_time" : 140.00,
+	},
+	{
+		"name" : "Engine Cut-off",
+		"engine": "RD-171M",
+		"start_time": 140.00,
+		"end_time" : 140.00,
+
+	}
 ]
 
 
-HLV = Vehicle("HLV * 4-8/6-9 MK: 3-36 Ver: 08-12-2016", 22191271.27, 1.832)
+HLV = Vehicle(specs)
 
-for engine in engineData:
-	HLV.attachEngine(engine)
 
 def compute_row(rocket, time, time_inc, time_incs, events, predictedADC, assigned_V, printRow = True):
 	rocket.set_ADC_predicted(predictedADC)
@@ -162,7 +162,7 @@ def showPatmAndThrustAtAlts(minAlt, maxAlt, step):
 			print("{}: {}".format(engine.name, thrust_alt))
 
 
-alt = 0.0
+alt = 30.0
 time = 0.0
 endTime = 10.0
 time_inc = 1.0
@@ -208,7 +208,8 @@ def printEdRow(time):
 def predict_ADC(rocket, time, time_inc, time_incs, events, assigned_V):
 	threshold = 0.0000001
 	ADC_error = 100000.0
-	ADC_prediction = 0.0
+	ADC_prediction = 0
+	tries = 0
 	while abs(ADC_error) > threshold:
 		rocketCopy = copy.deepcopy(rocket)
 		stopPrinting(lambda: compute_row(rocketCopy, time, time_inc, time_incs, events, ADC_prediction, assigned_V, False))
@@ -218,6 +219,7 @@ def predict_ADC(rocket, time, time_inc, time_incs, events, assigned_V):
 		ADC_prediction -= ADC_error/2.0
 		#print ("New Prediction = {}".format(ADC_prediction*10000.0))
 		rocketCopy = None
+		tries += 1
 	return ADC_prediction
 
 def initializeRocket():
@@ -292,8 +294,10 @@ def simRocket():
 
 		}
 	]
-	for i in range(len(asssigned_vs)):
+	i = 0
+	while time <= 99:
 		assigned_V = asssigned_vs[i]
+		i += 1
 		predictedADC = predict_ADC(HLV, time, time_inc, time_incs, events, assigned_V)
 		time_inc = compute_row(HLV, time, time_inc, time_incs, events, predictedADC, assigned_V) #returns time_inc
 		time += time_inc
