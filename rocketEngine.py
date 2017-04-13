@@ -9,7 +9,6 @@ class RocketEngine:
 		self.thrust_total = [0.0]
 		for key, value in engineStats.iteritems():
 			setattr(self, key, value)
-		self.usable_fuel = (1.0/ (1.0+self.residual)) * self.fuel
 
 	def setThrottleOverride(self, requested_throt):
 		# allows setting throttle without powering up the engine

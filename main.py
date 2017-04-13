@@ -49,7 +49,7 @@ if create_new_specs:
 	save_specs = query_yes_no("Do you want to save these specs? ", None)
 
 	if save_specs:
-		file_name = "{}_MK_{}_VER_{}".format(
+		file_name = "specs/{}_MK_{}_VER_{}.json".format(
 			remove_non_alphanumeric(specs["name"]),
 			remove_non_alphanumeric(specs["MK"]),
 			remove_non_alphanumeric(specs["ver"])
@@ -172,14 +172,23 @@ time_inc = 1.0
 
 i = 1
 table_data = []
+
 def setInitialConditions():
-	for i in range(2):
-		# set each weight twice to set average weight
-		HLV.setEngineThrottleOverride("RD-180", "max")
-		HLV.setEngineThrottleOverride("SSME", "max")
-		HLV.setEngineThrottleOverride("RD-171M", 0.56)
-		HLV.setEngineThrottleOverride("SRM", 1)
-		HLV.setEngineAssignedThrustPerEngine("SRM", "max")
+	if QUICKRUN:
+		for i in range(2):
+			HLV.setEngineThrottleOverride("RD-180", "max")
+			HLV.setEngineThrottleOverride("SSME", "max")
+			HLV.setEngineThrottleOverride("RD-171M", 0.56)
+			HLV.setEngineThrottleOverride("SRM", 1)
+			HLV.setEngineAssignedThrustPerEngine("SRM", "max")
+	else:
+		for engine in HLV.engines:
+			answer = query_min_max("What is the starting throttle for {}".format(engine.name))
+			# set each weight twice to set average weight
+			HLV.setEngineThrottleOverride(engine.name, answer)
+			if engine.type == "Solid":
+				answer = query_min_max("What is the starting " + Fore.RED + "thrust for {}".format(engine.name) + Style.RESET_ALL, 0, float('inf'))
+			HLV.setEngineAssignedThrustPerEngine("SRM", "max")
 
 
 
