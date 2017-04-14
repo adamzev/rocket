@@ -3,8 +3,6 @@ import logging
 import copy
 import pprint
 
-from rocketEngine import *
-from vehicle import *
 from generalEquations import *
 from text_interface import *
 from util import *

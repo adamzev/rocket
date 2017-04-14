@@ -14,7 +14,7 @@ class Vehicle:
 		self.attach_engines(specs["engines"])
 		self.set_engine_initial_fuel_source()
 		self.lift_off_weight = specs["lift_off_weight"]
-		self.set_adc_K(specs["ADC_K"])
+		self.set_adc_K(specs["stages"])
 		self.currentWeight = self.lift_off_weight
 
 		self.alt = []
@@ -85,8 +85,8 @@ class Vehicle:
 
 	def set_adc_K(self, stages):
 		adc_K = 0.0
-		for stage in stages:
-			adc_K += stage["adc_K"]
+		for stage_name, stage_values in stages.iteritems():
+			adc_K += stage_values["adc_K"]
 		self.adc_K = adc_K
 
 

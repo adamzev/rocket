@@ -1,5 +1,7 @@
 from util import *
 from title import *
+from rocketEngine import *
+from vehicle import *
 
 def save_specs(specs):
 	file_name = "specs/{}_MK_{}_VER_{}.json".format(
@@ -32,14 +34,14 @@ def create_engine_specs():
 			engine_data["engine_count"] = count
 			engine_data["engine_name"] = engine_name
 			selected_engines.append(engine_data)
-		print("{} {} engines are now attached.".format(int(count), engine_name))
+			print("{} {} engines are now attached.".format(int(count), engine_name))
 	return selected_engines
 
 
 def create_stage_specs(stage_type):
 	stage_specs = {}
 	stage_specs['attached'] = True
-	stage_specs['adc_K'] = query_float("What is the ADC K of the {}}?". format(stage_type))
+	stage_specs['adc_K'] = query_float("What is the ADC K of the {}?". format(stage_type))
 	stage_specs['initial_weight'] = query_float("What is the lift-off weight of the {}? ".format(stage_type))
 	stage_specs['jettison_weight'] = query_float("What is the jettison weight of the {}? ".format(stage_type))
 	stage_specs['fuel'] = stage_specs['initial_weight'] - stage_specs['jettison_weight']
@@ -53,7 +55,7 @@ def create_stages_specs():
 	stages = {}
 	if attach_SRB:
 		for stage_type in ["SRB", "RLV", "orbiter"]:
-			stages[stage_type] = create_stage_specs()
+			stages[stage_type] = create_stage_specs(stage_type)
 	else:
 		for stage_type in ["RLV", "orbiter"]:
 			stages[stage_type] = create_stage_specs()
@@ -86,9 +88,10 @@ def create_specs():
 		"engines" : selected_engines
 	}
 
-	save_specs = query_yes_no("Do you want to save these specs? ", None)
-	if save_specs:
+	save_settings = query_yes_no("Do you want to save these specs? ", None)
+	if save_settings:
 		save_specs(specs)
+	return specs
 
 
 
