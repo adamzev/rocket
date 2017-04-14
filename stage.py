@@ -10,8 +10,8 @@ class Stage:
 		for key, value in stage_specs.iteritems():
 			setattr(self, key, value)
 
-		def get_fuel_used(self):
-			return stage.fuel_used
+	def get_fuel_used(self):
+		return stage.fuel_used
 
-		def get_fuel_remaining(self):
-			return self.fuel - self.fuelUsed
+	def get_fuel_remaining(self):
+		return self.fuel - self.fuel_used

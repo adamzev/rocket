@@ -347,7 +347,7 @@ class Vehicle:
 
 		if event["name"] == "Reduce Thrust Until Depleted":
 			eventTime = event["end_time"] - event["start_time"]
-			fuelRemaining = self.stages["SRB"].getFuelRemaining()
+			fuelRemaining = self.stages["SRB"].get_fuel_remaining()
 			srm_entry_mode = "array"
 			for eng in self.engines:
 				print("{} burning at {} count {} ".format(eng.name, eng.get_burn_rate()*eng.get_throt(), eng.engine_count))
