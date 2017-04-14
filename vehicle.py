@@ -8,28 +8,8 @@ class Vehicle:
 
 	def __init__(self, specs):
 		self.name = "{} MK {} VER: {}".format(specs["name"], specs["MK"], specs["ver"])
-		stage_data = [ {
-			"name" : "R_SRB",
-			"type" : "SRB",
-			"fuel" : 123,
-			"weight_fueled" : 123,
-			"seperation_weight" : 123
-		},
-		{
-			"name" : "RD/RD-RLV",
-			"type" : "RLV",
-			"fuel" : 123,
-			"weight_fueled" : 123,
-			"seperation_weight" : 123
-		},
- 		{
-			"name" : "Orbiter",
-			"type" : "orbiter",
-			"fuel" : 123,
-			"weight_fueled" : 123,
-			"seperation_weight" : 123
-		} ]
-		self.stages = self.init_stages(stage_data)
+
+		self.stages = self.init_stages(specs["stages"])
 		self.engines = []
 		self.attach_engines(specs["engines"])
 		self.set_engine_initial_fuel_source()
@@ -85,8 +65,8 @@ class Vehicle:
 
 	def init_stages(self, stage_data):
 		stages = {}
-		for stage_datum in stage_data:
-			stages[stage_datum["type"]] = Stage(stage_datum)
+		for stage_type, stage_datum in stage_data.iteritems():
+			stages[stage_type] = Stage(stage_datum)
 		return stages
 
 	def set_engine_initial_fuel_source(self):
@@ -106,8 +86,7 @@ class Vehicle:
 	def set_adc_K(self, stages):
 		adc_K = 0.0
 		for stage in stages:
-			for adc in stage.itervalues():
-				adc_K += adc
+			adc_K += stage["adc_K"]
 		self.adc_K = adc_K
 
 
@@ -370,10 +349,16 @@ class Vehicle:
 			if srm_entry_mode == "cube root":
 				pass
 		if event["name"] == "Jettison":
-			print("\nEVENT: Jettisoned {}".format(engine.name))
-			engine.setThrottleOverride(0)
-			engine.fuelUsed = engine.weight_fueled
-			self.adc_K -= engine.adc_K
+			print("\nEVENT: Jettisoned {}".format(stage.type))
+			# if rocket total weight is calculated on total values change to be fueled_weight:
+			# if rocket total weight is calculated on lift-off values use this:
+			stage.fuelUsed = engine.initial_weight
+			for engine in self.engines:
+				if engine.stage == stage.type:
+					engine.setThrottleOverride(0)
+				if engine.stage == "orbiter" and stage.type == "RLV":
+					engine.set_fuel_source(selt.stages["orbiter"])
+			self.adc_K -= stage.adc_K
 		if event["name"] == "Increase Throttle By Max Rate-Of-Change":
 			startThrottle = engine.get_throt()
 			engine.setThrottle(engine.max_throt)
