@@ -65,7 +65,7 @@
 				"min_throt" : 0.60,
 				"max_throt" : 0.95,
 				"residual" : 0.015,
-				"throt_rate_of_change_limit" : 0.15,
+				"throt_rate_of_change_limit" : 0.12,
 				"burn_rate" : [1129.0],
 				"type" : "Liquid"
 			},
@@ -87,9 +87,10 @@
 				"thrust_vac" : 6002.0,
 				"lbm_dry" : 20503,
 				"fuel" : 5932224.827,
-				"max_throt" : 0.95,
+				"min_throt" : 1.0,
+				"max_throt" : 1.0,
 				"residual" : 0.015,
-				"throt_rate_of_change_limit" : 0.15,
+				"throt_rate_of_change_limit" : 1.0,
 				"burn_rate" : [18.993671],
 				"type" : "Liquid"
 			},
@@ -99,6 +100,7 @@
 				"thrust_vac" : 797000.0,
 				"min_throt" : 0.60,
 				"max_throt" : 1.0,
+				"throt_rate_of_change_limit" : 0.12,
 				"burn_rate" : [1924.0],
 				"type" : "Liquid"
 			}

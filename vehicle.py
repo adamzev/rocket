@@ -1,4 +1,5 @@
 from rocketEngine import *
+from stage import *
 from generalEquations import *
 from util import *
 
@@ -7,9 +8,31 @@ class Vehicle:
 
 	def __init__(self, specs):
 		self.name = "{} MK {} VER: {}".format(specs["name"], specs["MK"], specs["ver"])
-
+		stage_data = [ {
+			"name" : "R_SRB",
+			"type" : "SRB",
+			"fuel" : 123,
+			"weight_fueled" : 123,
+			"seperation_weight" : 123
+		},
+		{
+			"name" : "RD/RD-RLV",
+			"type" : "RLV",
+			"fuel" : 123,
+			"weight_fueled" : 123,
+			"seperation_weight" : 123
+		},
+ 		{
+			"name" : "Orbiter",
+			"type" : "orbiter",
+			"fuel" : 123,
+			"weight_fueled" : 123,
+			"seperation_weight" : 123
+		} ]
+		self.stages = self.init_stages(stage_data)
 		self.engines = []
 		self.attach_engines(specs["engines"])
+		self.set_engine_initial_fuel_source()
 		self.lift_off_weight = specs["lift_off_weight"]
 		self.set_adc_K(specs["ADC_K"])
 		self.currentWeight = self.lift_off_weight
@@ -59,6 +82,19 @@ class Vehicle:
 			except:
 				print ("ERROR Engine {} not found".format(name))
 		return engine_data
+
+	def init_stages(self, stage_data):
+		stages = {}
+		for stage_datum in stage_data:
+			stages[stage_datum["type"]] = Stage(stage_datum)
+		return stages
+
+	def set_engine_initial_fuel_source(self):
+		for engine in self.engines:
+			if engine.type == "Solid":
+				engine.set_fuel_source(self.stages["SRB"])
+			else:
+				engine.set_fuel_source(self.stages["RLV"])
 
 	def attach_engines(self, selected_engines):
 		''' loads engine data from file matching the given names
@@ -144,11 +180,11 @@ class Vehicle:
 		self.engines[:] = [d for d in self.engines if d.get('name') != engineName]
 
 	def updateWeight(self, time_inc):
-		fuelUsed = 0.0
-		fuelBurn = 0.0
-		for engine in self.engines:
-			fuelUsed += engine.fuelUsed
-		self.currentWeight = self.lift_off_weight - fuelUsed
+		fuel_used = 0.0
+		fuel_burn = 0.0
+		for name, stage in self.stages.iteritems():
+			fuel_used += stage.fuel_used
+		self.currentWeight = self.lift_off_weight - fuel_used
 
 	def update_V(self, time_inc):
 		self.update_V_vert_inc(time_inc)
@@ -236,8 +272,8 @@ class Vehicle:
 
 	def getTotalFuelUsed(self):
 		fuelUsed = 0
-		for engine in self.engines:
-			fuelUsed += engine.fuelUsed
+		for name, stage in self.stages:
+			fuelUsed += stage.fuelUsed
 		return fuelUsed
 
 	def setEngineThrottleOverride(self, engineName, throt):
@@ -319,7 +355,7 @@ class Vehicle:
 
 		if event["name"] == "Reduce Thrust Until Depleted":
 			eventTime = event["end_time"] - event["start_time"]
-			fuelRemaining = engine.getFuelRemaining()
+			fuelRemaining = self.stages["SRB"].getFuelRemaining()
 			srm_entry_mode = "array"
 			for eng in self.engines:
 				print("{} burning at {} count {} ".format(eng.name, eng.get_burn_rate()*eng.get_throt(), eng.engine_count))

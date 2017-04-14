@@ -3,19 +3,19 @@ from generalEquations import *
 from util import *
 class RocketEngine:
 	def __init__(self, engineStats):
+		self.assigned_thrust = [0.0]
 		self.throt = [0.0]
 		self.burn_rate = []
-		self.fuelUsed = 0.0
 		self.thrust_total = [0.0]
 		for key, value in engineStats.iteritems():
 			setattr(self, key, value)
 
+	def set_fuel_source(self, source):
+		self.fuel_source = source
 	def setThrottleOverride(self, requested_throt):
 		# allows setting throttle without powering up the engine
 		self.throt.append(requested_throt)
 
-	def get_fuelUsed(self):
-		return self.fuelUsed
 
 	def get_throt(self, when = "current"):
 		return get_value(self.throt, when)
@@ -79,21 +79,15 @@ class RocketEngine:
 	def burnFuel(self, time_inc, alt = None):
 		throt_avg = average(self.get_throt(), self.get_throt("prev"))
 
-		if throt_avg == 0:
-			return self.fuelUsed
-		else:
+		if throt_avg > 0.0:
 			try:
 				thrust_controlled = self.thrust_controlled
 				self.burn_rate.append(self.get_thrust_total()  / self.specific_impulse_at_alt(alt))
-				self.fuelUsed += self.get_burn_rate() * time_inc
+				self.fuel_source.fuel_used += self.get_burn_rate() * time_inc
 
 			except:
-				self.fuelUsed += throt_avg * self.get_burn_rate() * self.engine_count * time_inc
+				self.fuel_source.fuel_used += throt_avg * self.get_burn_rate() * self.engine_count * time_inc
 
-	def getUsableFuelRemaining(self):
-		return self.usable_fuel-self.fuelUsed
-	def getFuelRemaining(self):
-		return self.fuel-self.fuelUsed
 
 	def specific_impulse_at_alt(self, alt):
 		patm = percentOfAtmosphericPressure(alt)

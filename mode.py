@@ -1,3 +1,3 @@
 ROUND = False
 LOGLEVEL = "INFO"
-QUICKRUN = False
+QUICKRUN = True
