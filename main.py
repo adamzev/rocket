@@ -13,9 +13,9 @@ class Main_program:
 	def __init__(self, specs = []):
 		self.specs = specs
 		self.alt = 30.0
-		self.time = 0.0
+
 		self.endTime = 10.0
-		self.time_inc = 1.0
+
 
 	def start(self):
 		print(TITLE)
@@ -38,7 +38,7 @@ class Main_program:
 			{
 				"name" : "Reduce Thrust Until Depleted",
 				"engine": "SRM",
-				"start_time": 102.00,
+				"start_time": 99.00,
 				"end_time" : 114.00,
 			},
 			{
@@ -64,15 +64,15 @@ class Main_program:
 		self.HLV = Vehicle(self.specs)
 
 
-	def compute_row(self, rocket, time, time_inc, time_incs, events, predictedADC, assigned_V, printRow = True):
+	def compute_row(self, rocket, events, predictedADC, assigned_V, printRow = True):
 		rocket.set_ADC_predicted(predictedADC)
 		for event in events:
-			if time >= event["start_time"] and time <= event["end_time"]:
-				rocket.handle_event(event, time, time_inc)
+			if rocket.time >= event["start_time"] and rocket.time <= event["end_time"]:
+				rocket.handle_event(event, rocket.time, rocket.time_inc)
 
 		#self.HLV.engine_status()
 
-		rocket.updateWeight(time_inc)
+		rocket.updateWeight(rocket.time_inc)
 		rocket.updateA()
 		#assigned_V = raw_input("Enter the assigned A_vert:")
 
@@ -87,20 +87,15 @@ class Main_program:
 
 
 		rocket.updateHorizA()
-		rocket.update_V(time_inc)
-		rocket.updateAlt(time_inc)
-		rocket.update_ADC_actual(time_inc)
-		for timeIncrements in time_incs:
-			if time<timeIncrements["until"]:
-				time_inc = timeIncrements["time_inc"]
-				break
-		rocket.burnFuel(time_inc)
+		rocket.update_V(rocket.time_inc)
+		rocket.updateAlt(rocket.time_inc)
+		rocket.update_ADC_actual(rocket.time_inc)
+		rocket.set_time_inc()
+		rocket.tick()
+		rocket.burnFuel(rocket.time_inc)
 
 		if printRow:
-			self.print_EdRow(time)
-		return time_inc
-
-
+			self.print_EdRow()
 
 	def set_initial_conditions(self):
 		if QUICKRUN:
@@ -121,11 +116,11 @@ class Main_program:
 
 
 
-	def print_EdRow(self, time):
+	def print_EdRow(self):
 		edRow(
 			bigG(self.HLV.get_V_horiz_mph(), self.HLV.get_OrbitalV()),
 			self.HLV.get_V_vert_inc(),
-			time,
+			self.HLV.time,
 			self.HLV.get_currentWeight(),
 			self.HLV.get_A_total(),
 			self.HLV.get_V_horiz_mph(),
@@ -143,14 +138,14 @@ class Main_program:
 		)
 
 
-	def predict_ADC(self, rocket, time, time_inc, time_incs, events, assigned_V):
+	def predict_ADC(self, rocket, events, assigned_V):
 		threshold = 0.0000001
 		ADC_error = 100000.0
 		ADC_prediction = 0
 		tries = 0
 		while abs(ADC_error) > threshold:
 			rocketCopy = copy.deepcopy(rocket)
-			stopPrinting(lambda: self.compute_row(rocketCopy, time, time_inc, time_incs, events, ADC_prediction, assigned_V, False))
+			stopPrinting(lambda: self.compute_row(rocketCopy, events, ADC_prediction, assigned_V, False))
 			ADC_error = rocketCopy.get_ADC_error()
 			ADC_actual = rocketCopy.get_ADC_actual()
 			#print ("Predicted ADC = {}\nerror={}\n=his prediction {}\nadc_calc={}".format(ADC_prediction*10000.0, ADC_error*10000.0, hisPredictedADC*10000.0, ADC_actual*10000.0))
@@ -162,25 +157,18 @@ class Main_program:
 
 	def initialize_rocket(self):
 		totalThrust = self.HLV.getTotalThrust()
-		time = 0
-		time_inc = 1.0
 
 		self.HLV.updateA()
 		self.HLV.updateVertA(self.HLV.get_A_total_eff())
 		self.HLV.update_V_vert()
-		self.HLV.update_ADC_actual(time_inc)
-		self.HLV.setEngineThrottle("RD-171M", "max", time_inc)
-		self.HLV.burnFuel(time_inc)
-		self.print_EdRow(time)
+		self.HLV.update_ADC_actual(self.HLV.time_inc)
+		self.HLV.setEngineThrottle("RD-171M", "max", self.HLV.time_inc)
+		self.HLV.burnFuel(self.HLV.time_inc)
+		self.print_EdRow()
+		self.HLV.set_time_inc()
 		#time_inc = float(raw_input("Enter the time inc:"))
-		time_inc = 1.0
-		time += time_inc
 
 	def sim_rocket(self):
-		time = 1
-		time_inc = 1.0
-
-
 
 		asssigned_vs = ["a", "a", "a", "a", "a", 0.55, 0.563, 0.56, 0.55, 0.55, 0.55, 0.515, 0.518, 0.51, 0.489, 0.495, 0.494, 0.510, 0.534, 0.560,
 			0.570, 0.58, 0.59, 0.6, 0.59, 0.58, 0.57, 0.56, 0.55, 0.54, 0.53, 0.52, 0.51, 0.5, 0.5, 0.5, 0.48, 0.46, 0.44, 0.42, 0.3, 0.3, 0.3,
@@ -188,21 +176,17 @@ class Main_program:
 			-0.20, -0.18, -0.16, -0.16, -0.13, -0.10, 0.012808983, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.20, -0.25, -0.40, -0.38,
 			-0.36, -0.34, -0.32, -0.30, -0.28, -0.26, -0.24, -0.22, -0.20, -0.18, -0.16, -0.14, -0.12, -0.10, -0.10, -0.10, -0.10, -0.10
 		]
-		time_incs_json = load_json('time_incs.json')
-		time_incs = time_incs_json['time_incs']
+
 
 
 		i = 0
-		#16600 is the cut off point for all orbiter engines and time to make adj to coast for 15 to twenty minutes
-		#The Rocketman program does not currently handle these adjustments so the program ends at this point
-		COAST_SPEED = 16600
-		# while HLV.get_V_horiz_mph() < COAST_SPEED
-		while time <= 99:
+
+		# while HLV.get_V_horiz_mph() < self.COAST_SPEED
+		while self.HLV.time <= 99:
 			assigned_V = asssigned_vs[i]
 			i += 1
-			predictedADC = self.predict_ADC(self.HLV, time, time_inc, time_incs, self.events, assigned_V)
-			time_inc = self.compute_row(self.HLV, time, time_inc, time_incs, self.events, predictedADC, assigned_V) #returns time_inc
-			time += time_inc
+			predictedADC = self.predict_ADC(self.HLV, self.events, assigned_V)
+			self.compute_row(self.HLV, self.events, predictedADC, assigned_V) #returns time_inc
 
 Rocketman = Main_program()
 Rocketman.start()

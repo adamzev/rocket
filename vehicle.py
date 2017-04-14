@@ -17,6 +17,11 @@ class Vehicle:
 		self.set_adc_K(specs["stages"])
 		self.currentWeight = self.lift_off_weight
 
+		self.time = 0.0
+		time_incs_json = load_json('time_incs.json')
+		self.time_incs = time_incs_json['time_incs']
+		self.set_time_inc()
+
 		self.alt = []
 		self.alt.append(specs["initial_alt"])
 
@@ -62,6 +67,14 @@ class Vehicle:
 			except:
 				print ("ERROR Engine {} not found".format(name))
 		return engine_data
+
+	def set_time_inc(self):
+		for timeIncrements in self.time_incs:
+			if self.time < timeIncrements["until"]:
+				self.time_inc = timeIncrements["time_inc"]
+				break
+	def tick(self):
+		self.time += self.time_inc
 
 	def init_stages(self, stage_data):
 		stages = {}
