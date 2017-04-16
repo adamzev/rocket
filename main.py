@@ -25,7 +25,7 @@ class Main_program:
 			{
 				"name" : "Increase Throttle By Max Rate-Of-Change",
 				"engine": "RD-171M",
-				"start_time": 0.00,
+				"start_time": 1.00,
 				"end_time" : 3.00,
 			},
 			{
@@ -36,16 +36,16 @@ class Main_program:
 				"rate" : -20000.0,
 			},
 			{
-				"name" : "Reduce Thrust Until Depleted",
+				"name" : "Power Down",
 				"engine": "SRM",
 				"start_time": 99.00,
 				"end_time" : 114.00,
 			},
 			{
 				"name" : "Jettison",
-				"engine": "SRM",
-				"start_time": 114.10,
-				"end_time" : 114.10,
+				"stage": "SRB",
+				"start_time": 114.00,
+				"end_time" : 114.00,
 			},
 			{
 				"name" : "Reduce Throttle By Max Rate-Of-Change",
@@ -66,16 +66,22 @@ class Main_program:
 
 	def compute_row(self, rocket, events, predictedADC, assigned_V, printRow = True):
 		rocket.set_ADC_predicted(predictedADC)
+
 		for event in events:
 			if rocket.time >= event["start_time"] and rocket.time <= event["end_time"]:
-				rocket.handle_event(event, rocket.time, rocket.time_inc)
+				if "stage" in event.keys():
+					rocket.handle_stage_event(event)
+				if "engine" in event.keys():
+					rocket.handle_engine_event(event)
+		rocket.tick()
+		rocket.burnFuel(rocket.time_inc)
 
 		#self.HLV.engine_status()
+
 
 		rocket.updateWeight(rocket.time_inc)
 		rocket.updateA()
 		#assigned_V = raw_input("Enter the assigned A_vert:")
-
 
 		if assigned_V == "a" or assigned_V == "all":
 			assigned_V = rocket.get_A_total_eff()
@@ -84,18 +90,17 @@ class Main_program:
 			assigned_V = float(assigned_V)
 			rocket.updateVertA(assigned_V, False)
 
-
-
 		rocket.updateHorizA()
 		rocket.update_V(rocket.time_inc)
 		rocket.updateAlt(rocket.time_inc)
 		rocket.update_ADC_actual(rocket.time_inc)
-		rocket.set_time_inc()
-		rocket.tick()
-		rocket.burnFuel(rocket.time_inc)
+
 
 		if printRow:
-			self.print_EdRow()
+			print(rocket)
+			print(rocket.stages["SRB"])
+
+
 
 	def set_initial_conditions(self):
 		if QUICKRUN:
@@ -113,29 +118,6 @@ class Main_program:
 				if engine.type == "Solid":
 					answer = query_min_max("What is the starting " + Fore.RED + "thrust for {}".format(engine.name) + Style.RESET_ALL, 0, float('inf'))
 				self.HLV.setEngineAssignedThrustPerEngine("SRM", "max")
-
-
-
-	def print_EdRow(self):
-		edRow(
-			bigG(self.HLV.get_V_horiz_mph(), self.HLV.get_OrbitalV()),
-			self.HLV.get_V_vert_inc(),
-			self.HLV.time,
-			self.HLV.get_currentWeight(),
-			self.HLV.get_A_total(),
-			self.HLV.get_V_horiz_mph(),
-			self.HLV.get_airSpeed(),
-			self.HLV.get_A_vert_eff(),
-			self.HLV.get_A_horiz(),
-			self.HLV.get_V_vert(),
-			self.HLV.get_alt(),
-			self.HLV.getTotalThrust(),
-			self.HLV.get_ADC_predicted(),
-			self.HLV.get_ADC_actual(),
-			self.HLV.get_ADC_adjusted(),
-			self.HLV.get_A_total_eff()
-
-		)
 
 
 	def predict_ADC(self, rocket, events, assigned_V):
@@ -156,16 +138,13 @@ class Main_program:
 		return ADC_prediction
 
 	def initialize_rocket(self):
-		totalThrust = self.HLV.getTotalThrust()
-
 		self.HLV.updateA()
 		self.HLV.updateVertA(self.HLV.get_A_total_eff())
 		self.HLV.update_V_vert()
 		self.HLV.update_ADC_actual(self.HLV.time_inc)
+
 		self.HLV.setEngineThrottle("RD-171M", "max", self.HLV.time_inc)
-		self.HLV.burnFuel(self.HLV.time_inc)
-		self.print_EdRow()
-		self.HLV.set_time_inc()
+		print(self.HLV)
 		#time_inc = float(raw_input("Enter the time inc:"))
 
 	def sim_rocket(self):
@@ -182,7 +161,7 @@ class Main_program:
 		i = 0
 
 		# while HLV.get_V_horiz_mph() < self.COAST_SPEED
-		while self.HLV.time <= 99:
+		while self.HLV.time <= 200:
 			assigned_V = asssigned_vs[i]
 			i += 1
 			predictedADC = self.predict_ADC(self.HLV, self.events, assigned_V)

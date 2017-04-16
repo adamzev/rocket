@@ -107,17 +107,3 @@ def get_specs():
 		specs = create_specs() #if there are no spec files, you need to create one
 	pretty_json(specs)
 	return specs
-
-
-
-def edRow(big_G, V_vert_inc, time,totalWeight, totalA, V_horiz, V_as, A_v, A_h, V_vert, alt, thrust, ADC_guess = 0.0, ADC_actual = 0.0, ADC_adj = 0.0, A_total_eff = 0.0):
-	row1 = "-"*140 + "\n"
-	row2 = "{:>46.6f}      {:>6.8f}     G={: <12.8f}\n".format(A_total_eff, ADC_actual, big_G)
-	time_string = "{:<6.1f}".format(time)
-	time_string = Fore.RED + time_string + Style.RESET_ALL
-	row3 = "+{:<12.2f} {:5} WT={:<11.2f}->{:>9.6f}      {:<12.8f}   Vh={:<12.6f} Vas={:<12.3f}     {:<12.6f}-{:<10.8f}\n".format(
-		V_vert_inc, time_string, totalWeight, totalA, ADC_adj, V_horiz, V_as, A_v, A_h
-	)
-	alt_string = "ALT={:<.1f}\'".format(alt)
-	row4 = "{:<13.6f} {:<16} T={:<19.4f}  \"{:<.4f}\"\n".format(V_vert, alt_string, thrust, ADC_guess)
-	print(row1+row2+row3+row4)

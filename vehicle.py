@@ -44,8 +44,31 @@ class Vehicle:
 		self.ADC_predicted = [0.0]
 		self.ADC_actual = [0.0]
 		self.orbitalV = orbitalVelocity(current(self.alt))
-		self.assigned_burn_rates_for_SRM_power_down=[10195.695, 8750, 5500, 3500, 2150]
 
+
+	def __str__(self):
+		current_bigG = bigG(self.get_V_horiz_mph(), self.get_OrbitalV())
+		totalA = self.get_A_total()
+		V_horiz = self.get_V_horiz_mph()
+		V_as = self.get_airSpeed()
+		A_v =self.get_A_vert_eff()
+		A_h = self.get_A_horiz()
+		V_vert = self.get_V_vert()
+		alt = self.get_alt()
+		thrust = self.getTotalThrust()
+		ADC_guess = self.get_ADC_predicted()
+		ADC_adj = self.get_ADC_adjusted()
+
+		row1 = "-"*140 + "\n"
+		row2 = "{:>46.6f}      {:>6.8f}     G={: <12.8f}\n".format(self.get_A_total_eff(), self.get_ADC_actual(), current_bigG)
+		time_string = "{:<6.1f}".format(self.time)
+		time_string = Fore.RED + time_string + Style.RESET_ALL
+		row3 = "+{:<12.2f} {:5} WT={:<11.2f}->{:>9.6f}      {:<12.8f}   Vh={:<12.6f} Vas={:<12.3f}     {:<12.6f}-{:<10.8f}\n".format(
+			self.get_V_vert_inc(), time_string, self.get_currentWeight(), totalA, ADC_adj, V_horiz, V_as, A_v, A_h
+		)
+		alt_string = "ALT={:<.1f}\'".format(alt)
+		row4 = "{:<13.6f} {:<16} T={:<19.4f}  \"{:<.4f}\"\n".format(V_vert, alt_string, thrust, ADC_guess)
+		return row1+row2+row3+row4
 	@staticmethod
 	def load_available_engines():
 		available_engines_json = load_json("rocketEngineData.json")
@@ -74,6 +97,7 @@ class Vehicle:
 				self.time_inc = timeIncrements["time_inc"]
 				break
 	def tick(self):
+		self.set_time_inc()
 		self.time += self.time_inc
 
 	def init_stages(self, stage_data):
@@ -86,15 +110,28 @@ class Vehicle:
 		for engine in self.engines:
 			if engine.type == "Solid":
 				engine.set_fuel_source(self.stages["SRB"])
+				self.stages["SRB"].fueling(engine)
 			else:
 				engine.set_fuel_source(self.stages["RLV"])
+				self.stages["RLV"].fueling(engine)
+
+
+	def attach_engine(self, engine_data):
+		if engine_data["type"] == "Solid":
+			engine = SolidRocketEngine(engine_data)
+		elif engine_data["type"] == "Liquid":
+			engine = LiquidRocketEngine(engine_data)
+		else:
+			raise ValueError("Unsupported engine type.")
+		self.engines.append(engine)
+
 
 	def attach_engines(self, selected_engines):
 		''' loads engine data from file matching the given names
 		'''
 		engine_data = Vehicle.load_engine_data(selected_engines)
 		for engine in engine_data:
-			self.attachEngine(engine)
+			self.attach_engine(engine)
 
 	def set_adc_K(self, stages):
 		adc_K = 0.0
@@ -164,10 +201,6 @@ class Vehicle:
 		self.A_prev = self.A
 
 
-	def attachEngine(self, engineData):
-		engine = RocketEngine(engineData)
-		self.engines.append(engine)
-
 	def detachEngine(self, engineName):
 		self.engines[:] = [d for d in self.engines if d.get('name') != engineName]
 
@@ -206,7 +239,7 @@ class Vehicle:
 		self.ADC_predicted.append(predictedADC)
 
 	def updateA(self):
-		totalA = self.totalThrust / self.currentWeight
+		totalA = self.getTotalThrust() / self.currentWeight
 		self.A_total.append(totalA)
 		self.ADC_adjusted.append(self.get_ADC_predicted() - self.get_ADC_error())
 		self.A_total_eff.append(totalA - self.get_ADC_adjusted())
@@ -243,7 +276,6 @@ class Vehicle:
 			raise ValueError("Sqrt of negative, A total={} which is > A_vert={}".format(self.get_A_total_eff("prev"), self.get_A_vert()))
 
 
-
 	def get_airSpeed(self, when = "current"):
 		if when == "current":
 			return pythag(fpsToMph(self.get_V_vert()), self.get_V_horiz_mph()-912.67)
@@ -255,7 +287,6 @@ class Vehicle:
 		totalThrust = 0
 		for engine in self.engines:
 			totalThrust += engine.thrustAtAlt(self.get_alt())
-		self.totalThrust = totalThrust
 		return totalThrust
 
 	def burnFuel(self, time_inc):
@@ -307,81 +338,40 @@ class Vehicle:
 		for engine in engines:
 			print "Name: {}\nThrottle: {}\nThrust: {}\nFuel Used: {}".format(engine.name, engine.get_throt(),engine.get_thrust_total(), engine.get_fuelUsed())
 
-	def handle_event(self, event, time, time_inc):
-		engine = self.find_engine(event["engine"])
-		'''
-		SAMPLE EVENTS
-		events = [
-				{
-					"name" : "Reduce Thrust",
-					"engine": "SRM",
-					"start_time": 24.00,
-					"end_time" : 45.00,
-					"rate" : -20000.0,
-				},
-				{
-					"name" : "Reduce Thrust Until Depleted",
-					"engine": "SRM",
-					"start_time": 102.00,
-					"end_time" : 114.00,
-				},
-				{
-					"name" : "Jettison",
-					"engine": "SRM",
-					"start_time": 114.00,
-					"end_time" : 114.00,
-				},
-				{
-					"name" : "Reduce Throttle",
-					"engine": "RD-171M",
-					"start_time": 137.00,
-					"end_time" : 140.00,
-				},
-			]
-		'''
-		if event["name"] == "Reduce Thrust" and time < event["end_time"]:
-			currentThrust = engine.get_thrust_per_engine()
-			newThrust = currentThrust + event["rate"] * time_inc
-			engine.set_assigned_thrust_per_engine(newThrust)
-			print("\nEVENT: Reduced thrust of {} to {}".format(engine.name, newThrust))
 
-		if event["name"] == "Reduce Thrust Until Depleted":
-			eventTime = event["end_time"] - event["start_time"]
-			fuelRemaining = self.stages["SRB"].get_fuel_remaining()
-			srm_entry_mode = "array"
-			for eng in self.engines:
-				print("{} burning at {} count {} ".format(eng.name, eng.get_burn_rate()*eng.get_throt(), eng.engine_count))
-			print ("Fuel used in SRM is {}".format(engine.get_fuelUsed()/4.0 ))
-			if srm_entry_mode == "manual":
-				thrust = raw_input("Enter the assigned SRM thrust per engine:")
-			if srm_entry_mode == "array" and len(self.assigned_burn_rates_for_SRM_power_down)>0:
-				burn_rate = self.assigned_burn_rates_for_SRM_power_down.pop(0)
-				engine.adjust_throttle_to_burn_at_rate_per_engine(burn_rate, self.alt)
-			if srm_entry_mode == "linear":
-				pass
-			if srm_entry_mode == "cube root":
-				pass
+	def handle_stage_event(self, event):
+		stage = self.stages[event["stage"]]
+		start_time = event["start_time"]
+		end_time = event["end_time"]
+
 		if event["name"] == "Jettison":
-			print("\nEVENT: Jettisoned {}".format(stage.type))
-			# if rocket total weight is calculated on total values change to be fueled_weight:
-			# if rocket total weight is calculated on lift-off values use this:
-			stage.fuelUsed = engine.initial_weight
+			stage.jettison()
+			self.adc_K -= stage.adc_K
 			for engine in self.engines:
 				if engine.stage == stage.type:
 					engine.setThrottleOverride(0)
+					engine.setThrottleOverride(0)
 				if engine.stage == "orbiter" and stage.type == "RLV":
-					engine.set_fuel_source(selt.stages["orbiter"])
-			self.adc_K -= stage.adc_K
+					#orbiter engines use RLV as fuel source until RLV is jettisoned
+					engine.set_fuel_source(self.stages["orbiter"])
+
+	def handle_engine_event(self, event):
+		engine = self.find_engine(event["engine"])
+		start_time = event["start_time"]
+		end_time = event["end_time"]
+
+		if event["name"] == "Reduce Thrust" and self.time < event["end_time"]:
+			engine.reduceThrust(event["rate"], self.time_inc)
+
+		if event["name"] == "Power Down":
+			engine.power_down(start_time, end_time, self.time, self.time_inc, self.get_alt())
+
+
 		if event["name"] == "Increase Throttle By Max Rate-Of-Change":
-			startThrottle = engine.get_throt()
 			engine.setThrottle(engine.max_throt)
-			endThrottle = engine.get_throt()
-			print("\nEVENT: {} Throttle increased from {} to {}".format(engine.name, startThrottle, endThrottle))
+
 		if event["name"] == "Reduce Throttle By Max Rate-Of-Change":
-			startThrottle = engine.get_throt()
 			engine.setThrottle(engine.min_throt)
-			endThrottle = engine.get_throt()
-			print("\nEVENT: {} Throttle reduced from {} to {}".format(engine.name, startThrottle, endThrottle))
 
 		if event["name"] == "Engine Cut-off":
 			engine.setThrottleOverride(0.0)
