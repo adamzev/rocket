@@ -72,16 +72,15 @@ def average(*args):
 	return sum(args)/float(len(args))
 
 def pythag(a, b, c = None):
-	getcontext().prec = 100
 	if c is None:
-		return float(Decimal.sqrt(Decimal(a)**2 + Decimal(b)**2))
+		return float(math.sqrt(a**2 + b**2))
 	if a is None:
 		hyp = c
 		given_leg = b
 	if b is None:
 		hyp = c
 		given_leg = a
-	return float( Decimal.sqrt(Decimal(hyp)**2 - Decimal(given_leg)**2))
+	return float( math.sqrt(hyp**2 - given_leg**2))
 def ADC(air_speed, alt, K):
 	return ((air_speed / 1000.0)**2.0) * percentOfAtmosphericPressure(alt) * K  # with resultant ADC in  "g" units
 

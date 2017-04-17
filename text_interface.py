@@ -3,24 +3,20 @@ from title import *
 from rocketEngine import *
 from vehicle import *
 
-def save_specs(specs):
-	file_name = "specs/{}_MK_{}_VER_{}.json".format(
-		remove_non_alphanumeric(specs["name"]),
-		remove_non_alphanumeric(specs["MK"]),
-		remove_non_alphanumeric(specs["ver"])
-	)
+def save_file(this_file):
+	file_name = this_file['file_name']
+	save_json(this_file, file_name)
 
-	save_json(specs, file_name)
 
-def load_specs(spec_files):
+def select_and_load_json_file(files):
 	n = 1
-	for spec_file in spec_files:
-		spec_data = load_json(spec_file)
-		print("{}) {} MK {} VER {}".format(n,spec_data["name"], spec_data["MK"], spec_data["ver"]))
+	for this_file in files:
+		file_data = load_json(this_file)
+		print("{}) {}".format(n,file_data["friendly_name"]))
 		n += 1
 	file_num = query_int("Select a file number: ", None, 1, n-1)
-	specs = load_json(spec_files[file_num-1])
-	return specs
+	data = load_json(files[file_num-1])
+	return data
 
 def create_engine_specs():
 	available_engines = Vehicle.load_available_engines()
@@ -75,15 +71,25 @@ def create_specs():
 	ver = raw_input("Version? ")
 	lift_off_weight = query_float("What is the weight at lift off? ")
 	initial_alt = query_float("What is initial alt? ")
+	A_hv_diff = query_float("What is desired A_h - A_v difference? ")
+	tower_height = query_float("What is desired A_h - A_v difference? ")
 	stages = create_stages_specs()
 	selected_engines = create_engine_specs()
-
+	friendly_name = "{} MK {} VER {}".format(n,spec_data["name"], spec_data["MK"], spec_data["ver"])
+	clean_name = remove_non_alphanumeric(specs["name"]),
+	clean_MK = remove_non_alphanumeric(specs["MK"]),
+	clean_ver =  remove_non_alphanumeric(specs["ver"])
+	file_name = "{}_MK_{}_VER_{}".format(n, clean_name, clean_MK, clean_ver)
 	specs = {
 		"name" : name,
 		"MK" : MK,
 		"ver" : ver,
+		"friendly_name" : friendly_name,
+		"file_name" : file_name,
 		"lift_off_weight" : lift_off_weight,
 		"initial_alt" : initial_alt,
+		"A_hv_diff" : A_hv_diff,
+		"tower_height" : tower_height,
 		"stages" : stages,
 		"engines" : selected_engines
 	}
@@ -94,16 +100,24 @@ def create_specs():
 	return specs
 
 
+def get_initial_conditions():
+	return get_json_file_data("initial_conditions", "initial conditions", set_initial_conditions)
+
+
 
 def get_specs():
-	spec_files = glob.glob("specs/*.json")
-	if len(spec_files) >= 1:
-		create_new_specs = query_yes_no("Do you want to create a new spec file? ", "no")
-		if create_new_specs:
-			specs = create_specs()
-		else:
-			specs = load_specs(spec_files)
+	return get_json_file_data("specs", "spec", create_specs)
+
+def get_json_file_data(folder, name, creation_function):
+	files = glob.glob("{}/*.json".format(folder))
+	if len(files) < 1: #if there are no spec files, you need to create one
+		data = creation_function()
 	else:
-		specs = create_specs() #if there are no spec files, you need to create one
-	pretty_json(specs)
-	return specs
+		create_new = query_yes_no("Do you want to create a new {} file? ".format(name), "no")
+		if create_new:
+			data = creation_function()
+		else:
+			data = select_and_load_json_file(files)
+
+	pretty_json(data)
+	return data

@@ -147,8 +147,7 @@ def query_int(question, default=None, min_num=None, max_num=None):
 			elif min_num <= choice <= max_num:
 				return choice
 		sys.stdout.write("Please respond with a valid number.\n")
-''' SET BREAKPOINTS BY '''
-# import pdb; pdb.set_trace()
+
 
 def query_min_max(question, min_num=0.0, max_num=1.0):
 	"""Ask a question via raw_input() where "min", "max", "off" or a number in a range are valid and return their answer.
@@ -173,3 +172,14 @@ def query_min_max(question, min_num=0.0, max_num=1.0):
 			return float(choice)
 		else:
 			sys.stdout.write("Please respond with 'min', 'max', 'off' or a number between {} and {}. \n".format(min_num, max_num))
+
+def real_quadradric(a , b, c):
+	disc = b**2 - 4 * a * c
+	assert disc >= 0
+
+	x1 = (-b + disc**0.5)/(2.0*a)
+	x2 = (-b - disc**0.5)/(2.0*a)
+
+''' SET BREAKPOINTS BY '''
+def break_point():
+	import pdb; pdb.set_trace()

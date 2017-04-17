@@ -1,14 +1,15 @@
 from rocketEngine import *
+from physics import Physics
 from stage import *
 from generalEquations import *
 from util import *
 
 
-class Vehicle:
+class Vehicle(Physics):
 
-	def __init__(self, specs):
+	def __init__(self, specs, load_time_incs = False):
 		self.name = "{} MK {} VER: {}".format(specs["name"], specs["MK"], specs["ver"])
-
+		self.load_time_incs = load_time_incs
 		self.stages = self.init_stages(specs["stages"])
 		self.engines = []
 		self.attach_engines(specs["engines"])
@@ -18,12 +19,17 @@ class Vehicle:
 		self.currentWeight = self.lift_off_weight
 
 		self.time = 0.0
-		time_incs_json = load_json('time_incs.json')
-		self.time_incs = time_incs_json['time_incs']
-		self.set_time_inc()
-
+		if load_time_incs:
+			time_incs_json = load_json('time_incs.json')
+			self.time_incs = time_incs_json['time_incs']
+			self.set_time_inc()
+		else:
+			self.time_inc = 0.1
 		self.alt = []
 		self.alt.append(specs["initial_alt"])
+
+		self.tower_height = specs["tower_height"]
+		self.A_hv_diff = specs["A_hv_diff"]
 
 		self.orbitalV = 0
 		self.A_vert_eff = [0.0]
@@ -97,7 +103,8 @@ class Vehicle:
 				self.time_inc = timeIncrements["time_inc"]
 				break
 	def tick(self):
-		self.set_time_inc()
+		if self.load_time_incs:
+			self.set_time_inc()
 		self.time += self.time_inc
 
 	def init_stages(self, stage_data):
@@ -196,11 +203,6 @@ class Vehicle:
 	def updateAlt (self, time_inc):
 		self.alt.append(altitude(self.get_alt(), self.get_V_vert("prev"), self.get_V_vert_inc(), time_inc))
 
-	def updatePrev(self):
-		self.V_prev = self.V
-		self.A_prev = self.A
-
-
 	def detachEngine(self, engineName):
 		self.engines[:] = [d for d in self.engines if d.get('name') != engineName]
 
@@ -237,6 +239,23 @@ class Vehicle:
 
 	def set_ADC_predicted(self, predictedADC):
 		self.ADC_predicted.append(predictedADC)
+
+	def select_A_vert(self):
+		if self.get_alt() <= self.tower_height:
+			return "a"
+		orbitalV = orbitalVelocity(current(self.alt))
+		A_horiz = A_vert_eff = 0.0
+		A = self.get_A_total_eff()
+		G = bigG(self.get_V_horiz_mph(), orbitalV)
+
+		A_horiz_bump = 0.01
+		while A_horiz <= A_vert_eff + self.A_hv_diff:
+			A_horiz = ((math.sqrt(2.0*A**2.0 - G**2.0))-G)/2.0 + A_horiz_bump
+			A_vert = pythag(None, A_horiz, A)
+			A_vert_eff = A_vert - G
+			A_horiz_bump += 0.01
+
+		return A_vert_eff
 
 	def updateA(self):
 		totalA = self.getTotalThrust() / self.currentWeight
@@ -303,6 +322,10 @@ class Vehicle:
 		engine = self.find_engine(engineName)
 		if throt == "max":
 			engine.setThrottleOverride(engine.max_throt)
+		elif throt == "min":
+			engine.setThrottleOverride(engine.min_throt)
+		elif throt == "off":
+			engine.setThrottleOverride(0.0)
 		else:
 			engine.setThrottleOverride(throt)
 
@@ -368,10 +391,10 @@ class Vehicle:
 
 
 		if event["name"] == "Increase Throttle By Max Rate-Of-Change":
-			engine.setThrottle(engine.max_throt)
+			engine.setThrottle(engine.max_throt, self.time_inc)
 
 		if event["name"] == "Reduce Throttle By Max Rate-Of-Change":
-			engine.setThrottle(engine.min_throt)
+			engine.setThrottle(engine.min_throt, self.time_inc)
 
 		if event["name"] == "Engine Cut-off":
 			engine.setThrottleOverride(0.0)

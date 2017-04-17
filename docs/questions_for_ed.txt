@@ -1,0 +1,6 @@
+With the new A_v formula, does the .6 limit still apply?
+With the new A_V formula, does it only apply until we reach max ADC?
+at around 210 seconds into flight, he pitches it down before stage separation
+What I see is that, after that, we slowly reduce A_v until 2100 feet/s is achieved?
+We stick at 2100 feet/s Vv until, stick there for a few seconds (A_v = G), then give back some G until Vv is 1650,
+stick there (until 250,000 ft?) and then give back more to 1200 Vv which we stay at for the duration
