@@ -72,6 +72,9 @@ def average(*args):
 	return sum(args)/float(len(args))
 
 def pythag(a, b, c = None):
+	if (a == None and b == None) or (a == None and c == None) or (b == None and c == None):
+		return None
+
 	if c is None:
 		return float(math.sqrt(a**2 + b**2))
 	if a is None:

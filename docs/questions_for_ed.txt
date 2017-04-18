@@ -1,3 +1,7 @@
+In the example shown, when the RD171 cuts off at 140, we lose some weight and adc. Is this listed anywhere?
+What kinds of components are jettisonable?
+
+
 With the new A_v formula, does the .6 limit still apply?
 With the new A_V formula, does it only apply until we reach max ADC?
 at around 210 seconds into flight, he pitches it down before stage separation

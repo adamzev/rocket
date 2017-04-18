@@ -1,13 +1,15 @@
 from rocketEngine import *
-from physics import Physics
+from physicalStatus import PhysicalStatus
 from stage import *
 from generalEquations import *
 from util import *
 
 
-class Vehicle(Physics):
+class Vehicle():
 
 	def __init__(self, specs, load_time_incs = False):
+		self.cur = PhysicalStatus(alt = specs["initial_alt"])
+		self.prev = copy.deepcopy(cur)
 		self.name = "{} MK {} VER: {}".format(specs["name"], specs["MK"], specs["ver"])
 		self.load_time_incs = load_time_incs
 		self.stages = self.init_stages(specs["stages"])
@@ -25,37 +27,17 @@ class Vehicle(Physics):
 			self.set_time_inc()
 		else:
 			self.time_inc = 0.1
-		self.alt = []
-		self.alt.append(specs["initial_alt"])
 
 		self.tower_height = specs["tower_height"]
 		self.A_hv_diff = specs["A_hv_diff"]
 
-		self.orbitalV = 0
-		self.A_vert_eff = [0.0]
-		self.A_vert = [0.0]
-		self.A_horiz = [0.0]
-		self.A_total = [0.0]
-		self.A_total_eff = [0.0]
-		self.V_vert = [0.0]
-		self.V_vert_eff = [0.0]
-		self.V_vert = [0.0]
-		self.V_vert_inc = [0.0]
-		self.V_horiz_mph =[912.67]
-		self.V_horiz_mph_inc = [0.0]
-		self.V_total = [0.0]
-		self.total_eff = [0.0]
 		self.ADC_adjusted = [0.0]
 		self.ADC_error = [0.0]
 		self.ADC_predicted = [0.0]
 		self.ADC_actual = [0.0]
-		self.orbitalV = orbitalVelocity(current(self.alt))
 
 
 	def __str__(self):
-		current_bigG = bigG(self.get_V_horiz_mph(), self.get_OrbitalV())
-		totalA = self.get_A_total()
-		V_horiz = self.get_V_horiz_mph()
 		V_as = self.get_airSpeed()
 		A_v =self.get_A_vert_eff()
 		A_h = self.get_A_horiz()
@@ -147,59 +129,6 @@ class Vehicle(Physics):
 		self.adc_K = adc_K
 
 
-	def set_alt(self, alt):
-		self.alt.append(alt)
-
-
-	def get_alt(self, when = "current"):
-		return get_value(self.alt, when)
-
-	def get_V_horiz_mph(self, when = "current"):
-		return get_value(self.V_horiz_mph, when)
-
-	def get_V_vert_inc(self, when = "current"):
-		return get_value(self.V_vert_inc, when)
-
-	def get_V_horiz_mph_inc(self, when = "current"):
-		return get_value(self.V_horiz_mph_inc, when)
-
-	def get_V_vert(self, when = "current"):
-		return get_value(self.V_vert, when)
-
-	def get_OrbitalV(self):
-		return self.orbitalV
-
-	def get_A_total(self, when = "current"):
-		return get_value(self.A_total, when)
-
-	def get_A_total_eff(self, when = "current"):
-		return get_value(self.A_total_eff, when)
-
-	def get_A_horiz(self, when = "current"):
-		return get_value(self.A_horiz, when)
-
-	def get_A_vert(self, when = "current"):
-		return get_value(self.A_vert, when)
-
-
-	def get_A_vert_eff(self, when = "current"):
-		return get_value(self.A_vert_eff, when)
-
-	def get_currentWeight(self):
-		return self.currentWeight
-
-	def get_ADC_actual(self, when = "current"):
-		return get_value(self.ADC_actual, when)
-
-	def get_ADC_predicted(self, when = "current"):
-		return get_value(self.ADC_predicted, when)
-
-	def get_ADC_adjusted(self, when = "current"):
-		return get_value(self.ADC_adjusted, when)
-
-	def get_ADC_error(self, when = "current"):
-		return get_value(self.ADC_error, when)
-
 	def updateAlt (self, time_inc):
 		self.alt.append(altitude(self.get_alt(), self.get_V_vert("prev"), self.get_V_vert_inc(), time_inc))
 
@@ -284,22 +213,6 @@ class Vehicle(Physics):
 			self.A_vert.append(assignedA_vert + G)
 			self.A_vert_eff.append(assignedA_vert)
 
-	def updateHorizA(self):
-		self.A_horiz.append(
-			pythag(None, self.get_A_vert(), self.get_A_total_eff())
-		)
-		try:
-			pass
-
-		except:
-			raise ValueError("Sqrt of negative, A total={} which is > A_vert={}".format(self.get_A_total_eff("prev"), self.get_A_vert()))
-
-
-	def get_airSpeed(self, when = "current"):
-		if when == "current":
-			return pythag(fpsToMph(self.get_V_vert()), self.get_V_horiz_mph()-912.67)
-		if when == "prev":
-			return pythag(fpsToMph(self.get_V_vert("prev")), self.get_V_horiz_mph("prev")-912.67)
 
 
 	def getTotalThrust(self):
