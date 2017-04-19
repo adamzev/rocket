@@ -1,7 +1,7 @@
 from generalEquations import *
 from util import *
 class TwoD(object):
-	def __init__(self, horiz, vert, total = None):
+	def __init__(self, horiz = None, vert = None, total = None):
 		self._horiz = horiz
 		self._vert = vert
 		self._total = total

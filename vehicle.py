@@ -3,13 +3,20 @@ from physicalStatus import PhysicalStatus
 from stage import *
 from generalEquations import *
 from util import *
+import copy
 
 
 class Vehicle():
 
 	def __init__(self, specs, load_time_incs = False):
-		self.cur = PhysicalStatus(alt = specs["initial_alt"])
-		self.prev = copy.deepcopy(cur)
+		self.cur = PhysicalStatus(
+			alt = specs["initial_alt"],
+			earth_rotation_mph = specs["earth_rotation_mph"]
+		)
+		self.cur.V.horiz_mph = self.cur.V.earth_rotation_mph
+		self.cur.V.vert = 0.0
+		self.cur.A.vert = 0.0
+		self.prev = copy.deepcopy(self.cur)
 		self.name = "{} MK {} VER: {}".format(specs["name"], specs["MK"], specs["ver"])
 		self.load_time_incs = load_time_incs
 		self.stages = self.init_stages(specs["stages"])
@@ -38,21 +45,21 @@ class Vehicle():
 
 
 	def __str__(self):
-		V_as = self.get_airSpeed()
-		A_v =self.get_A_vert_eff()
-		A_h = self.get_A_horiz()
-		V_vert = self.get_V_vert()
-		alt = self.get_alt()
+		V_as = self.cur.V.air_speed
+		A_v = self.get_A_vert_eff()
+		A_h = self.cur.A.horiz
+		V_vert = self.cur.V.vert
+		alt = self.cur.alt
 		thrust = self.getTotalThrust()
-		ADC_guess = self.get_ADC_predicted()
-		ADC_adj = self.get_ADC_adjusted()
+		ADC_guess = self.cur.ADC_predicted
+		ADC_adj = self.cur.ADC_adjusted
 
 		row1 = "-"*140 + "\n"
-		row2 = "{:>46.6f}      {:>6.8f}     G={: <12.8f}\n".format(self.get_A_total_eff(), self.get_ADC_actual(), current_bigG)
+		row2 = "{:>46.6f}      {:>6.8f}     G={: <12.8f}\n".format(self.cur.A.total_eff, self.cur.ADC_actual, self.cur.big_G)
 		time_string = "{:<6.1f}".format(self.time)
 		time_string = Fore.RED + time_string + Style.RESET_ALL
 		row3 = "+{:<12.2f} {:5} WT={:<11.2f}->{:>9.6f}      {:<12.8f}   Vh={:<12.6f} Vas={:<12.3f}     {:<12.6f}-{:<10.8f}\n".format(
-			self.get_V_vert_inc(), time_string, self.get_currentWeight(), totalA, ADC_adj, V_horiz, V_as, A_v, A_h
+			self.cur.V.vert_inc, time_string, self.cur.weight, self.cur.A.total, ADC_adj, self.cur.V.horiz, V_as, A_v, A_h
 		)
 		alt_string = "ALT={:<.1f}\'".format(alt)
 		row4 = "{:<13.6f} {:<16} T={:<19.4f}  \"{:<.4f}\"\n".format(V_vert, alt_string, thrust, ADC_guess)
@@ -84,10 +91,19 @@ class Vehicle():
 			if self.time < timeIncrements["until"]:
 				self.time_inc = timeIncrements["time_inc"]
 				break
+
+	def get_A_vert_eff(self):
+		return average(self.cur.A.vert, self.prev.A.vert) - self.cur.big_G
+
 	def tick(self):
 		if self.load_time_incs:
 			self.set_time_inc()
 		self.time += self.time_inc
+		self.prev = copy.deepcopy(self.cur)
+		self.cur = PhysicalStatus()
+		self.updateAlt(self.time_inc)
+		self.cur.V.horiz = self.prev.V.horiz + self.prev.V.horiz_inc
+		self.cur.V.vert = self.prev.V.vert + self.prev.V.vert_inc
 
 	def init_stages(self, stage_data):
 		stages = {}
@@ -130,7 +146,7 @@ class Vehicle():
 
 
 	def updateAlt (self, time_inc):
-		self.alt.append(altitude(self.get_alt(), self.get_V_vert("prev"), self.get_V_vert_inc(), time_inc))
+		self.cur.alt = altitude(self.prev.alt, self.prev.V.vert, self.prev.V.vert_inc, time_inc)
 
 	def detachEngine(self, engineName):
 		self.engines[:] = [d for d in self.engines if d.get('name') != engineName]
@@ -143,39 +159,39 @@ class Vehicle():
 		self.currentWeight = self.lift_off_weight - fuel_used
 
 	def update_V(self, time_inc):
+		self.update_V_horiz_mph()
+		self.update_V_horiz_mph_inc(time_inc)
+
 		self.update_V_vert_inc(time_inc)
 		self.update_V_vert()
-		self.update_V_horiz_mph_inc(time_inc)
-		self.update_V_horiz_mph()
+
 
 
 	def update_V_vert_inc(self, time_inc):
-		avg_A_vert_eff = average(self.get_A_vert_eff(), self.get_A_vert_eff("prev"))
-		self.V_vert_inc.append(avg_A_vert_eff * time_inc * ACCEL_OF_GRAVITY)
+		self.cur.V.vert_inc = self.get_A_vert_eff() * time_inc * ACCEL_OF_GRAVITY
 
 	def update_V_vert(self):
-		self.V_vert.append(self.get_V_vert() + self.get_V_vert_inc())
+		self.cur.V.vert = self.prev.V.vert + self.cur.V.vert_inc #current or prev v inc?
 
 	def update_V_horiz_mph_inc(self, time_inc):
-		avg_A_horiz = average(self.get_A_horiz(), self.get_A_horiz("prev"))
-		self.V_horiz_mph_inc.append(avg_A_horiz * time_inc * ACCEL_OF_GRAVITY)
+		avg_A_horiz = average(self.cur.A.horiz, self.prev.A.horiz)
+		self.cur.V.horiz_mph_inc = avg_A_horiz * time_inc * ACCEL_OF_GRAVITY
 
 
 	def update_V_horiz_mph(self):
-		self.V_horiz_mph.append(self.get_V_horiz_mph() + fpsToMph(self.get_V_horiz_mph_inc()))
+		self.cur.V.horiz_mph = self.prev.V.horiz_mph + self.prev.V.horiz_mph_inc
 
 
 
 	def set_ADC_predicted(self, predictedADC):
-		self.ADC_predicted.append(predictedADC)
+		self.cur.ADC_predicted = predictedADC
 
 	def select_A_vert(self):
-		if self.get_alt() <= self.tower_height:
+		if self.cur.alt <= self.tower_height:
 			return "a"
-		orbitalV = orbitalVelocity(current(self.alt))
 		A_horiz = A_vert_eff = 0.0
-		A = self.get_A_total_eff()
-		G = bigG(self.get_V_horiz_mph(), orbitalV)
+		A = self.cur.A.total_eff
+		G = self.cur.big_G
 
 		A_horiz_bump = 0.01
 		while A_horiz <= A_vert_eff + self.A_hv_diff:
@@ -187,43 +203,28 @@ class Vehicle():
 		return A_vert_eff
 
 	def updateA(self):
-		totalA = self.getTotalThrust() / self.currentWeight
-		self.A_total.append(totalA)
-		self.ADC_adjusted.append(self.get_ADC_predicted() - self.get_ADC_error())
-		self.A_total_eff.append(totalA - self.get_ADC_adjusted())
+		self.cur.A.set_A(self.getTotalThrust(), self.currentWeight)
+		self.cur.ADC_adjusted = self.cur.ADC_predicted - self.prev.ADC_error
+		self.cur.A.total_eff = self.cur.A.total - self.cur.ADC_adjusted
 		#self.ADC_prediction_report(predictedADC, self.get_ADC_error())
 
 	def update_ADC_actual(self, time_inc):
-		self.ADC_actual.append(ADC(self.get_airSpeed(), self.get_alt(), self.adc_K))  # with resultant ADC in  "g" units
-		self.ADC_error.append(self.get_ADC_predicted() - self.get_ADC_actual())
+		self.cur.ADC_actual = ADC(self.cur.V.air_speed, self.cur.alt, self.adc_K)  # with resultant ADC in  "g" units
+		self.cur.ADC_error = self.cur.ADC_predicted - self.cur.ADC_actual
 
 	def ADC_prediction_report(self, predictedADC, error):
 		print ("Actual ADC={} predictedADC={} error={}".format(self.get_ADC_actual(), predictedADC, error))
-
-	def updateVertA(self, assignedA_vert, calcG = True):
-		orbitalV = orbitalVelocity(current(self.alt))
-		G = bigG(self.get_V_horiz_mph(), orbitalV)
-		self.orbitalV = orbitalVelocity(current(self.alt))
-
-
-		if calcG:
-			self.A_vert.append(assignedA_vert)
-			self.A_vert_eff.append(assignedA_vert - G)
-		else:
-			self.A_vert.append(assignedA_vert + G)
-			self.A_vert_eff.append(assignedA_vert)
-
 
 
 	def getTotalThrust(self):
 		totalThrust = 0
 		for engine in self.engines:
-			totalThrust += engine.thrustAtAlt(self.get_alt())
+			totalThrust += engine.thrustAtAlt(self.cur.alt)
 		return totalThrust
 
 	def burnFuel(self, time_inc):
 		for engine in self.engines:
-			 engine.burnFuel(time_inc, self.get_alt())
+			 engine.burnFuel(time_inc, self.cur.alt)
 
 	def getTotalFuelUsed(self):
 		fuelUsed = 0

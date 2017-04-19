@@ -65,7 +65,7 @@ class Main_program:
 		self.HLV = Vehicle(self.specs)
 
 
-	def compute_row(self, rocket, events, predictedADC, assigned_V, printRow = True):
+	def compute_row(self, rocket, events, predictedADC, assigned_A_v, printRow = True):
 		rocket.set_ADC_predicted(predictedADC)
 
 		for event in events:
@@ -82,18 +82,17 @@ class Main_program:
 
 		rocket.updateWeight(rocket.time_inc)
 		rocket.updateA()
+		print rocket.cur.A
 		#assigned_V = raw_input("Enter the assigned A_vert:")
 
-		if assigned_V == "a" or assigned_V == "all":
-			assigned_V = rocket.get_A_total_eff()
-			rocket.updateVertA(assigned_V)
+		if assigned_A_v == "a" or assigned_A_v == "all":
+			assigned_A_v = rocket.cur.A.total_eff
+			rocket.cur.A.vert = assigned_A_v
 		else:
-			assigned_V = float(assigned_V)
-			rocket.updateVertA(assigned_V, False)
-
-		rocket.updateHorizA()
+			rocket.cur.A.vert = float(assigned_A_v)
+		print rocket.cur.A
 		rocket.update_V(rocket.time_inc)
-		rocket.updateAlt(rocket.time_inc)
+
 		rocket.update_ADC_actual(rocket.time_inc)
 
 
@@ -125,7 +124,7 @@ class Main_program:
 	def predict_ADC(self, rocket, events, assigned_V):
 		threshold = 0.0001
 		ADC_error = 100000.0
-		ADC_prediction = rocket.get_ADC_actual()
+		ADC_prediction = rocket.cur.ADC_actual
 		tries = 0
 		while abs(ADC_error) > threshold and tries < 20:
 			rocketCopy = copy.deepcopy(rocket)
@@ -135,8 +134,8 @@ class Main_program:
 			except:
 				ADC_error = 100000.0
 				ADC_prediction = ADC_prediction / 2.0
-			ADC_error = rocketCopy.get_ADC_error()
-			ADC_actual = rocketCopy.get_ADC_actual()
+			ADC_error = rocketCopy.cur.ADC_error
+			ADC_actual = rocketCopy.cur.ADC_actual
 			#print ("Predicted ADC = {}\nerror={}\n=his prediction {}\nadc_calc={}".format(ADC_prediction*10000.0, ADC_error*10000.0, hisPredictedADC*10000.0, ADC_actual*10000.0))
 			ADC_prediction -= ADC_error/2.0
 			#print ("New Prediction = {}".format(ADC_prediction*10000.0))
@@ -146,7 +145,7 @@ class Main_program:
 
 	def initialize_rocket(self):
 		self.HLV.updateA()
-		self.HLV.updateVertA(self.HLV.get_A_total_eff())
+		self.HLV.cur.A_vert = self.HLV.cur.A.total_eff
 		self.HLV.update_V_vert()
 		self.HLV.update_ADC_actual(self.HLV.time_inc)
 
@@ -157,7 +156,7 @@ class Main_program:
 	def sim_rocket(self):
 		i = 0
 
-		while self.HLV.get_V_horiz_mph() < self.COAST_SPEED:
+		while self.HLV.cur.V.horiz_mph < self.COAST_SPEED:
 			assigned_A_v = self.HLV.select_A_vert()
 			i += 1
 			predictedADC = self.predict_ADC(self.HLV, self.events, assigned_A_v)

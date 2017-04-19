@@ -91,7 +91,8 @@ def create_specs():
 		"A_hv_diff" : A_hv_diff,
 		"tower_height" : tower_height,
 		"stages" : stages,
-		"engines" : selected_engines
+		"engines" : selected_engines,
+		"earth_rotation_mph" : 912.67
 	}
 
 	save_settings = query_yes_no("Do you want to save these specs? ", None)
