@@ -1,11 +1,10 @@
 from generalEquations import *
 from util import *
 class TwoD(object):
-	def __init__(self, horiz = None, vert = None, total = None):
+	def __init__(self, horiz = 0.0, vert = 0.0, total = 0.0):
 		self._horiz = horiz
 		self._vert = vert
 		self._total = total
-		self.update()
 
 	@property
 	def horiz(self):
@@ -14,7 +13,6 @@ class TwoD(object):
 	@horiz.setter
 	def horiz(self, value):
 		self._horiz = value
-		self.update()
 
 	@property
 	def vert(self):
@@ -23,7 +21,6 @@ class TwoD(object):
 	@vert.setter
 	def vert(self, value):
 		self._vert = value
-		self.update()
 
 	@property
 	def total(self):
@@ -32,14 +29,13 @@ class TwoD(object):
 	@total.setter
 	def total(self, value):
 		self._total = value
-		self.update()
 
-	def update(self):
-		if self.total is None:
+	def update(self, keep_horiz = True, keep_vert = True, keep_total = False):
+		if keep_horiz and keep_vert:
 			self._total = pythag(self.horiz, self.vert, None)
 
-		elif self.horiz is None:
+		if keep_total and keep_vert:
 			self._horiz = pythag(None, self.vert, self.total)
 
-		elif self.vert is None:
+		if keep_total and keep_horiz:
 			self._vert = pythag(self.horiz, None, self.total)

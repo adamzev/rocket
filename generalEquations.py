@@ -48,7 +48,8 @@ def percentOfAtmosphericPressure(alt):
 		return round(patm, 9)
 	return patm
 
-
+def percentOfVac(alt):
+	return 1.0 - percentOfAtmosphericPressure(alt)
 '''
 Orbital Velocity (OV) is that horizontal velocity needed to counteract Earth's gravity at a given altitude
 
@@ -69,6 +70,8 @@ def fpsToMph(fps):
 	return fps*(60.0*60.0)/5280.0
 
 def average(*args):
+	args = [x for x in args if x is not None]
+	# args = filter(None, args)   removes both zeros and None
 	return sum(args)/float(len(args))
 
 def pythag(a, b, c = None):

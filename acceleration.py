@@ -15,5 +15,5 @@ class Acceleration(TwoD):
 		#self._eff = eff
 
 
-	def set_A(self, force, mass):
-		self.total = force / mass
+	def set_raw(self, force, mass):
+		self.raw = force / mass

@@ -4,7 +4,7 @@ from acceleration import Acceleration
 from velocity import Velocity
 
 class PhysicalStatus:
-	def __init__(self, A_horiz = None, A_vert = None, V_horiz = None, V_vert = None, alt = 0, earth_rotation_mph = 912.67):
+	def __init__(self, A_horiz = 0.0, A_vert = 0.0, V_horiz = 0.0, V_vert = 0.0, alt = 0.0, earth_rotation_mph = 912.67):
 		self._A = Acceleration(A_horiz, A_vert)
 		self._V = Velocity(V_horiz, V_vert, earth_rotation_mph)
 		self._alt = alt
@@ -66,6 +66,10 @@ class PhysicalStatus:
 	@property
 	def big_G(self):
 		return bigG(self.V.horiz_mph, self.orbitalV)
+
+	@property
+	def A_vert_eff(self):
+		return self.A.vert - self.big_G
 
 	@property
 	def orbitalV(self):
