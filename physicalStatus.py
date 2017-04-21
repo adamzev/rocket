@@ -4,7 +4,7 @@ from acceleration import Acceleration
 from velocity import Velocity
 
 class PhysicalStatus:
-	def __init__(self, A_horiz = 0.0, A_vert = 0.0, V_horiz = 0.0, V_vert = 0.0, alt = 0.0, earth_rotation_mph = 912.67):
+	def __init__(self, A_horiz = 0.0, A_vert = 0.0, V_horiz = 0.0, V_vert = 0.0, alt = 0.0, force = 0.0, earth_rotation_mph = 912.67):
 		self._A = Acceleration(A_horiz, A_vert)
 		self._V = Velocity(V_horiz, V_vert, earth_rotation_mph)
 		self._alt = alt
@@ -12,6 +12,7 @@ class PhysicalStatus:
 		self._ADC_actual = 0.0
 		self._ADC_error = 0.0
 		self._weight = 0.0
+		self.force = force
 
 
 	def __str__(self):
@@ -70,6 +71,10 @@ class PhysicalStatus:
 	@property
 	def A_vert_eff(self):
 		return self.A.vert - self.big_G
+
+	@A_vert_eff.setter
+	def A_vert_eff(self, value):
+		self.A.vert = value + self.big_G
 
 	@property
 	def orbitalV(self):

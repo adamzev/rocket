@@ -7,6 +7,7 @@ class RocketEngine:
 	def __init__(self, engineStats):
 		self.throt = [0.0]
 		self.burn_rate = []
+		self.messages = []
 		self.thrust_total = [0.0]
 		for key, value in engineStats.iteritems():
 			setattr(self, key, value)
@@ -60,7 +61,7 @@ class RocketEngine:
 		else:
 			self.throt.append(throt)
 		endThrottle = self.get_throt()
-		print("\nEVENT: {} Throttle {} from {} to {}".format(self.name, verb, self.get_throt("prev"), self.get_throt()))
+		self.messages.append("\nEVENT: {} Throttle {} from {} to {}".format(self.name, verb, self.get_throt("prev"), self.get_throt()))
 
 	def thrustAtAlt(self, alt):
 		patm = percentOfAtmosphericPressure(alt)

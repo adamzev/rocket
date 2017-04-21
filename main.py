@@ -69,7 +69,6 @@ class Main_program:
 
 
 	def compute_row(self, rocket, events, assigned_A_v, testRun = False):
-
 		for event in events:
 			if rocket.time >= event["start_time"] and rocket.time <= event["end_time"]:
 				if "stage" in event.keys():
@@ -77,27 +76,31 @@ class Main_program:
 				if "engine" in event.keys():
 					rocket.handle_engine_event(event)
 		rocket.tick()
-		rocket.burnFuel(rocket.time_inc)
+
+
 		rocket.updateWeight(rocket.time_inc)
 		rocket.updateA()
+
 		if assigned_A_v == "a" or assigned_A_v == "all":
 			assigned_A_v = rocket.cur.A.total
 			rocket.cur.A.horiz = 0.0
 			rocket.cur.A.vert = assigned_A_v
 		else:
-			rocket.cur.A.vert = float(assigned_A_v)
+			rocket.cur.A_vert_eff = float(assigned_A_v)
+			rocket.cur.A.update(False, True, True)
 
 		rocket.update_V_inc(rocket.time_inc)
 		rocket.updateAlt(rocket.time_inc)
+		rocket.cur.force = rocket.get_total_thrust()
 		rocket.cur.V.horiz = rocket.prev.V.horiz + rocket.prev.V.horiz_inc
 		rocket.cur.V.vert = rocket.prev.V.vert + rocket.cur.V.vert_inc
 
 		#self.HLV.engine_status()
 		#assigned_V = raw_input("Enter the assigned A_vert:")
-		print rocket.cur.A
 
 		rocket.update_ADC_actual(rocket.time_inc)
 
+		rocket.burnFuel(rocket.time_inc)
 
 
 
@@ -121,11 +124,11 @@ class Main_program:
 
 
 	def predict_ADC(self, rocket, events, assigned_V):
-		threshold = 0.0001
+		threshold = 0.000001
 		ADC_error = 100000.0
 		ADC_prediction = 0.0
 		tries = 0
-		while abs(ADC_error) > threshold and tries < 20:
+		while abs(ADC_error) > threshold:
 			rocketCopy = copy.deepcopy(rocket)
 			rocketCopy.cur.ADC_predicted = ADC_prediction
 			self.compute_row(rocketCopy, events, assigned_V, False)
@@ -136,7 +139,7 @@ class Main_program:
 			#	ADC_prediction = ADC_prediction / 2.0
 			ADC_error = rocketCopy.cur.ADC_error
 			ADC_actual = rocketCopy.cur.ADC_actual
-			#print ("Predicted ADC = {}\nerror={}\n=his prediction {}\nadc_calc={}".format(ADC_prediction*10000.0, ADC_error*10000.0, hisPredictedADC*10000.0, ADC_actual*10000.0))
+			#print ("Predicted ADC = {}\nerror={}\nadc_calc={}".format(ADC_prediction*10000.0, ADC_error*10000.0, ADC_actual*10000.0))
 			ADC_prediction -= ADC_error/2.0
 			#print ("New Prediction = {}".format(ADC_prediction*10000.0))
 			rocketCopy = None
@@ -144,6 +147,7 @@ class Main_program:
 		return ADC_prediction
 
 	def initialize_rocket(self):
+		self.HLV.prev.force = self.HLV.get_total_thrust()
 		self.HLV.updateA()
 		self.HLV.update_V_inc(self.HLV.time_inc)
 		self.HLV.cur.A.vert = self.HLV.cur.A.total
@@ -151,8 +155,10 @@ class Main_program:
 		self.HLV.update_ADC_actual(self.HLV.time_inc)
 
 		self.HLV.setEngineThrottle("RD-171M", "max", self.HLV.time_inc)
-		self.HLV.cur.predicted_ADC = self.predict_ADC(self.HLV, self.events, "a")
+		self.HLV.cur.force = self.HLV.get_total_thrust()
+		self.HLV.cur.ADC_predicted = self.predict_ADC(self.HLV, self.events, "a")
 		print(self.HLV)
+		self.HLV.burnFuel(self.HLV.time_inc)
 
 
 
@@ -174,9 +180,10 @@ class Main_program:
 			i += 1
 
 			self.compute_row(self.HLV, self.events, assigned_A_v)
-			self.HLV.cur.predicted_ADC = self.predict_ADC(self.HLV, self.events, assigned_A_v)
+			self.HLV.cur.ADC_predicted = self.predict_ADC(self.HLV, self.events, assigned_A_v)
 			if round(self.HLV.time,1).is_integer():
 				print(self.HLV)
+				self.HLV.display_engine_messages()
 
 Rocketman = Main_program()
 Rocketman.start()

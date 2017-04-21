@@ -9,11 +9,12 @@ import copy
 class Vehicle():
 
 	def __init__(self, specs, load_time_incs = False):
+		earth_rotation_mph = specs["earth_rotation_mph"]
 		self.cur = PhysicalStatus(
 			alt = specs["initial_alt"],
-			earth_rotation_mph = specs["earth_rotation_mph"]
+			earth_rotation_mph = earth_rotation_mph
 		)
-		self.cur.V.horiz_mph = self.cur.V.earth_rotation_mph
+		self.cur.V.horiz_mph = earth_rotation_mph
 		self.cur.V.vert = 0.0
 		self.ground_level = specs["initial_alt"],
 		self.cur.A.horiz = 0.0
@@ -49,7 +50,8 @@ class Vehicle():
 		A_h = self.cur.A.horiz
 		V_vert = self.cur.V.vert
 		alt = self.cur.alt
-		thrust = self.getTotalThrust()
+		thrust = self.cur.force
+
 		ADC_guess = self.cur.ADC_predicted
 		ADC_adj = self.cur.ADC_adjusted
 		sign_symb = "+" if self.cur.V.vert_inc>0 else "-"
@@ -92,7 +94,7 @@ class Vehicle():
 				break
 
 	def get_A_vert_eff_avg(self):
-		A_vert_eff = average(self.cur.A.vert, self.prev.A.vert) - self.cur.big_G
+		A_vert_eff = average(self.cur.A.vert, self.prev.A.vert) - self.prev.big_G
 		if self.cur.alt > self.ground_level:
 			return A_vert_eff
 		else:
@@ -202,21 +204,20 @@ class Vehicle():
 		return A_vert_eff
 
 	def updateA(self):
-		self.cur.A.set_raw(self.getTotalThrust(), self.cur.weight)
-		self.cur.ADC_adjusted = self.cur.ADC_predicted - self.cur.ADC_error
-		break_point()
+		self.cur.A.set_raw(self.prev.force, self.cur.weight)
+		self.cur.ADC_adjusted = self.prev.ADC_predicted - self.prev.ADC_error
 		self.cur.A.total = self.cur.A.raw - self.cur.ADC_adjusted
 		#self.ADC_prediction_report(predictedADC, self.get_ADC_error())
 
 	def update_ADC_actual(self, time_inc):
 		self.cur.ADC_actual = ADC(self.cur.V.air_speed, self.cur.alt, self.adc_K)  # with resultant ADC in  "g" units
-		self.cur.ADC_error = self.cur.ADC_predicted - self.cur.ADC_actual
+		self.cur.ADC_error = self.prev.ADC_predicted - self.cur.ADC_actual
 
 	def ADC_prediction_report(self, predictedADC, error):
 		print ("Actual ADC={} predictedADC={} error={}".format(self.get_ADC_actual(), predictedADC, error))
 
 
-	def getTotalThrust(self):
+	def get_total_thrust(self):
 		totalThrust = 0
 		for engine in self.engines:
 			totalThrust += engine.thrustAtAlt(self.cur.alt)
@@ -261,6 +262,13 @@ class Vehicle():
 	def get_engine_throttle(self, engineName):
 		engine = self.find_engine(engineName)
 		return engine.throt
+
+	def display_engine_messages(self):
+		for engine in self.engines:
+			for message in engine.messages:
+				print (message)
+			engine.messages = []
+
 
 	def find_engine(self, engineName):
 		for engine in self.engines:
