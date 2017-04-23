@@ -69,22 +69,26 @@ class Main_program:
 
 
 	def compute_row(self, rocket, events, assigned_A_v, testRun = False):
+		rocket.tick()
+		rocket.burnFuel(rocket.time_inc)
 		for event in events:
 			if rocket.time >= event["start_time"] and rocket.time <= event["end_time"]:
 				if "stage" in event.keys():
 					rocket.handle_stage_event(event)
 				if "engine" in event.keys():
 					rocket.handle_engine_event(event)
-		rocket.tick()
+
+
 
 
 		rocket.updateWeight(rocket.time_inc)
 		rocket.updateA()
 
 		if assigned_A_v == "a" or assigned_A_v == "all":
-			assigned_A_v = rocket.cur.A.total
+			rocket.cur.A.vert = rocket.cur.A.total
 			rocket.cur.A.horiz = 0.0
-			rocket.cur.A.vert = assigned_A_v
+			rocket.cur.A.vert_eff = rocket.cur.A.vert - rocket.cur.big_G
+
 		else:
 			rocket.cur.A_vert_eff = float(assigned_A_v)
 			rocket.cur.A.update(False, True, True)
@@ -101,7 +105,6 @@ class Main_program:
 		rocket.update_ADC_actual(rocket.time_inc)
 
 
-		rocket.burnFuel(rocket.time_inc)
 
 
 
@@ -152,6 +155,7 @@ class Main_program:
 		self.HLV.updateA()
 		self.HLV.update_V_inc(self.HLV.time_inc)
 		self.HLV.cur.A.vert = self.HLV.cur.A.total
+		self.HLV.cur.A.vert_eff = self.HLV.cur.A.vert - self.HLV.cur.big_G
 		self.HLV.update_V_vert()
 		self.HLV.update_ADC_actual(self.HLV.time_inc)
 
@@ -159,8 +163,8 @@ class Main_program:
 		self.HLV.cur.force = self.HLV.get_total_thrust()
 		self.HLV.cur.ADC_predicted = self.predict_ADC(self.HLV, self.events, "a")
 		print(self.HLV)
-		self.HLV.save_current_row()
-		self.HLV.burnFuel(self.HLV.time_inc)
+		self.HLV.save_current_row(True)
+
 
 
 

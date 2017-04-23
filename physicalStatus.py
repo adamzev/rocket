@@ -73,10 +73,11 @@ class PhysicalStatus(object):
 
 	@property
 	def A_vert_eff(self):
-		return self.A.vert - self.big_G
+		return self.A.vert_eff
 
 	@A_vert_eff.setter
 	def A_vert_eff(self, value):
+		self.A.vert_eff = value
 		self.A.vert = value + self.big_G
 
 

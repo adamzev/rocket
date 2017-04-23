@@ -98,10 +98,12 @@ class SolidRocketEngine(RocketEngine):
 
 	def set_assigned_thrust_per_engine(self, thrust):
 		self.thrust_total.append(thrust * self.engine_count)
-	def burnFuel(self, time_inc, alt = None):
+	def burnFuel(self, time_inc, alt):
+
 		if self.throt_avg > 0.0:
 			self.burn_rate.append(self.get_thrust_total()  / self.specific_impulse_at_alt(alt))
 			self.fuel_source.fuel_used += self.get_burn_rate() * time_inc
+		print "solid rocket {} at alt {}".format(self.get_burn_rate(), alt)
 	def adjust_thrust_to_burn_at_rate_per_engine(self, rate, alt):
 		thrust = rate * self.specific_impulse_at_alt(alt)
 		throt = thrust / self.thrust_sl
