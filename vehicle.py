@@ -90,12 +90,14 @@ class Vehicle():
 			A_h,
 			A_v,
 			self.cur.big_G,
+			V_as,
 			self.cur.V.horiz_mph,
-			V_vert,
 			self.cur.V.vert_inc,
-			V_as
+			V_vert
+
+
 		)
-		headers = "time, alt, thrust, weight, ADC_guess, ADC_actual, ADC_adj, A_raw, A_total, A_v, A_h, bigG, V_vert_inc, V_vert, V_horiz_mph, V_as\n"
+		headers = "time, alt, thrust, weight, ADC_guess, ADC_actual, ADC_adj, A_raw, A_total, A_v, A_h, bigG, V_as, V_horiz_mph, V_vert_inc, V_vert \n"
 		if first:
 			create_csv(headers, 'data/rows.csv')
 		save_csv(row1+row2, 'data/rows.csv')
