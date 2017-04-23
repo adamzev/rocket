@@ -76,16 +76,30 @@ class Vehicle():
 
 		ADC_guess = self.cur.ADC_predicted
 		ADC_adj = self.cur.ADC_adjusted
-		row1 = "{:.1f}, {:.6f}, {:.8f}, {:.10f}, ".format(self.time, self.cur.A.total, self.cur.ADC_actual, self.cur.big_G)
-		row2 = "{:.1f}, {:.2f}, {:.6f}, {:.8f}, {:.6f}, {:.3f}, {:.6f}, {:.8f}, ".format(
-			self.cur.V.vert_inc, self.cur.weight, self.cur.A.raw, ADC_adj, self.cur.V.horiz_mph, V_as, A_v, A_h
+		row1 = "{:.1f}, {:.1f}, {:.4f}, {:.4f}, {:.6f}, {:.8f}, {:.6f}, {:.2f}, {:.8f}, ".format(
+			self.time,
+			alt, thrust,
+			self.cur.weight,
+			ADC_guess,
+			self.cur.ADC_actual,
+			ADC_adj,
+			self.cur.A.raw,
+			self.cur.A.total
 		)
-		row3 = "{:.6f}, {:.1f}, {:.4f}, {:.4f}\n".format(V_vert, alt, thrust, ADC_guess)
-		headers = "time, A_total, ADC_actual, bigG, V_vert_inc, weight, A_raw, ADC_adj, V_horiz_mph, V_as, A_v, A_h, V_vert, alt, thrust, ADC_guess\n"
+		row2 = "{:.8f}, {:.6f}, {:.10f}, {:.6f}, {:.6f}, {:.1f}, {:.3f}\n".format(
+			A_h,
+			A_v,
+			self.cur.big_G,
+			self.cur.V.horiz_mph,
+			V_vert,
+			self.cur.V.vert_inc,
+			V_as
+		)
+		headers = "time, alt, thrust, weight, ADC_guess, ADC_actual, ADC_adj, A_raw, A_total, A_v, A_h, bigG, V_vert_inc, V_vert, V_horiz_mph, V_as\n"
 		if first:
 			create_csv(headers, 'data/rows.csv')
+		save_csv(row1+row2, 'data/rows.csv')
 
-		save_csv(row1+row2+row3, 'data/rows.csv')
 	@staticmethod
 	def load_available_engines():
 		available_engines_json = load_json("rocketEngineData.json")
