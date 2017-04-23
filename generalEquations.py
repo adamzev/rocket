@@ -58,10 +58,6 @@ OV decreases as you increase your radial distance from the center of the Earth, 
 Alt in feet
 
 '''
-def orbitalVelocity(alt):
-	if ROUND:
-		alt = myround(alt, 1000)
-	return 17683.9567 * ( ( 1.0 / ( 1.0 + ( alt / 20902230.99 ) ) )** 0.5 )
 
 def mphToFps(mph):
 	return 5280.0*mph/(60.0*60.0)

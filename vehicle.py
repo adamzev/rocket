@@ -65,6 +65,22 @@ class Vehicle():
 		alt_string = "ALT={:<.1f}\'".format(alt)
 		row4 = "{:<13.6f} {:<16} T={:<19.4f}  \"{:<.4f}\"\n".format(V_vert, alt_string, thrust, ADC_guess)
 		return row1+row2+row3+row4
+	def save_current_row(self):
+		V_as = self.cur.V.air_speed
+		A_v = self.cur.A_vert_eff
+		A_h = self.cur.A.horiz
+		V_vert = self.cur.V.vert
+		alt = self.cur.alt
+		thrust = self.cur.force
+
+		ADC_guess = self.cur.ADC_predicted
+		ADC_adj = self.cur.ADC_adjusted
+		row1 = "{:.1f}, {:.6f}, {:.8f}, {:.8f}, ".format(self.time, self.cur.A.total, self.cur.ADC_actual, self.cur.big_G)
+		row2 = "{:.2f}, {:.2f}, {:.6f}, {:.8f}, {:.6f}, {:.3f}, {:.6f}, {:.8f}, ".format(
+			self.cur.V.vert_inc, self.cur.weight, self.cur.A.raw, ADC_adj, self.cur.V.horiz_mph, V_as, A_v, A_h
+		)
+		row3 = "{:.6f}, {:.2f}, {:.4f}, {:.4f}\n".format(V_vert, alt, thrust, ADC_guess)
+		save_csv(row1+row2+row3, 'data\rows.csv')
 	@staticmethod
 	def load_available_engines():
 		available_engines_json = load_json("rocketEngineData.json")
@@ -93,6 +109,10 @@ class Vehicle():
 				self.time_inc = timeIncrements["time_inc"]
 				break
 
+	def get_next_time_inc(self):
+		for timeIncrements in self.time_incs:
+			if self.time + self.time_inc < timeIncrements["until"]:
+				return timeIncrements["time_inc"]
 	def get_A_vert_eff_avg(self):
 		A_vert_eff = average(self.cur.A.vert, self.prev.A.vert) - self.prev.big_G
 		if self.cur.alt > self.ground_level:
@@ -207,14 +227,15 @@ class Vehicle():
 		self.cur.A.set_raw(self.prev.force, self.cur.weight)
 		self.cur.ADC_adjusted = self.prev.ADC_predicted - self.prev.ADC_error
 		self.cur.A.total = self.cur.A.raw - self.cur.ADC_adjusted
-		#self.ADC_prediction_report(predictedADC, self.get_ADC_error())
+
 
 	def update_ADC_actual(self, time_inc):
 		self.cur.ADC_actual = ADC(self.cur.V.air_speed, self.cur.alt, self.adc_K)  # with resultant ADC in  "g" units
+		#self.ADC_prediction_report()
 		self.cur.ADC_error = self.prev.ADC_predicted - self.cur.ADC_actual
 
-	def ADC_prediction_report(self, predictedADC, error):
-		print ("Actual ADC={} predictedADC={} error={}".format(self.get_ADC_actual(), predictedADC, error))
+	def ADC_prediction_report(self):
+		print ("Actual ADC={} prev predictedADC={} cur predictedADC = {} error={}".format(self.cur.ADC_actual, self.prev.ADC_predicted, self.cur.ADC_predicted, self.cur.ADC_error))
 
 
 	def get_total_thrust(self):

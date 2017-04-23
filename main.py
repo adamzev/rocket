@@ -100,6 +100,7 @@ class Main_program:
 
 		rocket.update_ADC_actual(rocket.time_inc)
 
+
 		rocket.burnFuel(rocket.time_inc)
 
 
@@ -158,6 +159,7 @@ class Main_program:
 		self.HLV.cur.force = self.HLV.get_total_thrust()
 		self.HLV.cur.ADC_predicted = self.predict_ADC(self.HLV, self.events, "a")
 		print(self.HLV)
+		self.HLV.save_current_row()
 		self.HLV.burnFuel(self.HLV.time_inc)
 
 
@@ -183,6 +185,7 @@ class Main_program:
 			self.HLV.cur.ADC_predicted = self.predict_ADC(self.HLV, self.events, assigned_A_v)
 			if round(self.HLV.time,1).is_integer():
 				print(self.HLV)
+				self.HLV.save_current_row()
 				self.HLV.display_engine_messages()
 
 Rocketman = Main_program()

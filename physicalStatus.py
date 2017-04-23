@@ -3,7 +3,7 @@ from util import *
 from acceleration import Acceleration
 from velocity import Velocity
 
-class PhysicalStatus:
+class PhysicalStatus(object):
 	def __init__(self, A_horiz = 0.0, A_vert = 0.0, V_horiz = 0.0, V_vert = 0.0, alt = 0.0, force = 0.0, earth_rotation_mph = 912.67):
 		self._A = Acceleration(A_horiz, A_vert)
 		self._V = Velocity(V_horiz, V_vert, earth_rotation_mph)
@@ -16,11 +16,15 @@ class PhysicalStatus:
 
 
 	def __str__(self):
-		return "{} {} alt={} orbitalV={}".format(self.A, self.V, self.alt, self.orbitalV)
+		return "{} {} alt={}".format(self.A, self.V, self.alt)
 
 	@property
 	def weight(self):
 		return self._weight
+
+	@weight.setter
+	def weight(self, value):
+		self._weight = value
 
 	@property
 	def A(self):
@@ -36,7 +40,7 @@ class PhysicalStatus:
 
 	@ADC_predicted.setter
 	def ADC_predicted(self, value):
-		self.__ADC_predicted = value
+		self._ADC_predicted = value
 
 
 	@property
@@ -62,11 +66,10 @@ class PhysicalStatus:
 	@alt.setter
 	def alt(self, value):
 		self._alt = value
-		self.update_from_alt()
 
 	@property
 	def big_G(self):
-		return bigG(self.V.horiz_mph, self.orbitalV)
+		return bigG(self.V.horiz_mph, self.V.get_orbital(self.alt))
 
 	@property
 	def A_vert_eff(self):
@@ -76,15 +79,7 @@ class PhysicalStatus:
 	def A_vert_eff(self, value):
 		self.A.vert = value + self.big_G
 
-	@property
-	def orbitalV(self):
-		return self.V.get_orbital(self.alt)
 
 	@alt.setter
 	def alt(self, value):
 		self._alt = value
-		self.update_from_alt()
-
-
-	def update_from_alt():
-		self.orbitalV = orbitalVelocity(self.alt)

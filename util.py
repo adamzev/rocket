@@ -43,6 +43,17 @@ def get_value(myArray, when="current"):
 		return current(myArray)
 	else:
 		return prev(myArray)
+
+
+def create_csv(data, fileName):
+	with open(fileName, 'w') as outfile:
+		outfile.write(data)
+
+
+def save_csv(data, fileName):
+	with open(fileName, 'a') as outfile:
+		outfile.write(data)
+
 def save_json(data, fileName):
 	with open(fileName, 'w') as outfile:
 		json.dump(data, outfile)

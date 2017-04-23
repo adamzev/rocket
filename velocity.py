@@ -10,6 +10,9 @@ class Velocity(TwoD):
 		self._horiz_inc = horiz_inc
 		self.earth_rotation_mph = earth_rotation_mph
 
+	@staticmethod
+	def get_orbital(alt):
+		return 17683.9567 * ( ( 1.0 / ( 1.0 + ( alt / 20902230.99 ) ) )** 0.5 )
 
 	@property
 	def eff(self):
@@ -41,14 +44,11 @@ class Velocity(TwoD):
 	def vert_inc(self, value):
 		self._vert_inc = value
 
-		
+
 	@property
 	def vert_mph(self):
 		return fpsToMph(self.vert)
 
-
-	def get_orbital(self, alt):
-		return orbitalVelocity(alt)
 
 	@property
 	def air_speed(self):
