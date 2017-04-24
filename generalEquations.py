@@ -83,8 +83,8 @@ def pythag(a, b, c = None):
 		hyp = c
 		given_leg = a
 	return float( math.sqrt(hyp**2 - given_leg**2))
-def ADC(air_speed, alt, K):
-	return ((air_speed / 1000.0)**2.0) * percentOfAtmosphericPressure(alt) * K  # with resultant ADC in  "g" units
+def ADC(air_speed_mph, alt, K):
+	return ((air_speed_mph / 1000.0)**2.0) * percentOfAtmosphericPressure(alt) * K  # with resultant ADC in  "g" units
 
 def altitude(alt_prev, V_vert_prev, V_vert_inc, time_inc):
 	return alt_prev + V_vert_prev * time_inc + (V_vert_inc * time_inc) / 2.0

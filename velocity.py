@@ -36,6 +36,11 @@ class Velocity(TwoD):
 	def horiz_inc(self):
 		return self._horiz_inc
 
+	@horiz_inc.setter
+	def horiz_inc(self, value):
+		self._horiz_inc = value
+
+
 	@property
 	def vert_inc(self):
 		return self._vert_inc
@@ -51,7 +56,7 @@ class Velocity(TwoD):
 
 
 	@property
-	def air_speed(self):
+	def air_speed_mph(self):
 		return pythag(self.vert_mph, self.horiz_mph-self.earth_rotation_mph)
 
 	@property

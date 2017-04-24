@@ -21,7 +21,7 @@
             "throt_rate_of_change_limit": 1
         },
         {
-            "specImp_sl": 242,
+            "specImp_sl": 242.0,
             "engine_count": 4,
             "engine_name": "SRM",
             "weight_fueled": 6320000,

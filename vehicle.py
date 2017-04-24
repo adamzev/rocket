@@ -45,18 +45,18 @@ class Vehicle():
 
 
 	def __str__(self):
-		V_as = self.cur.V.air_speed
+		V_as = self.cur.V.air_speed_mph
 		A_v = self.cur.A_vert_eff
 		A_h = self.cur.A.horiz
 		V_vert = self.cur.V.vert
 		alt = self.cur.alt
 		thrust = self.cur.force
-
+		big_G = self.get_big_G()
 		ADC_guess = self.cur.ADC_predicted
 		ADC_adj = self.cur.ADC_adjusted
 		sign_symb = "+" if self.cur.V.vert_inc>0 else "-"
 		row1 = "-"*140 + "\n"
-		row2 = "{:>46.6f}      {:>6.8f}     G={: <12.8f}\n".format(self.cur.A.total, self.cur.ADC_actual, self.cur.big_G)
+		row2 = "{:>46.6f}      {:>6.8f}     G={: <12.8f}\n".format(self.cur.A.total, self.cur.ADC_actual, big_G)
 		time_string = "{:<6.1f}".format(self.time)
 		time_string = Fore.RED + time_string + Style.RESET_ALL
 		row3 = "{}{:<12.2f} {:5} WT={:<11.2f}->{:>9.6f}      {:<12.8f}   Vh={:<12.6f} Vas={:<12.3f}     {:<12.6f} {:<10.8f}\n".format(
@@ -67,29 +67,31 @@ class Vehicle():
 		return row1+row2+row3+row4
 	def save_current_row(self, first = False):
 
-		V_as = self.cur.V.air_speed
+		V_as = self.cur.V.air_speed_mph
 		A_v = self.cur.A_vert_eff
 		A_h = self.cur.A.horiz
 		V_vert = self.cur.V.vert
 		alt = self.cur.alt
 		thrust = self.cur.force
-
+		big_G = self.get_big_G()
 		ADC_guess = self.cur.ADC_predicted
 		ADC_adj = self.cur.ADC_adjusted
-		row1 = "{:.1f}, {:.1f}, {:.4f}, {:.4f}, {:.6f}, {:.8f}, {:.6f}, {:.2f}, {:.8f}, ".format(
+		ADC_error = self.cur.ADC_error
+		row1 = "{:.1f}, {:.1f}, {:.4f}, {:.4f}, {:.9f}, {:.8f}, {:.6f}, {:.7f}, {:.7f}, {:.7f}, ".format(
 			self.time,
 			alt, thrust,
 			self.cur.weight,
 			ADC_guess,
 			self.cur.ADC_actual,
 			ADC_adj,
+			ADC_error,
 			self.cur.A.raw,
 			self.cur.A.total
 		)
-		row2 = "{:.8f}, {:.6f}, {:.10f}, {:.6f}, {:.6f}, {:.1f}, {:.3f}\n".format(
+		row2 = "{:.8f}, {:.6f}, {:.10f}, {:.6f}, {:.6f}, {:.1f}, {:.8f}\n".format(
 			A_h,
 			A_v,
-			self.cur.big_G,
+			big_G,
 			V_as,
 			self.cur.V.horiz_mph,
 			self.cur.V.vert_inc,
@@ -97,7 +99,7 @@ class Vehicle():
 
 
 		)
-		headers = "time, alt, thrust, weight, ADC_guess, ADC_actual, ADC_adj, A_raw, A_total, A_v, A_h, bigG, V_as, V_horiz_mph, V_vert_inc, V_vert \n"
+		headers = "time, alt, thrust, weight, ADC_guess, ADC_actual, ADC_adj, ADC_error, A_raw, A_total, A_h, A_v, bigG, V_as, V_horiz_mph, V_vert_inc, V_vert \n"
 		if first:
 			create_csv(headers, 'data/rows.csv')
 		save_csv(row1+row2, 'data/rows.csv')
@@ -135,7 +137,7 @@ class Vehicle():
 			if self.time + self.time_inc < timeIncrements["until"]:
 				return timeIncrements["time_inc"]
 	def get_A_vert_eff_avg(self):
-		A_vert_eff = average(self.cur.A.vert, self.prev.A.vert) - self.prev.big_G
+		A_vert_eff = average(self.cur.A.vert, self.prev.A.vert) - self.get_big_G()
 		if self.cur.alt > self.ground_level:
 			return A_vert_eff
 		else:
@@ -211,7 +213,11 @@ class Vehicle():
 
 		self.update_V_vert_inc(time_inc)
 
-
+	def get_big_G(self):
+		if self.cur.V.horiz_mph != 0:
+			return bigG(self.cur.V.horiz_mph, self.cur.V.get_orbital(self.cur.alt))
+		else:
+			return bigG(self.prev.V.horiz_mph, self.cur.V.get_orbital(self.cur.alt))
 
 	def update_V_vert_inc(self, time_inc):
 		self.cur.V.vert_inc = self.get_A_vert_eff_avg() * time_inc * ACCEL_OF_GRAVITY
@@ -221,7 +227,7 @@ class Vehicle():
 
 	def update_V_horiz_mph_inc(self, time_inc):
 		avg_A_horiz = average(self.cur.A.horiz, self.prev.A.horiz)
-		self.cur.V.horiz_mph_inc = avg_A_horiz * time_inc * ACCEL_OF_GRAVITY
+		self.cur.V.horiz_inc = avg_A_horiz * time_inc * ACCEL_OF_GRAVITY
 
 
 	def update_V_horiz_mph(self):
@@ -233,7 +239,7 @@ class Vehicle():
 			return "a"
 		A_horiz = A_vert_eff = 0.0
 		A = self.cur.A.total_eff
-		G = self.cur.big_G
+		G = self.get_big_G()
 
 		A_horiz_bump = 0.01
 		while A_horiz <= A_vert_eff + self.A_hv_diff:
@@ -251,7 +257,7 @@ class Vehicle():
 
 
 	def update_ADC_actual(self, time_inc):
-		self.cur.ADC_actual = ADC(self.cur.V.air_speed, self.cur.alt, self.adc_K)  # with resultant ADC in  "g" units
+		self.cur.ADC_actual = ADC(self.cur.V.air_speed_mph, self.cur.alt, self.adc_K)  # with resultant ADC in  "g" units
 		#self.ADC_prediction_report()
 		self.cur.ADC_error = self.prev.ADC_predicted - self.cur.ADC_actual
 

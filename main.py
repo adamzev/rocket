@@ -83,20 +83,22 @@ class Main_program:
 
 		rocket.updateWeight(rocket.time_inc)
 		rocket.updateA()
-
+		big_G  = rocket.get_big_G()
 		if assigned_A_v == "a" or assigned_A_v == "all":
 			rocket.cur.A.vert = rocket.cur.A.total
 			rocket.cur.A.horiz = 0.0
-			rocket.cur.A.vert_eff = rocket.cur.A.vert - rocket.cur.big_G
+			rocket.cur.A.vert_eff = rocket.cur.A.vert - big_G
 
 		else:
 			rocket.cur.A_vert_eff = float(assigned_A_v)
+			rocket.cur.A.vert = assigned_A_v + big_G
+			print "big_G", big_G
 			rocket.cur.A.update(False, True, True)
 
 		rocket.update_V_inc(rocket.time_inc)
 		rocket.updateAlt(rocket.time_inc)
 		rocket.cur.force = rocket.get_total_thrust()
-		rocket.cur.V.horiz = rocket.prev.V.horiz + rocket.prev.V.horiz_inc
+		rocket.cur.V.horiz = rocket.prev.V.horiz + rocket.cur.V.horiz_inc
 		rocket.cur.V.vert = rocket.prev.V.vert + rocket.cur.V.vert_inc
 
 		#self.HLV.engine_status()
@@ -155,13 +157,17 @@ class Main_program:
 		self.HLV.updateA()
 		self.HLV.update_V_inc(self.HLV.time_inc)
 		self.HLV.cur.A.vert = self.HLV.cur.A.total
-		self.HLV.cur.A.vert_eff = self.HLV.cur.A.vert - self.HLV.cur.big_G
+		big_G = bigG(912.67, self.HLV.cur.V.get_orbital(30))
+		self.HLV.cur.A.vert_eff = self.HLV.cur.A.vert - big_G
 		self.HLV.update_V_vert()
 		self.HLV.update_ADC_actual(self.HLV.time_inc)
 
 		self.HLV.setEngineThrottle("RD-171M", "max", self.HLV.time_inc)
 		self.HLV.cur.force = self.HLV.get_total_thrust()
-		self.HLV.cur.ADC_predicted = self.predict_ADC(self.HLV, self.events, "a")
+		if QUICKRUN:
+			self.HLV.cur.ADC_predicted = 0.00012
+		else:
+			self.HLV.cur.ADC_predicted = self.predict_ADC(self.HLV, self.events, "a")
 		print(self.HLV)
 		self.HLV.save_current_row(True)
 
@@ -178,6 +184,10 @@ class Main_program:
 			-0.20, -0.18, -0.16, -0.16, -0.13, -0.10, 0.012808983, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.20, -0.25, -0.40, -0.38,
 			-0.36, -0.34, -0.32, -0.30, -0.28, -0.26, -0.24, -0.22, -0.20, -0.18, -0.16, -0.14, -0.12, -0.10, -0.10, -0.10, -0.10, -0.10
 		]
+
+		predictedADCs = [0.00086, 0.0022, 0.0043, 0.01106, 0.0268, 0.0448, 0.0777, 0.127, 0.171, 0.2148, 0.2798, 0.3239, 0.3615, 0.4135, 0.4497, 0.487,
+		0.5109, 0.5284, 0.5370, 0.5540, 0.5533, 0.555, 0.5515, 0.5376, 0.5222, 0.5016, 0.4678, 0.4739, 0.4359, 0.4089, 0.3864, 0.356, 0.3248, 0.2945
+	]
 		while self.HLV.cur.V.horiz_mph < self.COAST_SPEED:
 			if QUICKRUN:
 				assigned_A_v = asssigned_vs[i]
@@ -186,7 +196,10 @@ class Main_program:
 			i += 1
 
 			self.compute_row(self.HLV, self.events, assigned_A_v)
-			self.HLV.cur.ADC_predicted = self.predict_ADC(self.HLV, self.events, assigned_A_v)
+			if QUICKRUN:
+				self.HLV.cur.ADC_predicted = predictedADCs.pop(0)
+			else:
+				self.HLV.cur.ADC_predicted = self.predict_ADC(self.HLV, self.events, assigned_A_v)
 			if round(self.HLV.time,1).is_integer():
 				print(self.HLV)
 				self.HLV.save_current_row()

@@ -68,17 +68,13 @@ class PhysicalStatus(object):
 		self._alt = value
 
 	@property
-	def big_G(self):
-		return bigG(self.V.horiz_mph, self.V.get_orbital(self.alt))
-
-	@property
 	def A_vert_eff(self):
 		return self.A.vert_eff
 
 	@A_vert_eff.setter
 	def A_vert_eff(self, value):
 		self.A.vert_eff = value
-		self.A.vert = value + self.big_G
+
 
 
 	@alt.setter
