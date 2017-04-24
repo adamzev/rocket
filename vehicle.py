@@ -215,9 +215,14 @@ class Vehicle():
 
 	def get_big_G(self):
 		if self.cur.V.horiz_mph != 0:
-			return bigG(self.cur.V.horiz_mph, self.cur.V.get_orbital(self.cur.alt))
+			big_G = bigG(self.cur.V.horiz_mph, self.cur.V.get_orbital(self.cur.alt))
+			print "cur big_g: {} vHoriz {} alt {}".format(big_G, self.cur.V.horiz_mph, self.cur.alt)
+			return big_G
+
 		else:
-			return bigG(self.prev.V.horiz_mph, self.cur.V.get_orbital(self.cur.alt))
+			big_G = bigG(self.prev.V.horiz_mph, self.prev.V.get_orbital(self.prev.alt))
+			print "prev big_g: {} vHoriz {} alt {}".format(big_G, self.prev.V.horiz_mph, self.prev.alt)
+			return big_G
 
 	def update_V_vert_inc(self, time_inc):
 		self.cur.V.vert_inc = self.get_A_vert_eff_avg() * time_inc * ACCEL_OF_GRAVITY

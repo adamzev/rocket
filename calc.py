@@ -1,5 +1,6 @@
 from menu import *
 from generalEquations import *
+import velocity
 
 def promptPATM():
 	print "Percent of Atm Pressure Calculator"
@@ -10,6 +11,13 @@ def promptVac():
 	print "Percent of Atm Vac Calculator"
 	alt = float(raw_input("Alt? "))
 	print percentOfVac(alt)
+
+def promptBigG():
+	print "Big G Calculator"
+	V_h = float(raw_input("Horizontal Velocity? "))
+	alt = float(raw_input("Alt? "))
+	print bigG(V_h, velocity.Velocity.get_orbital(alt))
+
 
 menu_data = {
   'title': "Program Launcher", 'type': MENU, 'subtitle': "Please select an option...",
@@ -25,7 +33,7 @@ menu_data = {
 	  { 'title': "Treasure Mountain", 'type': COMMAND, 'command': 'dosbox /media/samba/Apps/dosbox/doswin/games/SST/SST.EXE -exit' },
 	]
 	},
-	{ 'title': "Pianobar", 'type': COMMAND, 'command': 'clear && pianobar' },
+	{ 'title': "Big G", 'type': FUNCTION, 'function': promptBigG },
 	{ 'title': "Windows 3.1", 'type': COMMAND, 'command': 'dosbox /media/samba/Apps/dosbox/doswin/WINDOWS/WIN.COM -conf /home/pi/scripts/dosbox2.conf -exit' },
 	{ 'title': "Reboot", 'type': MENU, 'subtitle': "Select Yes to Reboot",
 	'options': [

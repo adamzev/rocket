@@ -83,7 +83,7 @@ class Main_program:
 
 		rocket.updateWeight(rocket.time_inc)
 		rocket.updateA()
-		big_G  = rocket.get_big_G()
+		big_G  = bigG(rocket.prev.V.horiz_mph, rocket.cur.V.get_orbital(rocket.prev.alt))
 		if assigned_A_v == "a" or assigned_A_v == "all":
 			rocket.cur.A.vert = rocket.cur.A.total
 			rocket.cur.A.horiz = 0.0
@@ -157,8 +157,8 @@ class Main_program:
 		self.HLV.updateA()
 		self.HLV.update_V_inc(self.HLV.time_inc)
 		self.HLV.cur.A.vert = self.HLV.cur.A.total
-		big_G = bigG(912.67, self.HLV.cur.V.get_orbital(30))
-		self.HLV.cur.A.vert_eff = self.HLV.cur.A.vert - big_G
+		big_G = bigG(self.HLV.prev.V.horiz_mph, self.HLV.cur.V.get_orbital(self.HLV.cur.alt))
+		self.HLV.cur.A.vert_eff = self.HLV.cur.A.vert - self.HLV.cur.big_G
 		self.HLV.update_V_vert()
 		self.HLV.update_ADC_actual(self.HLV.time_inc)
 
@@ -185,8 +185,8 @@ class Main_program:
 			-0.36, -0.34, -0.32, -0.30, -0.28, -0.26, -0.24, -0.22, -0.20, -0.18, -0.16, -0.14, -0.12, -0.10, -0.10, -0.10, -0.10, -0.10
 		]
 
-		predictedADCs = [0.00086, 0.0022, 0.0043, 0.01106, 0.0268, 0.0448, 0.0777, 0.127, 0.171, 0.2148, 0.2798, 0.3239, 0.3615, 0.4135, 0.4497, 0.487,
-		0.5109, 0.5284, 0.5370, 0.5540, 0.5533, 0.555, 0.5515, 0.5376, 0.5222, 0.5016, 0.4678, 0.4739, 0.4359, 0.4089, 0.3864, 0.356, 0.3248, 0.2945
+		predictedADCs = [0.00086, 0.0022, 0.0043, 0.01106, 0.0268, 0.0448, 0.077, 0.127, 0.171, 0.2148, 0.2798, 0.3239, 0.3615, 0.4135, 0.4497, 0.487,
+		0.5109, 0.5284, 0.5370, 0.5540, 0.5533, 0.5555, 0.5515, 0.5376, 0.5222, 0.5016, 0.4678, 0.4739, 0.4359, 0.4089, 0.3864, 0.356, 0.3248, 0.2945
 	]
 		while self.HLV.cur.V.horiz_mph < self.COAST_SPEED:
 			if QUICKRUN:
