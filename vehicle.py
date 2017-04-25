@@ -51,7 +51,7 @@ class Vehicle():
 		V_vert = self.cur.V.vert
 		alt = self.cur.alt
 		thrust = self.cur.force
-		big_G = self.get_big_G()
+		big_G = self.cur.big_G
 		ADC_guess = self.cur.ADC_predicted
 		ADC_adj = self.cur.ADC_adjusted
 		sign_symb = "+" if self.cur.V.vert_inc>0 else "-"
@@ -73,7 +73,7 @@ class Vehicle():
 		V_vert = self.cur.V.vert
 		alt = self.cur.alt
 		thrust = self.cur.force
-		big_G = self.get_big_G()
+		big_G = self.cur.big_G
 		ADC_guess = self.cur.ADC_predicted
 		ADC_adj = self.cur.ADC_adjusted
 		ADC_error = self.cur.ADC_error
@@ -88,7 +88,7 @@ class Vehicle():
 			self.cur.A.raw,
 			self.cur.A.total
 		)
-		row2 = "{:.8f}, {:.6f}, {:.10f}, {:.6f}, {:.6f}, {:.1f}, {:.8f}\n".format(
+		row2 = "{:.8f}, {:.5f}, {:.10f}, {:.6f}, {:.6f}, {:.1f}, {:.8f}\n".format(
 			A_h,
 			A_v,
 			big_G,
@@ -137,7 +137,7 @@ class Vehicle():
 			if self.time + self.time_inc < timeIncrements["until"]:
 				return timeIncrements["time_inc"]
 	def get_A_vert_eff_avg(self):
-		A_vert_eff = average(self.cur.A.vert, self.prev.A.vert) - self.get_big_G()
+		A_vert_eff = average(self.cur.A.vert_eff, self.prev.A.vert_eff)
 		if self.cur.alt > self.ground_level:
 			return A_vert_eff
 		else:
@@ -209,20 +209,9 @@ class Vehicle():
 
 	def update_V_inc(self, time_inc):
 		#self.update_V_horiz_mph()
+		self.update_V_vert_inc(time_inc)
 		self.update_V_horiz_mph_inc(time_inc)
 
-		self.update_V_vert_inc(time_inc)
-
-	def get_big_G(self):
-		if self.cur.V.horiz_mph != 0:
-			big_G = bigG(self.cur.V.horiz_mph, self.cur.V.get_orbital(self.cur.alt))
-			print "cur big_g: {} vHoriz {} alt {}".format(big_G, self.cur.V.horiz_mph, self.cur.alt)
-			return big_G
-
-		else:
-			big_G = bigG(self.prev.V.horiz_mph, self.prev.V.get_orbital(self.prev.alt))
-			print "prev big_g: {} vHoriz {} alt {}".format(big_G, self.prev.V.horiz_mph, self.prev.alt)
-			return big_G
 
 	def update_V_vert_inc(self, time_inc):
 		self.cur.V.vert_inc = self.get_A_vert_eff_avg() * time_inc * ACCEL_OF_GRAVITY
@@ -273,12 +262,14 @@ class Vehicle():
 	def get_total_thrust(self):
 		totalThrust = 0
 		for engine in self.engines:
-			totalThrust += engine.thrustAtAlt(self.cur.alt)
+			thrust = engine.thrustAtAlt(self.cur.alt)
+			print engine.name, thrust
+			totalThrust += thrust
 		return totalThrust
 
 	def burnFuel(self, time_inc):
 		for engine in self.engines:
-			 engine.burnFuel(time_inc, self.prev.alt)
+			engine.burnFuel(time_inc, self.prev.alt)
 
 	def getTotalFuelUsed(self):
 		fuelUsed = 0

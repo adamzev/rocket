@@ -18,13 +18,19 @@ def promptBigG():
 	alt = float(raw_input("Alt? "))
 	print bigG(V_h, velocity.Velocity.get_orbital(alt))
 
-
+def promptADC():
+	print "ADC Calculator"
+	V_as = float(raw_input("Air Speed Velocity? "))
+	alt = float(raw_input("Alt? "))
+	adc_K = float(raw_input("ADC K? "))
+	print ADC(V_as, alt, adc_K)
 menu_data = {
   'title': "Program Launcher", 'type': MENU, 'subtitle': "Please select an option...",
   'options':[
   	{ 'title': "Rocket Sim", 'type': COMMAND, 'command': 'python main.py' },
 	{ 'title': "Percent Atm", 'type': FUNCTION, 'function': promptPATM },
 	{ 'title': "Percent Vac", 'type': FUNCTION, 'function': promptVac },
+
 
 	{ 'title': "Dosbox Games", 'type': MENU, 'subtitle': "Please select an option...",
 	'options': [
@@ -34,6 +40,7 @@ menu_data = {
 	]
 	},
 	{ 'title': "Big G", 'type': FUNCTION, 'function': promptBigG },
+	{ 'title': "ADC K", 'type': FUNCTION, 'function': promptADC },
 	{ 'title': "Windows 3.1", 'type': COMMAND, 'command': 'dosbox /media/samba/Apps/dosbox/doswin/WINDOWS/WIN.COM -conf /home/pi/scripts/dosbox2.conf -exit' },
 	{ 'title': "Reboot", 'type': MENU, 'subtitle': "Select Yes to Reboot",
 	'options': [

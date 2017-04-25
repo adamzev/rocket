@@ -65,7 +65,7 @@ class RocketEngine:
 
 	def thrustAtAlt(self, alt):
 		patm = percentOfAtmosphericPressure(alt)
-		pctVac = 1 - patm
+		pctVac = 1.0 - patm
 
 		self.thrust_total.append(self.engine_count * self.get_throt() * (self.thrust_sl + (pctVac * (self.thrust_vac - self.thrust_sl))))
 		return self.get_thrust_total()
@@ -131,7 +131,7 @@ class SolidRocketEngine(RocketEngine):
 			pass
 	def thrustAtAlt(self, alt):
 		patm = percentOfAtmosphericPressure(alt)
-		pctVac = 1 - patm
+		pctVac = 1.0 - patm
 		return self.get_thrust_total() * self.get_throt()
 
 
