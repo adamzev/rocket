@@ -42,10 +42,6 @@
 			"until" : 141.0
 		},
 		{
-			"time_inc" : 0.9,
-			"until" : 141.0
-		},
-		{
 			"time_inc" : 3,
 			"until" : 213.0
 		},

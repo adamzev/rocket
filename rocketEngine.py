@@ -61,7 +61,7 @@ class RocketEngine:
 		else:
 			self.throt.append(throt)
 		endThrottle = self.get_throt()
-		self.messages.append("\nEVENT: {} Throttle {} from {} to {}".format(self.name, verb, self.get_throt("prev"), self.get_throt()))
+		self.messages.append("\nEVENT: {} Throttle {} from {} to {} time inc {}".format(self.name, verb, self.get_throt("prev"), self.get_throt(), time_inc))
 
 	def thrustAtAlt(self, alt):
 		patm = percentOfAtmosphericPressure(alt)
@@ -105,8 +105,11 @@ class SolidRocketEngine(RocketEngine):
 			self.fuel_source.fuel_used += self.get_burn_rate() * time_inc
 		print "solid rocket {} at alt {}".format(self.get_burn_rate(), alt)
 	def adjust_thrust_to_burn_at_rate_per_engine(self, rate, alt):
+		self.burn_rate.append(rate)
+		self.burn_rate.append(rate)
 		thrust = rate * self.specific_impulse_at_alt(alt)
 		throt = thrust / self.thrust_sl
+
 		self.set_assigned_thrust_per_engine(thrust)
 		self.set_assigned_thrust_per_engine(thrust)
 

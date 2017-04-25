@@ -71,6 +71,7 @@ class Main_program:
 	def compute_row(self, rocket, events, assigned_A_v, testRun = False):
 		rocket.tick()
 		rocket.burnFuel(rocket.time_inc)
+		rocket.updateWeight(rocket.time_inc)
 		for event in events:
 			if rocket.time >= event["start_time"] and rocket.time <= event["end_time"]:
 				if "stage" in event.keys():
@@ -81,7 +82,6 @@ class Main_program:
 
 
 
-		rocket.updateWeight(rocket.time_inc)
 		rocket.updateA()
 		if assigned_A_v == "a" or assigned_A_v == "all":
 			rocket.cur.A.vert = rocket.cur.A.total
@@ -188,21 +188,29 @@ class Main_program:
 		]
 
 		predictedADCs = [0.00086, 0.0022, 0.0043, 0.01106, 0.0268, 0.0448, 0.0777, 0.127, 0.171, 0.2148, 0.2798, 0.3239, 0.3615, 0.4135, 0.4497, 0.487,
-		0.5109, 0.5284, 0.5370, 0.5540, 0.5533, 0.5555, 0.5515, 0.5376, 0.5222, 0.5016, 0.4678, 0.4739, 0.4359, 0.4089, 0.3864, 0.356, 0.3248, 0.2945
+		0.5109, 0.5284, 0.5370, 0.5540, 0.5533, 0.5555, 0.5515, 0.5376, 0.5222, 0.5016, 0.4678, 0.4739, 0.4359, 0.4089, 0.3864, 0.356, 0.3248, 0.2945,
+		0.2725, 0.239, 0.211, 0.184, 0.156, 0.131, 0.131, 0.0932, 0.0793, 0.06756, 0.0587, 0.04904, 0.04285, 0.03535, 0.03295, 0.03085, 0.0296, 0.02785,
+		0.02756, 0.02596, 0.02284, 0.01744, 0.01363, 0.011103, 0.0091, 0.007155, 0.00605, 0.004758, 0.003829, 0.003124, 0.002476, 0.002020, 0.001613, 0.001284,
+		0.001284, 0.001038, 0.0008304, 0.000654, 0.00052, 0.0004133, 0.000326, 0.000254, 0.000197, 0.00001527, 0.000114, 0.000112, 0.000089, 0.000091739, 0.0000817, 0.0000817, 0.000022, 0.0000156,
+		0.0000102, 0.000007344, 0.00000451, 0.000003015, 0.000001269, 0.00000079
+
 	]
 		while self.HLV.cur.V.horiz_mph < self.COAST_SPEED:
-			if QUICKRUN:
+			if GIVEN_AVS:
 				assigned_A_v = asssigned_vs[i]
 			else:
 				assigned_A_v = self.HLV.select_A_vert()
 			i += 1
 
 			self.compute_row(self.HLV, self.events, assigned_A_v)
-			if QUICKRUN:
-				self.HLV.cur.ADC_predicted = predictedADCs.pop(0)
+			if GIVEN_GUESSES:
+				try:
+					self.HLV.cur.ADC_predicted = predictedADCs.pop(0)
+				except IndexError:
+					self.HLV.cur.ADC_predicted = 0.0
 			else:
 				self.HLV.cur.ADC_predicted = self.predict_ADC(self.HLV, self.events, assigned_A_v)
-			if round(self.HLV.time,1).is_integer():
+			if GIVEN_INTERVALS or round(self.HLV.time,1).is_integer():
 				print(self.HLV)
 				self.HLV.save_current_row()
 				self.HLV.display_engine_messages()

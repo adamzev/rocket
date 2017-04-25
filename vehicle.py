@@ -77,9 +77,10 @@ class Vehicle():
 		ADC_guess = self.cur.ADC_predicted
 		ADC_adj = self.cur.ADC_adjusted
 		ADC_error = self.cur.ADC_error
-		row1 = "{:.1f}, {:.1f}, {:.4f}, {:.4f}, {:.9f}, {:.8f}, {:.6f}, {:.7f}, {:.7f}, {:.7f}, ".format(
+		row1 = "{:.1f}, {:.0f}, {:.4f}, {:.4f}, {:.9f}, {:.8f}, {:.6f}, {:.7f}, {:.7f}, {:.7f}, ".format(
 			self.time,
-			alt, thrust,
+			alt,
+			thrust,
 			self.cur.weight,
 			ADC_guess,
 			self.cur.ADC_actual,
@@ -132,10 +133,11 @@ class Vehicle():
 				self.time_inc = timeIncrements["time_inc"]
 				break
 
-	def get_next_time_inc(self):
+	def get_time_inc(self):
 		for timeIncrements in self.time_incs:
-			if self.time + self.time_inc < timeIncrements["until"]:
+			if self.time  < timeIncrements["until"]:
 				return timeIncrements["time_inc"]
+
 	def get_A_vert_eff_avg(self):
 		A_vert_eff = average(self.cur.A.vert_eff, self.prev.A.vert_eff)
 		if self.cur.alt > self.ground_level:
@@ -232,8 +234,8 @@ class Vehicle():
 		if self.cur.alt <= self.tower_height:
 			return "a"
 		A_horiz = A_vert_eff = 0.0
-		A = self.cur.A.total_eff
-		G = self.get_big_G()
+		A = self.cur.A.total
+		G = self.cur.big_G
 
 		A_horiz_bump = 0.01
 		while A_horiz <= A_vert_eff + self.A_hv_diff:
@@ -263,7 +265,6 @@ class Vehicle():
 		totalThrust = 0
 		for engine in self.engines:
 			thrust = engine.thrustAtAlt(self.cur.alt)
-			print engine.name, thrust
 			totalThrust += thrust
 		return totalThrust
 
@@ -348,19 +349,20 @@ class Vehicle():
 		engine = self.find_engine(event["engine"])
 		start_time = event["start_time"]
 		end_time = event["end_time"]
+		time_inc = self.get_time_inc()
 
 		if event["name"] == "Reduce Thrust" and self.time < event["end_time"]:
-			engine.reduceThrust(event["rate"], self.time_inc)
+			engine.reduceThrust(event["rate"], time_inc)
 
 		if event["name"] == "Power Down":
-			engine.power_down(start_time, end_time, self.time, self.time_inc, self.get_alt())
+			engine.power_down(start_time, end_time, self.time, time_inc, self.cur.alt)
 
 
 		if event["name"] == "Increase Throttle By Max Rate-Of-Change":
-			engine.setThrottle(engine.max_throt, self.time_inc)
+			engine.setThrottle(engine.max_throt, time_inc)
 
 		if event["name"] == "Reduce Throttle By Max Rate-Of-Change":
-			engine.setThrottle(engine.min_throt, self.time_inc)
+			engine.setThrottle(engine.min_throt, time_inc)
 
 		if event["name"] == "Engine Cut-off":
 			engine.setThrottleOverride(0.0)
