@@ -1,7 +1,7 @@
 import logging
 from generalEquations import *
 from util import *
-
+from util.text_interface import *
 
 class RocketEngine:
 	def __init__(self, engineStats):
@@ -14,6 +14,16 @@ class RocketEngine:
 
 	def __str__(self):
 		return "Name={} Throt={} Eff Burn Rate={} Thrust={}".format(self.name, self.throt_avg, self.get_eff_fuel_burn_rate(), self.get_thrust_total())
+
+
+	@staticmethod
+	def factory(engine_data):
+		if engine_data["type"] == "Solid":
+			return SolidRocketEngine(engine_data)
+		elif engine_data["type"] == "Liquid":
+			return LiquidRocketEngine(engine_data)
+		else:
+			raise ValueError("Unsupported engine type.")
 
 	def set_fuel_source(self, source):
 		self.fuel_source = source
@@ -56,8 +66,12 @@ class RocketEngine:
 			logging.debug("Max Throt achieved for {}".format(self.name))
 			self.throt.append(self.max_throt)
 		elif throt < self.min_throt:
-			logging.debug("{} Engine shutoff".format(self.name))
-			self.throt.append(0)
+			if direction < 0:
+				logging.debug("{} Engine shutoff".format(self.name))
+				self.throt.append(0)
+			else:
+				logging.debug("{} Engine set to min throt".format(self.name))
+				self.throt.append(self.min_throt)
 		else:
 			self.throt.append(throt)
 		endThrottle = self.get_throt()
@@ -79,7 +93,8 @@ class RocketEngine:
 		else:
 			return self.throt_avg * self.get_burn_rate()
 
-	def burnFuel(self, time_inc, alt = None):
+	def burn_fuel(self, time_inc, alt = None):
+		# alt is ignored for this engine type
 		if self.throt_avg > 0.0:
 			self.fuel_source.fuel_used += self.get_eff_fuel_burn_rate()* time_inc
 
@@ -94,16 +109,16 @@ class SolidRocketEngine(RocketEngine):
 	def __init__(self, engine_data):
 		RocketEngine.__init__(self, engine_data)
 		self.assigned_thrust = [0.0]
-		self.assigned_burn_rates_for_SRM_power_down=[10195.695, 8750, 5500, 3500, 2150]
-
+		self.assigned_burn_rates_for_SRM_power_down = [10195.695, 8750, 5500, 3500, 2150]
+		self.assigned_thrust_per_engine_for_SRM_power_down = [3150000, 2729000, 2343000, 1473250, 937750, 576250, 0]
 	def set_assigned_thrust_per_engine(self, thrust):
 		self.thrust_total.append(thrust * self.engine_count)
-	def burnFuel(self, time_inc, alt):
+	def burn_fuel(self, time_inc, alt):
 
 		if self.throt_avg > 0.0:
 			self.burn_rate.append(self.get_thrust_total()  / self.specific_impulse_at_alt(alt))
-			self.fuel_source.fuel_used += self.get_burn_rate() * time_inc
-		print "solid rocket {} at alt {}".format(self.get_burn_rate(), alt)
+			self.fuel_source.fuel_used += self.get_burn_rate() * time_inc * self.get_throt()
+		# print "solid rocket {} at alt {}".format(self.get_burn_rate(), alt)
 	def adjust_thrust_to_burn_at_rate_per_engine(self, rate, alt):
 		self.burn_rate.append(rate)
 		self.burn_rate.append(rate)
@@ -122,12 +137,14 @@ class SolidRocketEngine(RocketEngine):
 	def power_down(self, start_time, end_time, time, time_inc, alt):
 		eventTime = end_time - start_time
 		fuelRemaining = self.fuel_source.get_fuel_remaining()
-		srm_entry_mode = "array"
+		srm_entry_mode = "array_thrust"
 		if srm_entry_mode == "manual":
 			thrust = raw_input("Enter the assigned SRM thrust per engine:")
 		if srm_entry_mode == "array" and len(self.assigned_burn_rates_for_SRM_power_down)>0:
 			burn_rate = self.assigned_burn_rates_for_SRM_power_down.pop(0)
 			self.adjust_thrust_to_burn_at_rate_per_engine(burn_rate, alt)
+		if srm_entry_mode == "array_thrust" and len(self.assigned_thrust_per_engine_for_SRM_power_down)>0:
+			self.set_assigned_thrust_per_engine(self.assigned_thrust_per_engine_for_SRM_power_down.pop(0))
 		if srm_entry_mode == "linear":
 			pass
 		if srm_entry_mode == "cube root":

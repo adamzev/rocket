@@ -62,6 +62,18 @@ def load_json(fileName):
 	with open(fileName) as data_file:
 		return json.load(data_file)
 
+def query_multiple(queries):
+	results = {}
+	for name in queries:
+		if queries['type'] == "float":
+			results[name] = query_float(queries[name]['prompt'])
+		elif queries['type'] == "bool":
+			results[name] = query_float(queries[name]['prompt'])
+		elif queries['type'] == "int":
+			results[name] = query_int(queries[name]['prompt'])
+		else:
+			results[name] = input(queries[name]['prompt'])
+
 def query_yes_no(question, default="yes"):
 	"""Ask a yes/no question via raw_input() and return their answer.
 

@@ -1,7 +1,7 @@
 from util import *
 from title import *
-from rocketEngine import *
-from vehicle import *
+from libs import rocketEngine
+from libs import vehicle
 
 def save_file(this_file):
 	file_name = this_file['file_name']
@@ -22,14 +22,15 @@ def create_engine_specs():
 	available_engines = Vehicle.load_available_engines()
 	selected_engines = []
 	for engine_name, engine_data in available_engines.iteritems():
+		selected = {}
 		print("\n{}\n".format(engine_name))
 		pretty_json(engine_data)
 		attach = query_yes_no("Do you want to attach any {} engines? ".format(engine_name), None)
 		if attach:
 			count = query_float("How many?")
-			engine_data["engine_count"] = count
-			engine_data["engine_name"] = engine_name
-			selected_engines.append(engine_data)
+			selected["engine_count"] = count
+			selected["engine_name"] = engine_name
+			selected_engines.append(selected)
 			print("{} {} engines are now attached.".format(int(count), engine_name))
 	return selected_engines
 
@@ -38,31 +39,39 @@ def create_stage_specs(stage_type):
 	stage_specs = {}
 	stage_specs['attached'] = True
 	stage_specs['adc_K'] = query_float("What is the ADC K of the {}?". format(stage_type))
-	stage_specs['initial_weight'] = query_float("What is the lift-off weight of the {}? ".format(stage_type))
-	stage_specs['jettison_weight'] = query_float("What is the jettison weight of the {}? ".format(stage_type))
+	stage_specs['initial_weight'] = query_float("What is the weight of the {}? ".format(stage_type))
+	if(stage_type != "orbiter"):
+		stage_specs['jettison_weight'] = query_float("What is the jettison weight of the {}? ".format(stage_type))
+	else:
+		stage_specs['jettison_weight'] = 0
 	stage_specs['fuel'] = stage_specs['initial_weight'] - stage_specs['jettison_weight']
 	stage_specs['type'] = stage_type
 	print("Fuel available in {} is {}".format(stage_type, stage_specs['fuel']))
 	return stage_specs
 
+def create_events():
+	print "Not yet implemented"
+	for engine in self.HLV.engines:
+		answer = query_min_max("What is the starting throttle for {}".format(engine.name))
+		# set each weight twice to set average weight
+		self.HLV.setEngineThrottleOverride(engine.name, answer)
+		if engine.type == "Solid":
+			answer = query_min_max("What is the starting " + Fore.RED + "thrust per engine for {}".format(engine.name) + Style.RESET_ALL, 0, float('inf'))
+		self.HLV.setEngineAssignedThrustPerEngine("SRM", "max")
+
 
 def create_stages_specs():
-	attach_SRB = query_yes_no("Does the rocket have a SRB? ", "yes")
 	stages = {}
+	stage_types = ["RLV", "orbiter"]
+	attach_SRB = query_yes_no("Does the rocket have a SRB? ", "yes")
 	if attach_SRB:
-		for stage_type in ["SRB", "RLV", "orbiter"]:
-			stages[stage_type] = create_stage_specs(stage_type)
-	else:
-		for stage_type in ["RLV", "orbiter"]:
-			stages[stage_type] = create_stage_specs()
-		stages["SRB"] = {
-			'adc_K' : 0.0,
-			'attached' : False,
-			'initial_weight' : 0.0,
-			'jettison_weight' : 0.0,
-			'fuel' : 0.0,
-			'type' : "SRB"
-		}
+		stage_types = ["SRB"] + stage_types
+	attach_LFB = query_yes_no("Does the rocket have a LFB? ", "no")
+	if attach_LFB:
+		stage_types = ["LFB"] + stage_types
+
+	for stage_type in stage_types:
+		stages[stage_type] = create_stage_specs(stage_type)
 	return stages
 
 def create_specs():
@@ -72,14 +81,14 @@ def create_specs():
 	lift_off_weight = query_float("What is the weight at lift off? ")
 	initial_alt = query_float("What is initial alt? ")
 	A_hv_diff = query_float("What is desired A_h - A_v difference? ")
-	tower_height = query_float("What is desired A_h - A_v difference? ")
+	tower_height = query_float("What is tower height?  ")
 	stages = create_stages_specs()
 	selected_engines = create_engine_specs()
-	friendly_name = "{} MK {} VER {}".format(n,spec_data["name"], spec_data["MK"], spec_data["ver"])
-	clean_name = remove_non_alphanumeric(specs["name"]),
-	clean_MK = remove_non_alphanumeric(specs["MK"]),
-	clean_ver =  remove_non_alphanumeric(specs["ver"])
-	file_name = "{}_MK_{}_VER_{}".format(n, clean_name, clean_MK, clean_ver)
+	friendly_name = "{} MK {} VER {}".format(name, MK, ver)
+	clean_name = remove_non_alphanumeric(name)
+	clean_MK = remove_non_alphanumeric(MK)
+	clean_ver =  remove_non_alphanumeric(ver)
+	file_name = "{}_MK_{}_VER_{}".format(clean_name, clean_MK, clean_ver)
 	specs = {
 		"name" : name,
 		"MK" : MK,
@@ -97,7 +106,7 @@ def create_specs():
 
 	save_settings = query_yes_no("Do you want to save these specs? ", None)
 	if save_settings:
-		save_specs(specs)
+		save_file(specs)
 	return specs
 
 
@@ -105,9 +114,12 @@ def get_initial_conditions():
 	return get_json_file_data("initial_conditions", "initial conditions", set_initial_conditions)
 
 
+def get_events(spec_name):
+	folder = "save/specs/" + spec_name + "/events"
+	return get_json_file_data(folder, "events", create_events)
 
 def get_specs():
-	return get_json_file_data("specs", "spec", create_specs)
+	return get_json_file_data("save/specs", "spec", create_specs)
 
 def get_json_file_data(folder, name, creation_function):
 	files = glob.glob("{}/*.json".format(folder))

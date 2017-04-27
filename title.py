@@ -1,6 +1,13 @@
 TITLE = '''
 
 
+    Rocket Snapshot
+	Algorithm by
+    Ed Johnson
+
+    Coding by
+    Adam Levin                    
+
 
                                *     .--.
                                     / /  `
@@ -27,11 +34,5 @@ TITLE = '''
     / _  \ (_) | (__|   <  __/ |_| | | | | | (_| | | | |
     \/ \_/\___/ \___|_|\_\___|\__|_| |_| |_|\__,_|_| |_|
 
-              *********************************
-              * Rocket Snapshot Algorithm by  *
-              * Ed Johnson                    *
-              *                               *
-              * Coding by                     *
-              * Adam Levin                    *
-              *********************************
+
 '''

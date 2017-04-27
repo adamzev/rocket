@@ -2,6 +2,7 @@ from rocketEngine import *
 from physicalStatus import PhysicalStatus
 from stage import *
 from generalEquations import *
+from util.text_interface import *
 from util import *
 import copy
 
@@ -34,7 +35,7 @@ class Vehicle():
 
 		self.time = 0.0
 		if load_time_incs:
-			time_incs_json = load_json('time_incs.json')
+			time_incs_json = load_json('save/time/time_incs.json')
 			self.time_incs = time_incs_json['time_incs']
 			self.set_time_inc()
 		else:
@@ -107,7 +108,7 @@ class Vehicle():
 
 	@staticmethod
 	def load_available_engines():
-		available_engines_json = load_json("rocketEngineData.json")
+		available_engines_json = load_json("save/engine/rocketEngineData.json")
 		return available_engines_json["rocketEngines"]
 
 	@staticmethod
@@ -173,12 +174,7 @@ class Vehicle():
 
 
 	def attach_engine(self, engine_data):
-		if engine_data["type"] == "Solid":
-			engine = SolidRocketEngine(engine_data)
-		elif engine_data["type"] == "Liquid":
-			engine = LiquidRocketEngine(engine_data)
-		else:
-			raise ValueError("Unsupported engine type.")
+		engine = RocketEngine.factory(engine_data)
 		self.engines.append(engine)
 
 
@@ -268,9 +264,9 @@ class Vehicle():
 			totalThrust += thrust
 		return totalThrust
 
-	def burnFuel(self, time_inc):
+	def burn_fuel(self, time_inc):
 		for engine in self.engines:
-			engine.burnFuel(time_inc, self.prev.alt)
+			engine.burn_fuel(time_inc, self.prev.alt)
 
 	def getTotalFuelUsed(self):
 		fuelUsed = 0
@@ -356,7 +352,6 @@ class Vehicle():
 
 		if event["name"] == "Power Down":
 			engine.power_down(start_time, end_time, self.time, time_inc, self.cur.alt)
-
 
 		if event["name"] == "Increase Throttle By Max Rate-Of-Change":
 			engine.setThrottle(engine.max_throt, time_inc)

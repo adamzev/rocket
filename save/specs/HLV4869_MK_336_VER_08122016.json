@@ -1,0 +1,136 @@
+{
+    "lift_off_weight": 22191271.27,
+    "ver": "08-12-2016",
+    "name": "HLV * 4-8/6-9",
+	"friendly_name": "HLV * 4-8/6-9 MK 3-36 VER 08-12-2016",
+	"file_name": "HLV4869_MK_336_VER_08122016",
+    "engines": [
+        {
+            "lbm_dry": 20503,
+            "engine_name": "OME",
+            "min_throt": 1,
+            "max_throt": 1,
+            "residual": 0.015,
+            "thrust_sl": 6002,
+            "burn_rate": [
+                18.993671
+            ],
+            "engine_count": 3,
+            "thrust_vac": 6002,
+            "fuel": 5932224.827,
+            "type": "Liquid",
+            "throt_rate_of_change_limit": 1
+        },
+        {
+            "specImp_sl": 242.0,
+            "engine_count": 4,
+            "engine_name": "SRM",
+            "weight_fueled": 6320000,
+            "min_throt": 0,
+            "max_throt": 1,
+            "specImp_vac": 268.2,
+            "thrust_sl": 3600000,
+            "burn_rate": [
+                14876.0325
+            ],
+            "thrust_controlled": "True",
+            "thrust_vac": 3600000,
+            "weight_dry": 210000,
+            "adc_K": 0.284,
+            "type": "Solid",
+            "throt_rate_of_change_limit": 1
+        },
+        {
+            "lbm_dry": 20503,
+            "engine_name": "RD-171M",
+            "min_throt": 0.56,
+            "max_throt": 1,
+            "thrust_sl": 1632000,
+            "burn_rate": [
+                5270
+            ],
+            "engine_count": 8,
+            "thrust_vac": 1777000,
+            "fuel": 5932224.827,
+            "type": "Liquid",
+            "throt_rate_of_change_limit": 0.15
+        },
+        {
+            "lbm_dry": 20503,
+            "engine_name": "SSME",
+            "min_throt": 0.6,
+            "max_throt": 0.95,
+            "residual": 0.015,
+            "thrust_sl": 418130,
+            "burn_rate": [
+                1129
+            ],
+            "engine_count": 9,
+            "thrust_vac": 512410,
+            "fuel": 5932224.827,
+            "type": "Liquid",
+            "throt_rate_of_change_limit": 0.12
+        },
+        {
+            "lbm_dry": 20503,
+            "engine_name": "RL-10A4-2",
+            "min_throt": 1,
+            "max_throt": 1,
+            "thrust_sl": 22300,
+            "burn_rate": [
+                49.4457
+            ],
+            "engine_count": 3,
+            "thrust_vac": 22300,
+            "fuel": 5932224.827,
+            "type": "Liquid",
+            "throt_rate_of_change_limit": 1
+        },
+        {
+            "lbm_dry": 20503,
+            "engine_name": "RD-180",
+            "min_throt": 0.47,
+            "max_throt": 0.95,
+            "thrust_sl": 861270,
+            "burn_rate": [
+                2770
+            ],
+            "engine_count": 6,
+            "thrust_vac": 934245,
+            "fuel": 5932224.827,
+            "type": "Liquid",
+            "throt_rate_of_change_limit": 0.15
+        }
+    ],
+    "initial_alt": 30,
+	"A_hv_diff" : 0.11,
+	"tower_height" : 600,
+	"earth_rotation_mph" : 912.67,
+    "MK": "3-36",
+    "stages": {
+        "SRB": {
+            "attached": true,
+            "jettison_weight": 800000,
+            "initial_weight": 6320000,
+            "fuel": 5520000,
+            "adc_K": 0.284,
+            "type": "SRB"
+        },
+        "orbiter": {
+            "attached": true,
+            "jettison_weight": 0,
+            "initial_weight": 2900000,
+            "fuel": 2900000,
+            "adc_K": 0.475,
+            "type": "orbiter"
+        },
+        "RLV": {
+            "attached": true,
+            "jettison_weight": 1621829,
+            "initial_weight": 12971271.27,
+            "fuel": 11349442.27,
+            "adc_K": 1.073,
+            "type": "RLV"
+        }
+    }
+}

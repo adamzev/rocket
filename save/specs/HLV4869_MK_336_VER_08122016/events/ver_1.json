@@ -1,0 +1,68 @@
+{
+	"file_name" : "ver_1",
+	"friendly_name" : "Version 1",
+	"starting_throt" : [
+		{
+			"engine" : "RD-180",
+		 	"throt": "max"
+	 	},
+		{
+			"engine" : "SSME",
+			"throt" : "max"
+		},
+		{
+			"engine" : "RD-171M",
+			"throt": 0.56
+		},
+		{
+			"engine" : "SRM",
+			"throt" : 1.0
+		}
+	],
+	"starting_thrust" : [
+		{
+			"engine" : "SRM",
+			"thrust" : "max"
+		}
+	],
+	"events" :
+	[
+		{
+			"name" : "Increase Throttle By Max Rate-Of-Change",
+			"engine": "RD-171M",
+			"start_time": 0.00,
+			"end_time" : 3.00
+		},
+		{
+			"name" : "Reduce Thrust",
+			"engine": "SRM",
+			"start_time": 24.00,
+			"end_time" : 45.00,
+			"rate" : -20000.0
+		},
+		{
+			"name" : "Power Down",
+			"engine": "SRM",
+			"start_time": 96.00,
+			"end_time" : 114.00
+		},
+		{
+			"name" : "Jettison",
+			"stage": "SRB",
+			"start_time": 114.00,
+			"end_time" : 114.00
+		},
+		{
+			"name" : "Reduce Throttle By Max Rate-Of-Change",
+			"engine": "RD-171M",
+			"start_time": 137.00,
+			"end_time" : 140.00
+		},
+		{
+			"name" : "Engine Cut-off",
+			"engine": "RD-171M",
+			"start_time": 140.00,
+			"end_time" : 140.00
+		}
+	]
+}

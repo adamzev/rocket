@@ -5,9 +5,11 @@ import pprint
 from mode import *
 
 from generalEquations import *
-from text_interface import *
 from util import *
+from util.text_interface import *
 from title import *
+from libs import *
+from libs.vehicle import *
 
 log = logging.basicConfig(level=logging.INFO)
 class Main_program:
@@ -20,48 +22,16 @@ class Main_program:
 	def start(self):
 		print(TITLE)
 		self.specs = get_specs()
-		#self.events = get_events()
-		if QUICKRUN:
-			self.events = [
-				{
-					"name" : "Increase Throttle By Max Rate-Of-Change",
-					"engine": "RD-171M",
-					"start_time": 0.00,
-					"end_time" : 3.00,
-				},
-				{
-					"name" : "Reduce Thrust",
-					"engine": "SRM",
-					"start_time": 24.00,
-					"end_time" : 45.00,
-					"rate" : -20000.0,
-				},
-				{
-					"name" : "Power Down",
-					"engine": "SRM",
-					"start_time": 99.00,
-					"end_time" : 114.00,
-				},
-				{
-					"name" : "Jettison",
-					"stage": "SRB",
-					"start_time": 114.00,
-					"end_time" : 114.00,
-				},
-				{
-					"name" : "Reduce Throttle By Max Rate-Of-Change",
-					"engine": "RD-171M",
-					"start_time": 137.00,
-					"end_time" : 140.00,
-				},
-				{
-					"name" : "Engine Cut-off",
-					"engine": "RD-171M",
-					"start_time": 140.00,
-					"end_time" : 140.00,
 
-				}
-			]
+		event_file = get_events(self.specs["file_name"])
+		self.starting_thrust = event_file["starting_thrust"]
+		self.starting_throt = event_file["starting_throt"]
+		self.events = event_file["events"]
+		# check if there is a event file of the same name prefix
+		# ask to load or create new events
+		# load event file selected
+
+
 		if QUICKRUN:
 			self.HLV = Vehicle(self.specs, True)
 		else:
@@ -70,19 +40,10 @@ class Main_program:
 
 	def compute_row(self, rocket, events, assigned_A_v, testRun = False):
 		rocket.tick()
-		rocket.burnFuel(rocket.time_inc)
+		rocket.burn_fuel(rocket.time_inc)
 		rocket.updateWeight(rocket.time_inc)
-		for event in events:
-			if rocket.time >= event["start_time"] and rocket.time <= event["end_time"]:
-				if "stage" in event.keys():
-					rocket.handle_stage_event(event)
-				if "engine" in event.keys():
-					rocket.handle_engine_event(event)
-
-
-
-
 		rocket.updateA()
+
 		if assigned_A_v == "a" or assigned_A_v == "all":
 			rocket.cur.A.vert = rocket.cur.A.total
 			rocket.cur.A.horiz = 0.0
@@ -97,6 +58,14 @@ class Main_program:
 		rocket.cur.V.horiz = rocket.prev.V.horiz + rocket.cur.V.horiz_inc
 		rocket.cur.V.vert = rocket.prev.V.vert + rocket.cur.V.vert_inc
 		rocket.updateAlt(rocket.time_inc)
+
+		for event in events:
+			if rocket.time >= event["start_time"] and rocket.time <= event["end_time"]:
+				if "stage" in event.keys():
+					rocket.handle_stage_event(event)
+				if "engine" in event.keys():
+					rocket.handle_engine_event(event)
+
 		rocket.cur.force = rocket.get_total_thrust()
 		rocket.cur.set_big_G()
 		#self.HLV.engine_status()
@@ -105,26 +74,14 @@ class Main_program:
 		rocket.update_ADC_actual(rocket.time_inc)
 
 
-
-
-
 	def set_initial_conditions(self):
-		if QUICKRUN:
-			for i in range(2):
-				self.HLV.setEngineThrottleOverride("RD-180", "max")
-				self.HLV.setEngineThrottleOverride("SSME", "max")
-				self.HLV.setEngineThrottleOverride("RD-171M", 0.56)
-				self.HLV.setEngineThrottleOverride("SRM", 1)
-				self.HLV.setEngineAssignedThrustPerEngine("SRM", "max")
+		for eng_start in self.starting_throt:
+			self.HLV.setEngineThrottleOverride(eng_start["engine"], eng_start["throt"])
+			self.HLV.setEngineThrottleOverride(eng_start["engine"], eng_start["throt"])
 
-		else:
-			for engine in self.HLV.engines:
-				answer = query_min_max("What is the starting throttle for {}".format(engine.name))
-				# set each weight twice to set average weight
-				self.HLV.setEngineThrottleOverride(engine.name, answer)
-				if engine.type == "Solid":
-					answer = query_min_max("What is the starting " + Fore.RED + "thrust per engine for {}".format(engine.name) + Style.RESET_ALL, 0, float('inf'))
-				self.HLV.setEngineAssignedThrustPerEngine("SRM", "max")
+		for eng_start in self.starting_thrust:
+			self.HLV.setEngineAssignedThrustPerEngine(eng_start["engine"], eng_start["thrust"])
+			self.HLV.setEngineAssignedThrustPerEngine(eng_start["engine"], eng_start["thrust"])
 
 
 	def predict_ADC(self, rocket, events, assigned_V):

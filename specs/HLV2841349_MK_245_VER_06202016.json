@@ -1,0 +1,148 @@
+{
+    "tower_height": 300,
+    "file_name": "('HLV2841349',)_MK_('245',)_VER_06202016",
+    "initial_alt": 0,
+    "earth_rotation_mph": 912.67,
+    "lift_off_weight": 25417828.59,
+    "ver": "06-20-2016",
+    "name": "HLV * 2-8-4/13/4-9",
+    "engines": [
+        {
+            "lbm_dry": 20503,
+            "engine_name": "OME",
+            "min_throt": 1,
+            "max_throt": 1,
+            "residual": 0.015,
+            "thrust_sl": 6002,
+            "burn_rate": [
+                18.993671
+            ],
+            "engine_count": 2,
+            "thrust_vac": 6002,
+            "fuel": 5932224.827,
+            "type": "Liquid",
+            "throt_rate_of_change_limit": 1,
+            "stage": "Orbiter"
+        },
+        {
+            "specImp_sl": 242,
+            "engine_count": 2,
+            "engine_name": "SRM",
+            "weight_fueled": 6320000,
+            "min_throt": 0,
+            "max_throt": 1,
+            "specImp_vac": 268.2,
+            "thrust_sl": 3600000,
+            "burn_rate": [
+                14876.0325
+            ],
+            "thrust_controlled": "True",
+            "thrust_vac": 3600000,
+            "weight_dry": 210000,
+            "adc_K": 0.284,
+            "type": "Solid",
+            "throt_rate_of_change_limit": 1,
+            "stage": "SRB"
+        },
+        {
+            "lbm_dry": 20503,
+            "engine_name": "RD-171M",
+            "min_throt": 0.56,
+            "max_throt": 1,
+            "thrust_sl": 1632000,
+            "burn_rate": [
+                5270
+            ],
+            "engine_count": 12,
+            "thrust_vac": 1777000,
+            "fuel": 5932224.827,
+            "type": "Liquid",
+            "throt_rate_of_change_limit": 0.15,
+            "stage": "RLV"
+        },
+        {
+            "lbm_dry": 20503,
+            "engine_name": "SSME",
+            "min_throt": 0.6,
+            "max_throt": 0.95,
+            "residual": 0.015,
+            "thrust_sl": 418130,
+            "burn_rate": [
+                1129
+            ],
+            "engine_count": 9,
+            "thrust_vac": 512410,
+            "fuel": 5932224.827,
+            "type": "Liquid",
+            "throt_rate_of_change_limit": 0.12,
+            "stage": "Orbiter"
+        },
+        {
+            "lbm_dry": 20503,
+            "engine_name": "RL-10A4-2",
+            "min_throt": 1,
+            "max_throt": 1,
+            "thrust_sl": 22300,
+            "burn_rate": [
+                49.4457
+            ],
+            "engine_count": 2,
+            "thrust_vac": 22300,
+            "fuel": 5932224.827,
+            "type": "Liquid",
+            "throt_rate_of_change_limit": 1,
+            "stage": "Orbiter"
+        },
+        {
+            "engine_name": "RS-68A",
+            "min_throt": 0.6,
+            "max_throt": 1,
+            "thrust_sl": 702000,
+            "burn_rate": [
+                1924
+            ],
+            "engine_count": 13,
+            "thrust_vac": 797000,
+            "type": "Liquid",
+            "throt_rate_of_change_limit": 0.12,
+            "stage": "Orbiter"
+        }
+    ],
+    "friendly_name": "HLV * 2-8-4/13/4-9 MK 2-45 VER 06-20-2016",
+    "MK": "2-45",
+    "A_hv_diff": 0.11,
+    "stages": {
+        "SRB": {
+            "attached": true,
+            "jettison_weight": 400000,
+            "initial_weight": 2225000,
+            "fuel": -177500,
+            "adc_K": 0.142,
+            "type": "SRB"
+        },
+        "orbiter": {
+            "attached": true,
+            "jettison_weight": 0,
+            "initial_weight": 3000000,
+            "fuel": 3000000,
+            "adc_K": 0.475,
+            "type": "orbiter"
+        },
+        "RLV": {
+            "attached": true,
+            "jettison_weight": 2256890,
+            "initial_weight": 13681275,
+            "fuel": 11424385,
+            "adc_K": 1.419,
+            "type": "RLV"
+        },
+        "LFB": {
+            "attached": true,
+            "jettison_weight": 749168,
+            "initial_weight": 6593725,
+            "fuel": 5844557,
+            "adc_K": 0.35,
+            "type": "LFB"
+        }
+    }
+}
