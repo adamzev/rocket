@@ -48,7 +48,8 @@ def percentOfAtmosphericPressure(alt):
 		return round(patm, 9)
 	return patm
 
-
+def percentOfVac(alt):
+	return 1.0 - percentOfAtmosphericPressure(alt)
 '''
 Orbital Velocity (OV) is that horizontal velocity needed to counteract Earth's gravity at a given altitude
 
@@ -57,33 +58,33 @@ OV decreases as you increase your radial distance from the center of the Earth, 
 Alt in feet
 
 '''
-def orbitalVelocity(alt):
-	if ROUND:
-		alt = myround(alt, 1000)
-	return 17683.9567 * ( ( 1.0 / ( 1.0 + ( alt / 20902230.99 ) ) )** 0.5 )
 
 def mphToFps(mph):
-	return 5280*mph/(60.0*60.0)
+	return 5280.0*mph/(60.0*60.0)
 
 def fpsToMph(fps):
-	return fps*(60.0*60.0)/5280
+	return fps*(60.0*60.0)/5280.0
 
 def average(*args):
+	args = [x for x in args if x is not None]
+	# args = filter(None, args)   removes both zeros and None
 	return sum(args)/float(len(args))
 
 def pythag(a, b, c = None):
-	getcontext().prec = 100
+	if (a == None and b == None) or (a == None and c == None) or (b == None and c == None):
+		return None
+
 	if c is None:
-		return float(Decimal.sqrt(Decimal(a)**2 + Decimal(b)**2))
+		return float(math.sqrt(a**2 + b**2))
 	if a is None:
 		hyp = c
 		given_leg = b
 	if b is None:
 		hyp = c
 		given_leg = a
-	return float( Decimal.sqrt(Decimal(hyp)**2 - Decimal(given_leg)**2))
-def ADC(air_speed, alt, K):
-	return ((air_speed / 1000.0)**2.0) * percentOfAtmosphericPressure(alt) * K  # with resultant ADC in  "g" units
+	return float( math.sqrt(hyp**2 - given_leg**2))
+def ADC(air_speed_mph, alt, K):
+	return ((air_speed_mph / 1000.0)**2.0) * percentOfAtmosphericPressure(alt) * K  # with resultant ADC in  "g" units
 
 def altitude(alt_prev, V_vert_prev, V_vert_inc, time_inc):
 	return alt_prev + V_vert_prev * time_inc + (V_vert_inc * time_inc) / 2.0

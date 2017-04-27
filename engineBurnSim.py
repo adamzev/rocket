@@ -52,7 +52,7 @@ def simSRM():
 		time_inc = times[i+1]-times[i]
 		alt = alts[i]
 
-		SRM.burnFuel(time_inc, alt)
+		SRM.burn_fuel(time_inc, alt)
 		'''
 			calculate how much fuel the engine uses during its power down sequence
 			if the fuel remaining is <= fuel used in power down begin shutdown
@@ -73,7 +73,7 @@ def simRD171M():
 		time = time + time_inc
 		if current(RD171M.throt) < RD171M.max_throt and not low_on_fuel:
 			RD171M.setThrottle(RD171M.max_throt, time_inc)
-		RD171M.burnFuel(time_inc)
+		RD171M.burn_fuel(time_inc)
 		'''
 			calculate how much fuel the engine uses during its power down sequence
 			if the fuel remaining is <= fuel used in power down begin shutdown
