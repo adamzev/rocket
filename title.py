@@ -2,11 +2,11 @@ TITLE = '''
 
 
     Rocket Snapshot
-	Algorithm by
+    Algorithm by
     Ed Johnson
 
     Coding by
-    Adam Levin                    
+    Adam Levin
 
 
                                *     .--.

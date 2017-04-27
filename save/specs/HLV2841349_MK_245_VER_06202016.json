@@ -70,7 +70,7 @@
             "burn_rate": [
                 1129
             ],
-            "engine_count": 9,
+            "engine_count": 13,
             "thrust_vac": 512410,
             "fuel": 5932224.827,
             "type": "Liquid",

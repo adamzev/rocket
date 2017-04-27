@@ -22,8 +22,12 @@ class Main_program:
 	def start(self):
 		print(TITLE)
 		self.specs = get_specs()
+		if QUICKRUN:
+			self.HLV = Vehicle(self.specs, True)
+		else:
+			self.HLV = Vehicle(self.specs)
 
-		event_file = get_events(self.specs["file_name"])
+		event_file = get_events(self.specs["file_name"], self.HLV)
 		self.starting_thrust = event_file["starting_thrust"]
 		self.starting_throt = event_file["starting_throt"]
 		self.events = event_file["events"]
@@ -32,10 +36,6 @@ class Main_program:
 		# load event file selected
 
 
-		if QUICKRUN:
-			self.HLV = Vehicle(self.specs, True)
-		else:
-			self.HLV = Vehicle(self.specs)
 
 
 	def compute_row(self, rocket, events, assigned_A_v, testRun = False):
@@ -121,7 +121,13 @@ class Main_program:
 		self.HLV.update_V_vert()
 		self.HLV.update_ADC_actual(self.HLV.time_inc)
 
-		self.HLV.setEngineThrottle("RD-171M", "max", self.HLV.time_inc)
+		for event in self.events:
+			if self.HLV.time >= event["start_time"] and self.HLV.time <= event["end_time"]:
+				if "stage" in event.keys():
+					self.HLV.handle_stage_event(event)
+				if "engine" in event.keys():
+					self.HLV.handle_engine_event(event)
+
 		self.HLV.cur.force = self.HLV.get_total_thrust()
 		if QUICKRUN:
 			self.HLV.cur.ADC_predicted = 0.00012

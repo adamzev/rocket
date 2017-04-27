@@ -5,7 +5,7 @@ from generalEquations import *
 from util.text_interface import *
 from util import *
 import copy
-
+from libs import fileManager as fileMan
 
 class Vehicle():
 
@@ -15,6 +15,7 @@ class Vehicle():
 			alt = specs["initial_alt"],
 			earth_rotation_mph = earth_rotation_mph
 		)
+		self.specs = specs
 		self.cur.V.horiz_mph = earth_rotation_mph
 		self.cur.V.vert = 0.0
 		self.ground_level = specs["initial_alt"],
@@ -35,7 +36,7 @@ class Vehicle():
 
 		self.time = 0.0
 		if load_time_incs:
-			time_incs_json = load_json('save/time/time_incs.json')
+			time_incs_json = fileMan.load_json('save/time/time_incs.json')
 			self.time_incs = time_incs_json['time_incs']
 			self.set_time_inc()
 		else:
@@ -103,12 +104,12 @@ class Vehicle():
 		)
 		headers = "time, alt, thrust, weight, ADC_guess, ADC_actual, ADC_adj, ADC_error, A_raw, A_total, A_h, A_v, bigG, V_as, V_horiz_mph, V_vert_inc, V_vert \n"
 		if first:
-			create_csv(headers, 'data/rows.csv')
-		save_csv(row1+row2, 'data/rows.csv')
+			fileMan.create_csv(headers, 'data/rows.csv')
+		fileMan.save_csv(row1+row2, 'data/rows.csv')
 
 	@staticmethod
 	def load_available_engines():
-		available_engines_json = load_json("save/engine/rocketEngineData.json")
+		available_engines_json = fileMan.load_json("save/engine/rocketEngineData.json")
 		return available_engines_json["rocketEngines"]
 
 	@staticmethod
