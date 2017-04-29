@@ -1,4 +1,3 @@
-from generalEquations import *
 from util import *
 from acceleration import Acceleration
 from velocity import Velocity
@@ -72,7 +71,7 @@ class PhysicalStatus(object):
 		return self._big_G
 
 	def set_big_G(self):
-		self._big_G = bigG(self.V.horiz_mph, self.V.get_orbital(self.alt))
+		self._big_G = equ.bigG(self.V.horiz_mph, self.V.get_orbital(self.alt))
 
 	@property
 	def A_vert_eff(self):

@@ -1,19 +1,21 @@
-from rocketEngine import *
+from math import sqrt
+import copy
+from rocketEngine import RocketEngine
 from physicalStatus import PhysicalStatus
 from stage import *
-from generalEquations import *
+import generalEquations as equ
 from util.text_interface import *
-from util import *
-import copy
+
+import libs.query as q
 from libs import fileManager as fileMan
 
 class Vehicle():
 
-	def __init__(self, specs, load_time_incs = False):
+	def __init__(self, specs, load_time_incs=False):
 		earth_rotation_mph = specs["earth_rotation_mph"]
 		self.cur = PhysicalStatus(
-			alt = specs["initial_alt"],
-			earth_rotation_mph = earth_rotation_mph
+			alt=specs["initial_alt"],
+			earth_rotation_mph=earth_rotation_mph
 		)
 		self.specs = specs
 		self.cur.V.horiz_mph = earth_rotation_mph
@@ -106,8 +108,9 @@ class Vehicle():
 			fileMan.create_csv(headers, 'data/rows.csv')
 		fileMan.save_csv(row1+row2, 'data/rows.csv')
 
+
 	@staticmethod
-	def select_engine_from_list(fuel_type):
+	def select_engine_from_list(stage_name, fuel_type):
 		''' select an engine from a list
 		Returns False if the user is done entering engines
 		'''
@@ -125,7 +128,9 @@ class Vehicle():
 		if engine_num == n:
 			return False
 		else:
-			return compatable_engines[n-1]
+			selected_engine = compatable_engines[engine_num-1]
+			selected_engine['stage'] = stage_name
+			return selected_engine
 
 	@staticmethod
 	def load_available_engines():
@@ -162,11 +167,11 @@ class Vehicle():
 
 	def get_time_inc(self):
 		for timeIncrements in self.time_incs:
-			if round(self.time, 4)  < timeIncrements["until"]:
+			if round(self.time, 4) < timeIncrements["until"]:
 				return timeIncrements["time_inc"]
 
 	def get_A_vert_eff_avg(self):
-		A_vert_eff = average(self.cur.A.vert_eff, self.prev.A.vert_eff)
+		A_vert_eff = equ.average(self.cur.A.vert_eff, self.prev.A.vert_eff)
 		if self.cur.alt > self.ground_level:
 			return A_vert_eff
 		else:
@@ -219,7 +224,7 @@ class Vehicle():
 
 
 	def updateAlt (self, time_inc):
-		self.cur.alt = altitude(self.prev.alt, self.prev.V.vert, self.cur.V.vert_inc, time_inc)
+		self.cur.alt = equ.altitude(self.prev.alt, self.prev.V.vert, self.cur.V.vert_inc, time_inc)
 
 	def detachEngine(self, engineName):
 		self.engines[:] = [d for d in self.engines if d.get('name') != engineName]
@@ -239,14 +244,14 @@ class Vehicle():
 
 
 	def update_V_vert_inc(self, time_inc):
-		self.cur.V.vert_inc = self.get_A_vert_eff_avg() * time_inc * ACCEL_OF_GRAVITY
+		self.cur.V.vert_inc = self.get_A_vert_eff_avg() * time_inc * equ.ACCEL_OF_GRAVITY
 
 	def update_V_vert(self):
 		self.cur.V.vert = self.prev.V.vert + self.cur.V.vert_inc #current or prev v inc?
 
 	def update_V_horiz_mph_inc(self, time_inc):
-		avg_A_horiz = average(self.cur.A.horiz, self.prev.A.horiz)
-		self.cur.V.horiz_inc = avg_A_horiz * time_inc * ACCEL_OF_GRAVITY
+		avg_A_horiz = equ.average(self.cur.A.horiz, self.prev.A.horiz)
+		self.cur.V.horiz_inc = avg_A_horiz * time_inc * equ.ACCEL_OF_GRAVITY
 
 
 	def update_V_horiz_mph(self):
@@ -262,8 +267,8 @@ class Vehicle():
 
 		A_horiz_bump = 0.01
 		while A_horiz <= A_vert_eff + self.A_hv_diff:
-			A_horiz = ((math.sqrt(2.0*A**2.0 - G**2.0))-G)/2.0 + A_horiz_bump
-			A_vert = pythag(None, A_horiz, A)
+			A_horiz = ((sqrt(2.0*A**2.0 - G**2.0))-G)/2.0 + A_horiz_bump
+			A_vert = equ.pythag(None, A_horiz, A)
 			A_vert_eff = A_vert - G
 			A_horiz_bump += 0.01
 
@@ -276,7 +281,7 @@ class Vehicle():
 
 
 	def update_ADC_actual(self, time_inc):
-		self.cur.ADC_actual = ADC(self.cur.V.air_speed_mph, self.cur.alt, self.adc_K)  # with resultant ADC in  "g" units
+		self.cur.ADC_actual = equ.ADC(self.cur.V.air_speed_mph, self.cur.alt, self.adc_K)  # with resultant ADC in  "g" units
 		#self.ADC_prediction_report()
 		self.cur.ADC_error = self.prev.ADC_predicted - self.cur.ADC_actual
 
@@ -339,11 +344,13 @@ class Vehicle():
 
 
 	def find_engine(self, engineName):
+		''' returns the engine with the given name '''
 		for engine in self.engines:
 			if engine.name == engineName:
 				return engine
 
 	def engine_status(self, engineName = None):
+		''' Prints the Throttle, thrust and fuel used for every engine '''
 		if engineName:
 			engines = [self.find_engine(engineName)]
 		else:

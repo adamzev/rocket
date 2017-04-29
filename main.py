@@ -5,7 +5,6 @@ import pprint
 from mode import *
 
 from generalEquations import *
-from util import *
 from util.text_interface import *
 from title import *
 from libs import *
@@ -18,8 +17,8 @@ class Main_program:
 		self.alt = 30.0
 		self.COAST_SPEED = 166000
 		self.endTime = 10.0
-		
-		
+
+
 		self.specs = get_specs()
 		if QUICKRUN:
 			self.HLV = Vehicle(self.specs, True)

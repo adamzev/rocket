@@ -1,5 +1,3 @@
-from generalEquations import *
-from util import *
 class TwoD(object):
 	def __init__(self, horiz = 0.0, vert = 0.0, total = 0.0):
 		self._horiz = horiz
@@ -32,10 +30,10 @@ class TwoD(object):
 
 	def update(self, keep_horiz = True, keep_vert = True, keep_total = False):
 		if keep_horiz and keep_vert:
-			self._total = pythag(self.horiz, self.vert, None)
+			self._total = equ.pythag(self.horiz, self.vert, None)
 
 		if keep_total and keep_vert:
-			self._horiz = pythag(None, self.vert, self.total)
+			self._horiz = equ.pythag(None, self.vert, self.total)
 
 		if keep_total and keep_horiz:
-			self._vert = pythag(self.horiz, None, self.total)
+			self._vert = equ.pythag(self.horiz, None, self.total)

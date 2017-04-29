@@ -9,8 +9,10 @@ def almost_equal(x,y,threshold=0.0001):
 
 
 class VehicleTests(unittest.TestCase):
-	pass
-	'''
+	'''def test_select_engines(self):
+
+		self.assertEqual(len(HLV.engines), 9)
+	
 	def test_thrust_RD_sea_level(self):
 		rdEng.setThrottleOverride(1)
 		rdEng.setThrottleOverride(1)
@@ -37,6 +39,7 @@ class VehicleTests(unittest.TestCase):
 		assert almost_equal(SRM.specific_impulse_at_alt(alt), expected_result, 0.1)
 
 	'''
+	pass
 
 
 if __name__ == '__main__':

@@ -1,5 +1,7 @@
 import libs
+import util.func as func
 import generalEquations as equ
+import libs.query as q
 
 class Stage:
 
@@ -11,20 +13,23 @@ class Stage:
 			setattr(self, key, value)
 
 	@staticmethod
-	def select_engines(fuel_type):
+	def select_engines(stage_name, fuel_type):
+		
 		add_more = True
 		selected_engines = []
 		while add_more:
+			print "\n\nSelect engines for stage {}".format(stage_name)
 			this_engine = {}
-			engine = libs.Vehicle.select_engine_from_list(fuel_type)
+			engine = libs.Vehicle.select_engine_from_list(stage_name, fuel_type)
 			if engine:
-				pretty_json(engine)
+				func.pretty_json(engine)
+				engine_name = next(iter(engine))
 				# only accept integer values but store as float for compatibility
-				count = float(query_int("How many {}s?".format(engine["name"])))
+				count = float(q.query_int("How many {}s?".format(engine_name)))
 				this_engine["engine_count"] = count
-				this_engine["engine_name"] = engine["name"]
+				this_engine["engine_name"] = engine_name
 				selected_engines.append(this_engine)
-				print("{} {} engines are now attached.".format(int(count), engine["name"]))
+				print("{} {} engines are now attached.".format(int(count), this_engine["engine_name"]))
 			else:
 				add_more = False
 		return selected_engines

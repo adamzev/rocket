@@ -10,7 +10,12 @@ def query_multiple(queries):
 		elif queries['type'] == "int":
 			results[name] = query_int(queries[name]['prompt'])
 		else:
-			results[name] = input(queries[name]['prompt'])
+			results[name] = query_string(question)
+
+def query_string(question, default="", input_func = input):
+	ans = input_func(question)
+	if ans == "":
+		return default
 
 def query_yes_no(question, default="yes"):
 	"""Ask a yes/no question via raw_input() and return their answer.

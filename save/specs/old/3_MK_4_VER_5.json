@@ -1,0 +1,59 @@
+{
+    "tower_height": 4,
+    "file_name": "save/specs/3_MK_4_VER_5",
+    "initial_alt": 3,
+    "earth_rotation_mph": 912.67,
+    "lift_off_weight": 4,
+    "ver": "5",
+    "name": "3",
+    "engines": [
+        {
+            "engine_count": 4,
+            "engine_name": "SRM"
+        },
+        {
+            "engine_count": 4,
+            "engine_name": "SSME"
+        },
+        {
+            "engine_count": 6,
+            "engine_name": "RD-180"
+        },
+        {
+            "engine_count": 5,
+            "engine_name": "RL-10A4-2"
+        }
+    ],
+    "friendly_name": "3 MK 4 VER 5",
+    "MK": "4",
+    "A_hv_diff": 5,
+    "stages": {
+        "SRB": {
+            "fuel_type": "Solid",
+            "attached": true,
+            "jettison_weight": 3,
+            "initial_weight": 4,
+            "fuel": 1,
+            "adc_K": 5,
+            "type": "SRB"
+        },
+        "orbiter": {
+            "fuel_type": "Liquid",
+            "attached": true,
+            "jettison_weight": 0,
+            "initial_weight": 4,
+            "fuel": 4,
+            "adc_K": 2,
+            "type": "orbiter"
+        },
+        "RLV": {
+            "fuel_type": "Liquid",
+            "attached": true,
+            "jettison_weight": 5,
+            "initial_weight": 4,
+            "fuel": -1,
+            "adc_K": 2,
+            "type": "RLV"
+        }
+    }
+}

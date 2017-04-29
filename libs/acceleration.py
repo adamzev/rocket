@@ -1,4 +1,3 @@
-from generalEquations import *
 from twoD import TwoD
 
 from util import *

@@ -1,8 +1,8 @@
 import unittest
 
-from rocket import rocketEngine as eng
+from libs import rocketEngine as eng
 
-rdData = 	{
+rdData = {
 	"name": "RD-171",
 	"thrust_sl"  : 1632000.0,
 	"thrust_vac" : 1777000.0,
@@ -16,7 +16,7 @@ rdData = 	{
 	"specImp_vac" : 337.19
 }
 
-ssData = 	{
+ssData = {
 		"name": "SSME",
 		"thrust_sl"  : 418130.0,
 		"thrust_vac" : 512410.0,

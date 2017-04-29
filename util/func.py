@@ -22,9 +22,13 @@ def printTable(table_data, cols):
 		rowString = rowString * len(row)
 		print(rowString.format(*row))
 
+def getNextKey(my_dict):
+	''' returns a key from my dict. Use this function to manually loop through a dict or to access the key of a one key dict'''
+	return next(iter(my_dict))
 
 def pretty_json(parsed_json):
 	print json.dumps(parsed_json, indent=4, sort_keys=True)
+
 def current(myArray):
 	return myArray[-1]
 

@@ -1,5 +1,4 @@
 import logging
-from generalEquations import *
 from util import *
 from util.text_interface import *
 
@@ -78,7 +77,7 @@ class RocketEngine:
 		self.messages.append("\nEVENT: {} Throttle {} from {} to {} time inc {}".format(self.name, verb, self.get_throt("prev"), self.get_throt(), time_inc))
 
 	def thrustAtAlt(self, alt):
-		patm = percentOfAtmosphericPressure(alt)
+		patm = equ.percentOfAtmosphericPressure(alt)
 		pctVac = 1.0 - patm
 
 		self.thrust_total.append(self.engine_count * self.get_throt() * (self.thrust_sl + (pctVac * (self.thrust_vac - self.thrust_sl))))
@@ -144,10 +143,10 @@ class SolidRocketEngine(RocketEngine):
 		print ("\nEVENT: power down {}".format(self.name))
 		if srm_entry_mode == "manual":
 			thrust = raw_input("Enter the assigned SRM thrust per engine:")
-		if srm_entry_mode == "array" and len(self.assigned_burn_rates_for_SRM_power_down)>0:
+		if srm_entry_mode == "array" and len(self.assigned_burn_rates_for_SRM_power_down) > 0:
 			burn_rate = self.assigned_burn_rates_for_SRM_power_down.pop(0)
 			self.adjust_thrust_to_burn_at_rate_per_engine(burn_rate, alt)
-		if srm_entry_mode == "array_thrust" and len(self.assigned_thrust_per_engine_for_SRM_power_down)>0:
+		if srm_entry_mode == "array_thrust" and len(self.assigned_thrust_per_engine_for_SRM_power_down) > 0:
 			self.set_assigned_thrust_per_engine(self.assigned_thrust_per_engine_for_SRM_power_down.pop(0))
 		if srm_entry_mode == "linear":
 			pass

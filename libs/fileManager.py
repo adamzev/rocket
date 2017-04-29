@@ -1,6 +1,9 @@
 import glob
 import json
-from util.util import *
+import os
+import errno
+import query as q
+import util.func as func
 
 from query import *
 
@@ -12,24 +15,28 @@ def select_and_load_json_file(files):
 	n = 1
 	for this_file in files:
 		file_data = load_json(this_file)
-		print("{}) {}".format(n,file_data["friendly_name"]))
+		print("{}) {}".format(n, file_data["friendly_name"]))
 		n += 1
-	file_num = query_int("Select a file number: ", None, 1, n-1)
+	file_num = q.query_int("Select a file number: ", None, 1, n-1)
 	data = load_json(files[file_num-1])
 	return data
 
 def get_json_file_data(folder, name, creation_function):
+	''' lists and allows selection of all json files in a folder
+	name is the type of save file this is (spec, engine, etc)
+	if no file are available or if the user chooses, executes creation_function
+	to create a new save file '''
 	files = glob.glob("{}/*.json".format(folder))
 	if len(files) < 1: #if there are no spec files, you need to create one
 		data = creation_function()
 	else:
-		create_new = query_yes_no("Do you want to create a new {} file? ".format(name), "no")
+		create_new = q.query_yes_no("Do you want to create a new {} file? ".format(name), "no")
 		if create_new:
 			data = creation_function()
 		else:
 			data = select_and_load_json_file(files)
 
-	pretty_json(data)
+	func.pretty_json(data)
 	return data
 
 def create_csv(data, fileName):

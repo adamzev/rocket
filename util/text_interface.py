@@ -3,7 +3,9 @@ import libs.rocketEngine
 from libs.vehicle import Vehicle
 from libs.stage import Stage
 import libs.query as q
+import func
 import libs.fileManager as fileMan
+from datetime import date
 
 
 def create_stage_specs(stage_type, fuel_type):
@@ -25,7 +27,8 @@ def create_events(rocket):
 
 	starting_thottles = []
 	starting_thrusts = []
-	version = raw_input("What is the version date? ")
+	today = date.fromtimestamp(time.time())
+	version = q.query_string("What is the version date (hit enter for today's date)? ", today.strftime("%d-%m-%Y"))
 	for engine in rocket.engines:
 		answer = q.query_min_max("What is the starting throttle for {} attached to the {}".format(engine.name, engine.stage))
 		starting_thottles.append({"engine" : engine.name, "stage":engine.stage, "throt" : answer})
@@ -77,20 +80,19 @@ def create_specs():
 	stages = create_stages_specs()
 
 	selected_engines = []
-	for key, value in stages.iteritems():
-		print "Select engines for stage {}".format(key)
-		selected_engines += Stage.select_engines(value["fuel_type"])
+	for stage_name, stage_data in stages.iteritems():
+		selected_engines += Stage.select_engines(stage_name, stage_data["fuel_type"])
 	friendly_name = "{} MK {} VER {}".format(name, MK, ver)
-	clean_name = remove_non_alphanumeric(name)
-	clean_MK = remove_non_alphanumeric(MK)
-	clean_ver =  remove_non_alphanumeric(ver)
+	clean_name = func.remove_non_alphanumeric(name)
+	clean_MK = func.remove_non_alphanumeric(MK)
+	clean_ver =  func.remove_non_alphanumeric(ver)
 	file_name = "{}_MK_{}_VER_{}".format(clean_name, clean_MK, clean_ver)
 	specs = {
 		"name" : name,
 		"MK" : MK,
 		"ver" : ver,
 		"friendly_name" : friendly_name,
-		"file_name" : file_name,
+		"file_name" : "save/specs/"+file_name,
 		"lift_off_weight" : lift_off_weight,
 		"initial_alt" : initial_alt,
 		"A_hv_diff" : A_hv_diff,
