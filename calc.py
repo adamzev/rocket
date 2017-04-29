@@ -1,9 +1,9 @@
 from generalEquations import *
-from text_interface import *
-from rocketEngine import *
-from stage import *
-import vehicle
-import velocity
+from util.text_interface import *
+from libs.rocketEngine import *
+from libs.stage import *
+import libs.vehicle
+import libs.velocity
 import numpy as np
 
 

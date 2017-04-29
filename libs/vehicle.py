@@ -56,7 +56,7 @@ class Vehicle():
 		big_G = self.cur.big_G
 		ADC_guess = self.cur.ADC_predicted
 		ADC_adj = self.cur.ADC_adjusted
-		sign_symb = "+" if self.cur.V.vert_inc>0 else "-"
+		sign_symb = "+" if self.cur.V.vert_inc > 0 else "-"
 		row1 = "-"*140 + "\n"
 		row2 = "{:>46.6f}      {:>6.8f}     G={: <12.8f}\n".format(self.cur.A.total, self.cur.ADC_actual, big_G)
 		time_string = "{:<6.1f}".format(self.time)
@@ -67,8 +67,9 @@ class Vehicle():
 		alt_string = "ALT={:<.1f}\'".format(alt)
 		row4 = "{:<13.6f} {:<16} T={:<19.4f}  \"{:<.4f}\"\n".format(V_vert, alt_string, thrust, ADC_guess)
 		return row1+row2+row3+row4
-	def save_current_row(self, first = False):
 
+	def save_current_row(self, first=False):
+		''' Saves the current row to a csv file '''
 		V_as = self.cur.V.air_speed_mph
 		A_v = self.cur.A_vert_eff
 		A_h = self.cur.A.horiz
@@ -99,8 +100,6 @@ class Vehicle():
 			self.cur.V.horiz_mph,
 			self.cur.V.vert_inc,
 			V_vert
-
-
 		)
 		headers = "time, alt, thrust, weight, ADC_guess, ADC_actual, ADC_adj, ADC_error, A_raw, A_total, A_h, A_v, bigG, V_as, V_horiz_mph, V_vert_inc, V_vert \n"
 		if first:
@@ -108,13 +107,38 @@ class Vehicle():
 		fileMan.save_csv(row1+row2, 'data/rows.csv')
 
 	@staticmethod
+	def select_engine_from_list(fuel_type):
+		''' select an engine from a list
+		Returns False if the user is done entering engines
+		'''
+		engines = Vehicle.load_available_engines()
+		n = 1
+		compatable_engines = []
+		for key, value in engines.iteritems():
+			if fuel_type == value['type']:
+				compatable_engines.append({key:value})
+				print("{}) {}".format(n, key))
+				n += 1
+
+		print("{}) Finished entering engines for this stage".format(n))
+		engine_num = q.query_int("Select an engine number: ", None, 1, n)
+		if engine_num == n:
+			return False
+		else:
+			return compatable_engines[n-1]
+
+	@staticmethod
 	def load_available_engines():
+		''' Loads the available engine json datafile '''
 		available_engines_json = fileMan.load_json("save/engine/rocketEngineData.json")
 		return available_engines_json["rocketEngines"]
 
 	@staticmethod
 	def load_engine_data(selected_engines):
-		available_engines  = Vehicle.load_available_engines()
+		''' Takes a json object with the engine_name and engine_count and loads the matching
+		engine data to a json object.
+		'''
+		available_engines = Vehicle.load_available_engines()
 
 		engine_data = []
 		for selected_engine in selected_engines:
@@ -125,19 +149,20 @@ class Vehicle():
 				engine["engine_count"] = count
 				engine["name"] = name
 				engine_data.append(engine)
-			except:
+			except KeyError:
 				print ("ERROR Engine {} not found".format(name))
 		return engine_data
 
 	def set_time_inc(self):
+		''' sets the current time increment based on the current time and the time_incs object '''
 		for timeIncrements in self.time_incs:
-			if self.time < timeIncrements["until"]:
+			if round(self.time, 4) < timeIncrements["until"]:
 				self.time_inc = timeIncrements["time_inc"]
 				break
 
 	def get_time_inc(self):
 		for timeIncrements in self.time_incs:
-			if self.time  < timeIncrements["until"]:
+			if round(self.time, 4)  < timeIncrements["until"]:
 				return timeIncrements["time_inc"]
 
 	def get_A_vert_eff_avg(self):
@@ -205,6 +230,7 @@ class Vehicle():
 		for name, stage in self.stages.iteritems():
 			fuel_used += stage.fuel_used
 		self.cur.weight = self.lift_off_weight - fuel_used
+		assert self.cur.weight > 0
 
 	def update_V_inc(self, time_inc):
 		#self.update_V_horiz_mph()
@@ -325,6 +351,13 @@ class Vehicle():
 		for engine in engines:
 			print "Name: {}\nThrottle: {}\nThrust: {}\nFuel Used: {}".format(engine.name, engine.get_throt(),engine.get_thrust_total(), engine.get_fuelUsed())
 
+	def handle_event(self, event):
+		if event["name"] == "Adjust weight":
+			print "Adjusting weight"
+			self.lift_off_weight += event["amount"]
+		if event["name"] == "Adjust acceleration":
+			print "Adjusting weight"
+			self.cur.A.total += event["amount"]
 
 	def handle_stage_event(self, event):
 		stage = self.stages[event["stage"]]

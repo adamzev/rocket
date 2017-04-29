@@ -1,11 +1,11 @@
-from menu import *
+from util.menu import *
 from generalEquations import *
-from text_interface import *
-from rocketEngine import *
-from stage import *
+from util.text_interface import *
+from libs.rocketEngine import *
+from libs.stage import *
 from calc import *
-import vehicle
-import velocity
+import libs.vehicle
+import libs.velocity
 import numpy as np
 
 
@@ -31,5 +31,8 @@ while True:
 
 	curses.endwin() #VITAL! This closes out the menu system and returns you to the bash prompt.
 	os.system("clear")
-	func()
-	raw_input("Continue?")
+	while not quit:
+		func()
+		ans = raw_input("Again?")
+		if ans != "y":
+			quit = True

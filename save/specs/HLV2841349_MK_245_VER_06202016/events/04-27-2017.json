@@ -61,6 +61,20 @@
 			"end_time" : 3.00
 		},
 		{
+			"name" : "Adjust weight",
+			"pre" : "True",
+			"amount" : -152.6415,
+			"start_time" : 1.0,
+			"end_time" : 1.0
+		},
+		{
+			"name" : "Adjust acceleration",
+			"pre" : "True",
+			"amount" : 0.002576,
+			"start_time" : 3.0,
+			"end_time" : 3.0
+		},
+		{
 			"name" : "Reduce Thrust",
 			"engine": "SRM",
 			"start_time": 24.00,
@@ -90,6 +104,48 @@
 			"engine": "RD-171M",
 			"start_time": 138.83,
 			"end_time" : 138.83
+		},
+		{
+			"name" : "Jettison",
+			"stage": "LFB",
+			"start_time": 138.83,
+			"end_time" : 138.83
+		},
+		{
+			"name" : "Reduce Throttle By Max Rate-Of-Change",
+			"engine": "SSME",
+			"start_time": 214.663,
+			"end_time" : 218.1418
+		}, 
+		{
+			"name" : "Reduce Throttle By Max Rate-Of-Change",
+			"engine": "RS-68A",
+			"start_time": 214.663,
+			"end_time" : 218.1418
+		}, 
+		{
+			"name" : "Engine Cut-off",
+			"engine": "SSME",
+			"start_time": 218.1418,
+			"end_time" : 218.1418
+		}, 
+		{
+			"name" : "Engine Cut-off",
+			"engine": "RS-68A",
+			"start_time": 218.1418,
+			"end_time" : 218.1418
+		},
+		{
+			"name" : "Jettison",
+			"stage": "RLV",
+			"start_time": 218.1418,
+			"end_time" : 218.1418
+		},
+		{
+			"name" : "Increase Throttle By Max Rate-Of-Change",
+			"engine": "RL-10A-2",
+			"start_time": 218.1,
+			"end_time" : 218.1
 		}
 	]
 }

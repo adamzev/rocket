@@ -1,39 +1,23 @@
-from util import *
 from title import *
-from libs import rocketEngine
-from libs import vehicle
-from libs.query import *
-from libs import fileManager as fileMan
+import libs.rocketEngine
+from libs.vehicle import Vehicle
+from libs.stage import Stage
+import libs.query as q
+import libs.fileManager as fileMan
 
 
-def create_engine_specs():
-	available_engines = Vehicle.load_available_engines()
-	selected_engines = []
-	for engine_name, engine_data in available_engines.iteritems():
-		selected = {}
-		print("\n{}\n".format(engine_name))
-		pretty_json(engine_data)
-		attach = query_yes_no("Do you want to attach any {} engines? ".format(engine_name), None)
-		if attach:
-			count = query_float("How many?")
-			selected["engine_count"] = count
-			selected["engine_name"] = engine_name
-			selected_engines.append(selected)
-			print("{} {} engines are now attached.".format(int(count), engine_name))
-	return selected_engines
-
-
-def create_stage_specs(stage_type):
+def create_stage_specs(stage_type, fuel_type):
 	stage_specs = {}
 	stage_specs['attached'] = True
-	stage_specs['adc_K'] = query_float("What is the ADC K of the {}?". format(stage_type))
-	stage_specs['initial_weight'] = query_float("What is the weight of the {}? ".format(stage_type))
+	stage_specs['adc_K'] = q.query_float("What is the ADC K of the {}?". format(stage_type))
+	stage_specs['initial_weight'] = q.query_float("What is the weight of the {}? ".format(stage_type))
 	if(stage_type != "orbiter"):
-		stage_specs['jettison_weight'] = query_float("What is the jettison weight of the {}? ".format(stage_type))
+		stage_specs['jettison_weight'] = q.query_float("What is the jettison weight of the {}? ".format(stage_type))
 	else:
 		stage_specs['jettison_weight'] = 0
 	stage_specs['fuel'] = stage_specs['initial_weight'] - stage_specs['jettison_weight']
 	stage_specs['type'] = stage_type
+	stage_specs['fuel_type'] = fuel_type
 	print("Fuel available in {} is {}".format(stage_type, stage_specs['fuel']))
 	return stage_specs
 
@@ -43,10 +27,10 @@ def create_events(rocket):
 	starting_thrusts = []
 	version = raw_input("What is the version date? ")
 	for engine in rocket.engines:
-		answer = query_min_max("What is the starting throttle for {} attached to the {}".format(engine.name, engine.stage))
+		answer = q.query_min_max("What is the starting throttle for {} attached to the {}".format(engine.name, engine.stage))
 		starting_thottles.append({"engine" : engine.name, "stage":engine.stage, "throt" : answer})
 		if engine.type == "Solid":
-			answer = query_min_max("What is the starting " + Fore.RED + "thrust per engine for {}".format(engine.name) + Style.RESET_ALL, 0, float('inf'))
+			answer = q.query_min_max("What is the starting " + Fore.RED + "thrust per engine for {}".format(engine.name) + Style.RESET_ALL, 0, float('inf'))
 			starting_thrusts.append({"engine" : engine.name, "stage":engine.stage, "thrust" : answer})
 	events = {
 		"file_name" : "save/specs/" + rocket.specs["file_name"] + "/events/" + version,
@@ -55,7 +39,7 @@ def create_events(rocket):
 		"starting_thrust" : starting_thrusts
 	}
 
-	save_settings = query_yes_no("Do you want to save these events? ", "yes")
+	save_settings = q.query_yes_no("Do you want to save these events? ", "yes")
 	if save_settings:
 		fileMan.save_file(events)
 
@@ -67,27 +51,35 @@ def create_events(rocket):
 def create_stages_specs():
 	stages = {}
 	stage_types = ["RLV", "orbiter"]
-	attach_SRB = query_yes_no("Does the rocket have a SRB? ", "yes")
+	attach_SRB = q.query_yes_no("Does the rocket have a SRB? ", "yes")
 	if attach_SRB:
 		stage_types = ["SRB"] + stage_types
-	attach_LFB = query_yes_no("Does the rocket have a LFB? ", "no")
+	attach_LFB = q.query_yes_no("Does the rocket have a LFB? ", "no")
 	if attach_LFB:
 		stage_types = ["LFB"] + stage_types
 
 	for stage_type in stage_types:
-		stages[stage_type] = create_stage_specs(stage_type)
+		if stage_type == "SRB":
+			fuel_type = "Solid"
+		else:
+			fuel_type = "Liquid"
+		stages[stage_type] = create_stage_specs(stage_type, fuel_type)
 	return stages
 
 def create_specs():
 	name = raw_input("What is the vehicle called (for example: HLV * 4-8/6-9)? ")
 	MK = raw_input("MK? ")
 	ver = raw_input("Version? ")
-	lift_off_weight = query_float("What is the weight at lift off? ")
-	initial_alt = query_float("What is initial alt? ")
-	A_hv_diff = query_float("What is desired A_h - A_v difference? ")
-	tower_height = query_float("What is tower height?  ")
+	lift_off_weight = q.query_float("What is the weight at lift off? ")
+	initial_alt = q.query_float("What is initial alt? ")
+	A_hv_diff = q.query_float("What is desired A_h - A_v difference? ")
+	tower_height = q.query_float("What is tower height?  ")
 	stages = create_stages_specs()
-	selected_engines = create_engine_specs()
+
+	selected_engines = []
+	for key, value in stages.iteritems():
+		print "Select engines for stage {}".format(key)
+		selected_engines += Stage.select_engines(value["fuel_type"])
 	friendly_name = "{} MK {} VER {}".format(name, MK, ver)
 	clean_name = remove_non_alphanumeric(name)
 	clean_MK = remove_non_alphanumeric(MK)
@@ -108,7 +100,7 @@ def create_specs():
 		"earth_rotation_mph" : 912.67
 	}
 
-	save_settings = query_yes_no("Do you want to save these specs? ", "yes")
+	save_settings = q.query_yes_no("Do you want to save these specs? ", "yes")
 	if save_settings:
 		fileMan.save_file(specs)
 	return specs

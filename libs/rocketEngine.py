@@ -15,9 +15,9 @@ class RocketEngine:
 	def __str__(self):
 		return "Name={} Throt={} Eff Burn Rate={} Thrust={}".format(self.name, self.throt_avg, self.get_eff_fuel_burn_rate(), self.get_thrust_total())
 
-
 	@staticmethod
 	def factory(engine_data):
+		''' creates engines that burn either solid or liquid fuel '''
 		if engine_data["type"] == "Solid":
 			return SolidRocketEngine(engine_data)
 		elif engine_data["type"] == "Liquid":
@@ -96,7 +96,8 @@ class RocketEngine:
 	def burn_fuel(self, time_inc, alt = None):
 		# alt is ignored for this engine type
 		if self.throt_avg > 0.0:
-			self.fuel_source.fuel_used += self.get_eff_fuel_burn_rate()* time_inc
+			print self.name, "\nthrot_avg", self.throt_avg, "\neff burn rate", self.get_eff_fuel_burn_rate(),"\ntime_inc", time_inc, "\n\n"
+			self.fuel_source.fuel_used += self.get_eff_fuel_burn_rate() * time_inc
 
 	def specific_impulse_at_alt(self, alt):
 		patm = percentOfAtmosphericPressure(alt)
@@ -109,8 +110,10 @@ class SolidRocketEngine(RocketEngine):
 	def __init__(self, engine_data):
 		RocketEngine.__init__(self, engine_data)
 		self.assigned_thrust = [0.0]
-		self.assigned_burn_rates_for_SRM_power_down = [10195.695, 8750, 5500, 3500, 2150]
-		self.assigned_thrust_per_engine_for_SRM_power_down = [3150000, 2729000, 2343000, 1473250, 937750, 576250, 0]
+		self.assigned_burn_rates_for_SRM_power_down = [10064.81592, 8100, 5700, 4000, 2150, 0]
+		#self.assigned_burn_rates_for_SRM_power_down = [10195.695, 8750, 5500, 3500, 2150]
+		#self.assigned_thrust_per_engine_for_SRM_power_down = [3150000, 2729000, 2343000, 1473250, 937750, 576250, 0] other sim
+		self.assigned_thrust_per_engine_for_SRM_power_down = [2625000, 2120000, 1498500, 1055000, 568570, 0]
 	def set_assigned_thrust_per_engine(self, thrust):
 		self.thrust_total.append(thrust * self.engine_count)
 	def burn_fuel(self, time_inc, alt):
@@ -137,7 +140,8 @@ class SolidRocketEngine(RocketEngine):
 	def power_down(self, start_time, end_time, time, time_inc, alt):
 		eventTime = end_time - start_time
 		fuelRemaining = self.fuel_source.get_fuel_remaining()
-		srm_entry_mode = "array_thrust"
+		srm_entry_mode = "array"
+		print ("\nEVENT: power down {}".format(self.name))
 		if srm_entry_mode == "manual":
 			thrust = raw_input("Enter the assigned SRM thrust per engine:")
 		if srm_entry_mode == "array" and len(self.assigned_burn_rates_for_SRM_power_down)>0:

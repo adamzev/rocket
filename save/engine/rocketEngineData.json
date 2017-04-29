@@ -14,8 +14,7 @@
 				"specImp_vac" : 268.20,
 				"thrust_controlled" : "True",
 				"adc_K" : 0.28400,
-				"type" : "Solid",
-				"stage" : "SRB"
+				"type" : "Solid"
 			},
 		"SRMU" :
 			{
@@ -31,8 +30,7 @@
 				"specImp_vac" : 285.60,
 				"thrust_controlled" : "True",
 				"adc_K" : 0.28400,
-				"type" : "Solid",
-				"stage" : "SRB"
+				"type" : "Solid"
 			},
 		"RD-171M" :
 			{
@@ -44,8 +42,7 @@
 				"max_throt" : 1.0,
 				"throt_rate_of_change_limit" : 0.15,
 				"burn_rate" : [5270.0],
-				"type" : "Liquid",
-				"stage" : "RLV"
+				"type" : "Liquid"
 			},
 		"RD-180" :
 			{
@@ -57,8 +54,7 @@
 				"max_throt" : 0.95,
 				"burn_rate" : [2770.0],
 				"throt_rate_of_change_limit" : 0.15,
-				"type" : "Liquid",
-				"stage" : "RLV"
+				"type" : "Liquid"
 			},
 		"SSME" :
 			{
@@ -71,8 +67,7 @@
 				"residual" : 0.015,
 				"throt_rate_of_change_limit" : 0.12,
 				"burn_rate" : [1129.0],
-				"type" : "Liquid",
-				"stage" : "Orbiter"
+				"type" : "Liquid"
 			},
 		"RL-10A4-2" :
 			{
@@ -84,8 +79,7 @@
 				"max_throt" : 1.00,
 				"throt_rate_of_change_limit" : 1.0,
 				"burn_rate" : [49.4457],
-				"type" : "Liquid",
-				"stage" : "Orbiter"
+				"type" : "Liquid"
 			},
 		"OME" :
 			{
@@ -98,8 +92,7 @@
 				"residual" : 0.015,
 				"throt_rate_of_change_limit" : 1.0,
 				"burn_rate" : [18.993671],
-				"type" : "Liquid",
-				"stage" : "Orbiter"
+				"type" : "Liquid"
 			},
 		"RS-68A" :
 			{
@@ -109,8 +102,7 @@
 				"max_throt" : 1.0,
 				"throt_rate_of_change_limit" : 0.12,
 				"burn_rate" : [1924.0],
-				"type" : "Liquid",
-				"stage" : "Orbiter"
+				"type" : "Liquid"
 			}
 	}
 }
