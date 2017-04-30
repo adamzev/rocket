@@ -14,19 +14,19 @@ class Vehicle():
 	def __init__(self, specs, load_time_incs=False):
 		earth_rotation_mph = specs["earth_rotation_mph"]
 		self.cur = PhysicalStatus(
-			alt=specs["initial_alt"],
+			alt=0,
 			earth_rotation_mph=earth_rotation_mph
 		)
 		self.specs = specs
 		self.cur.V.horiz_mph = earth_rotation_mph
 		self.cur.V.vert = 0.0
-		self.ground_level = specs["initial_alt"],
+		self.ground_level = 0.0 # overwriten by initial alt
 		self.cur.A.horiz = 0.0
 		self.cur.A.vert = 0.0
 		self.lift_off_weight = specs["lift_off_weight"]
 		self.cur.weight = self.lift_off_weight
 		self.prev = copy.deepcopy(self.cur)
-		self.name = "{} MK {} VER: {}".format(specs["name"], specs["MK"], specs["ver"])
+		self.name = "{} MK {}".format(specs["name"], specs["MK"])
 		self.load_time_incs = load_time_incs
 		self.stages = self.init_stages(specs["stages"])
 		self.engines = []
@@ -44,8 +44,7 @@ class Vehicle():
 		else:
 			self.time_inc = 0.1
 
-		self.tower_height = specs["tower_height"]
-		self.A_hv_diff = specs["A_hv_diff"]
+		#self.A_hv_diff = specs["A_hv_diff"]
 
 
 	def __str__(self):
@@ -129,7 +128,9 @@ class Vehicle():
 			return False
 		else:
 			selected_engine = compatable_engines[engine_num-1]
-			selected_engine['stage'] = stage_name
+			engine_name = selected_engine.items()[0]
+			engine_name = engine_name[0]
+			selected_engine[engine_name]['stage'] = stage_name
 			return selected_engine
 
 	@staticmethod
@@ -149,10 +150,12 @@ class Vehicle():
 		for selected_engine in selected_engines:
 			name = selected_engine["engine_name"]
 			count = selected_engine["engine_count"]
+			stage = selected_engine["stage"]
 			try:
 				engine = available_engines[name]
 				engine["engine_count"] = count
 				engine["name"] = name
+				engine["stage"] = stage
 				engine_data.append(engine)
 			except KeyError:
 				print ("ERROR Engine {} not found".format(name))

@@ -2,6 +2,7 @@ import math
 import logging
 import copy
 import pprint
+import sys
 from mode import *
 
 from generalEquations import *
@@ -18,23 +19,29 @@ class Main_program:
 		self.COAST_SPEED = 166000
 		self.endTime = 10.0
 
-
 		self.specs = get_specs()
+		assert self.specs is not False
+
 		if QUICKRUN:
 			self.HLV = Vehicle(self.specs, True)
 		else:
 			self.HLV = Vehicle(self.specs)
-
 		event_file = get_events(self.specs["file_name"], self.HLV)
+		self.events = event_file["events"]
+		try:
+			self.HLV.cur.alt = event_file["initial_alt"]
+			self.HLV.ground_level = self.HLV.cur.alt
+		except IndexError:
+			sys.exit("Initial alt required in event file.")
 		self.starting_thrust = event_file["starting_thrust"]
 		self.starting_throt = event_file["starting_throt"]
-		self.events = event_file["events"]
+
 
 
 
 	def compute_row(self, rocket, events, assigned_A_v, testRun=False):
 		rocket.tick()
-		
+
 		rocket.burn_fuel(rocket.time_inc)
 		rocket.updateWeight(rocket.time_inc)
 		rocket.updateA()
@@ -75,6 +82,7 @@ class Main_program:
 
 
 	def predict_ADC(self, rocket, events, assigned_V):
+		''' returns a ADC prediction based on test runs of different ADC values '''
 		threshold = 0.000001
 		ADC_error = 100000.0
 		ADC_prediction = 0.0
@@ -88,16 +96,16 @@ class Main_program:
 			#except ValueError:
 			#	ADC_error = 100000.0
 			#	ADC_prediction = ADC_prediction / 2.0
-			ADC_error = rocket_copy.cur.ADC_error
-			ADC_actual = rocket_copy.cur.ADC_actual
+			#ADC_error = rocket_copy.cur.ADC_error
+			#ADC_actual = rocket_copy.cur.ADC_actual
 			#print ("Predicted ADC = {}\nerror={}\nadc_calc={}".format(ADC_prediction*10000.0, ADC_error*10000.0, ADC_actual*10000.0))
-			ADC_prediction -= ADC_error/2.0
+			#ADC_prediction -= ADC_error/2.0
 			#print ("New Prediction = {}".format(ADC_prediction*10000.0))
 			rocket_copy = None
 			tries += 1
 		return ADC_prediction
 
-	def check_for_event(self, events, rocket, pre = False):
+	def check_for_event(self, events, rocket, pre=False):
 		for event in events:
 			preEvent = "pre" in event
 			if (preEvent and pre) or (not preEvent and not pre): #is this a pre or post calculation event
@@ -180,8 +188,8 @@ class Main_program:
 				self.HLV.save_current_row()
 				self.HLV.display_engine_messages()
 
-Rocketman = Main_program()
 print(TITLE)
+Rocketman = Main_program()
 Rocketman.set_initial_conditions()
 Rocketman.initialize_rocket()
 Rocketman.sim_rocket()

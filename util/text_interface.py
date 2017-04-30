@@ -1,11 +1,13 @@
 from title import *
+from datetime import date
+import time
 import libs.rocketEngine
 from libs.vehicle import Vehicle
 from libs.stage import Stage
 import libs.query as q
 import func
 import libs.fileManager as fileMan
-from datetime import date
+
 
 
 def create_stage_specs(stage_type, fuel_type):
@@ -18,7 +20,7 @@ def create_stage_specs(stage_type, fuel_type):
 	else:
 		stage_specs['jettison_weight'] = 0
 	stage_specs['fuel'] = stage_specs['initial_weight'] - stage_specs['jettison_weight']
-	stage_specs['type'] = stage_type
+	stage_specs['stage'] = stage_type
 	stage_specs['fuel_type'] = fuel_type
 	print("Fuel available in {} is {}".format(stage_type, stage_specs['fuel']))
 	return stage_specs
@@ -29,6 +31,10 @@ def create_events(rocket):
 	starting_thrusts = []
 	today = date.fromtimestamp(time.time())
 	version = q.query_string("What is the version date (hit enter for today's date)? ", today.strftime("%d-%m-%Y"))
+	initial_alt = q.query_float("What is initial alt? ")
+	A_hv_diff = q.query_float("What is desired A_h - A_v difference? ")
+	tower_height = q.query_float("What is tower height?  ")
+
 	for engine in rocket.engines:
 		answer = q.query_min_max("What is the starting throttle for {} attached to the {}".format(engine.name, engine.stage))
 		starting_thottles.append({"engine" : engine.name, "stage":engine.stage, "throt" : answer})
@@ -36,10 +42,14 @@ def create_events(rocket):
 			answer = q.query_min_max("What is the starting " + Fore.RED + "thrust per engine for {}".format(engine.name) + Style.RESET_ALL, 0, float('inf'))
 			starting_thrusts.append({"engine" : engine.name, "stage":engine.stage, "thrust" : answer})
 	events = {
-		"file_name" : "save/specs/" + rocket.specs["file_name"] + "/events/" + version,
+		"file_name" : rocket.specs["file_name"] + "/events/" + version,
 		"friendly_name" : version,
 		"starting_throt" : starting_thottles,
-		"starting_thrust" : starting_thrusts
+		"starting_thrust" : starting_thrusts,
+		"initial_alt" : initial_alt,
+		"A_hv_diff" : A_hv_diff,
+		"tower_height" : tower_height,
+
 	}
 
 	save_settings = q.query_yes_no("Do you want to save these events? ", "yes")
@@ -72,31 +82,22 @@ def create_stages_specs():
 def create_specs():
 	name = raw_input("What is the vehicle called (for example: HLV * 4-8/6-9)? ")
 	MK = raw_input("MK? ")
-	ver = raw_input("Version? ")
 	lift_off_weight = q.query_float("What is the weight at lift off? ")
-	initial_alt = q.query_float("What is initial alt? ")
-	A_hv_diff = q.query_float("What is desired A_h - A_v difference? ")
-	tower_height = q.query_float("What is tower height?  ")
 	stages = create_stages_specs()
 
 	selected_engines = []
 	for stage_name, stage_data in stages.iteritems():
 		selected_engines += Stage.select_engines(stage_name, stage_data["fuel_type"])
-	friendly_name = "{} MK {} VER {}".format(name, MK, ver)
+	friendly_name = "{} MK {}".format(name, MK)
 	clean_name = func.remove_non_alphanumeric(name)
 	clean_MK = func.remove_non_alphanumeric(MK)
-	clean_ver =  func.remove_non_alphanumeric(ver)
-	file_name = "{}_MK_{}_VER_{}".format(clean_name, clean_MK, clean_ver)
+	file_name = "{}_MK_{}".format(clean_name, clean_MK)
 	specs = {
 		"name" : name,
 		"MK" : MK,
-		"ver" : ver,
 		"friendly_name" : friendly_name,
 		"file_name" : "save/specs/"+file_name,
 		"lift_off_weight" : lift_off_weight,
-		"initial_alt" : initial_alt,
-		"A_hv_diff" : A_hv_diff,
-		"tower_height" : tower_height,
 		"stages" : stages,
 		"engines" : selected_engines,
 		"earth_rotation_mph" : 912.67

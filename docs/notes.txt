@@ -1,1 +1,6 @@
-orbitalV is not being handled consistently
+refactor:
+reduce instance variables
+vehicle class: 
+	seperate vehicle generation function (create vehicle factory)
+	seperate events into class
+

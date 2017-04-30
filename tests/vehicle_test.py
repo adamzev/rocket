@@ -9,6 +9,8 @@ def almost_equal(x,y,threshold=0.0001):
 
 
 class VehicleTests(unittest.TestCase):
+	#V.Vehicle.select_engine_from_list("SRM", "Solid")
+
 	'''def test_select_engines(self):
 
 		self.assertEqual(len(HLV.engines), 9)

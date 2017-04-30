@@ -10,9 +10,9 @@ def query_multiple(queries):
 		elif queries['type'] == "int":
 			results[name] = query_int(queries[name]['prompt'])
 		else:
-			results[name] = query_string(question)
+			results[name] = query_string(queries[name]['prompt'])
 
-def query_string(question, default="", input_func = input):
+def query_string(question, default="", input_func=raw_input):
 	ans = input_func(question)
 	if ans == "":
 		return default
