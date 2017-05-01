@@ -1,48 +1,40 @@
 {
     "stages": {
         "SRB": {
-            "name": "SRB",
             "fuel_type": "Solid",
             "attached": true,
             "jettison_weight": 400000,
-            "preburned": 0,
             "initial_weight": 2225000,
             "fuel": 1825000,
             "adc_K": 0.142,
-            "lift_off_weight": 2225000
+            "name": "SRB"
         },
         "orbiter": {
-            "name": "orbiter",
             "fuel_type": "Liquid",
             "attached": true,
             "jettison_weight": 0,
-            "preburned": 0,
             "initial_weight": 3000000,
             "fuel": 3000000,
             "adc_K": 0.475,
-            "lift_off_weight": 3000000
+            "name": "orbiter"
         },
         "RLV": {
-            "name": "RLV",
             "fuel_type": "Liquid",
             "attached": true,
             "jettison_weight": 2256890,
-            "preburned": 51966.7,
             "initial_weight": 13681275,
             "fuel": 11424385,
             "adc_K": 1.419,
-            "lift_off_weight": 13629308.3
+            "name": "RLV"
         },
         "LFB": {
-            "name": "LFB",
             "fuel_type": "Liquid",
             "attached": true,
             "jettison_weight": 749168,
-            "preburned": 30204.71,
             "initial_weight": 6593725,
-            "fuel": 5814352.29,
+            "fuel": 5844557,
             "adc_K": 0.35,
-            "lift_off_weight": 6563520.29
+            "name": "LFB"
         }
     },
     "name": "HLV * 2-8-4/13/4-9",

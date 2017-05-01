@@ -188,6 +188,7 @@ class Main_program:
 				print(self.HLV)
 				self.HLV.save_current_row()
 				self.HLV.display_engine_messages()
+			self.HLV.fuel_used_per_stage_report()
 
 print(TITLE)
 Rocketman = Main_program()

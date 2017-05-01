@@ -12,10 +12,14 @@ def query_multiple(queries):
 		else:
 			results[name] = query_string(queries[name]['prompt'])
 
-def query_string(question, default="", input_func=raw_input):
-	ans = input_func(question)
-	if ans == "":
-		return default
+def query_string(question, default=None, input_func=raw_input):
+	while True:
+		ans = input_func(question)
+		if ans != "":
+			return ans
+		if ans == "" and default:
+			return default
+		print "Please enter a valid string."
 
 def query_yes_no(question, default="yes"):
 	"""Ask a yes/no question via raw_input() and return their answer.
@@ -80,6 +84,7 @@ def query_float(question, default=None):
 	while True:
 		sys.stdout.write(question)
 		choice = raw_input()
+		choice = choice.replace(",", "")
 		if default is not None and choice == '':
 			return default
 		elif is_float(choice):
@@ -96,10 +101,10 @@ def query_int(question, default=None, min_num=None, max_num=None):
 
 	The "answer" return value is a float value.
 	"""
-	valid = False
 	while True:
 		sys.stdout.write(question)
 		choice = raw_input()
+		choice = choice.replace(",", "")
 		if default is not None and choice == '':
 			return default
 		if is_int(choice):

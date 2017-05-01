@@ -16,14 +16,19 @@ def create_stage_specs(stage_type, fuel_type):
 	stage_specs['attached'] = True
 	stage_specs['adc_K'] = q.query_float("What is the ADC K of the {}?". format(stage_type))
 	stage_specs['initial_weight'] = q.query_float("What is the weight of the {}? ".format(stage_type))
+	stage_specs['preburned'] = q.query_float("How much weight was used during preburn from the {}? ".format(stage_type))
+	stage_specs['lift_off_weight'] = stage_specs['initial_weight'] - stage_specs['preburned']
+
+	print("The lift off weight is {}".format(stage_specs['lift_off_weight']))
+
 	if(stage_type != "orbiter"):
 		stage_specs['jettison_weight'] = q.query_float("What is the jettison weight of the {}? ".format(stage_type))
 	else:
 		stage_specs['jettison_weight'] = 0
-	stage_specs['fuel'] = stage_specs['initial_weight'] - stage_specs['jettison_weight']
+	stage_specs['fuel'] = stage_specs['lift_off_weight'] - stage_specs['jettison_weight']
 	stage_specs['name'] = stage_type
 	stage_specs['fuel_type'] = fuel_type
-	print("Fuel available in {} is {}".format(stage_type, stage_specs['fuel']))
+	print("Fuel to be burned in {} is {}".format(stage_type, stage_specs['fuel']))
 	return stage_specs
 
 def create_events(rocket):
@@ -81,8 +86,8 @@ def create_stages_specs():
 	return stages
 
 def create_specs():
-	name = raw_input("What is the vehicle called (for example: HLV * 4-8/6-9)? ")
-	MK = raw_input("MK? ")
+	name = q.query_string("What is the vehicle called (for example: HLV * 4-8/6-9)? ")
+	MK = q.query_string("MK? ", "1")
 	lift_off_weight = q.query_float("What is the weight at lift off? ")
 	stages = create_stages_specs()
 

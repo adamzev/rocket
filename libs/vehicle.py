@@ -203,9 +203,13 @@ class Vehicle():
 			if engine.type == "Solid":
 				engine.set_fuel_source(self.stages["SRB"])
 				self.stages["SRB"].fueling(engine)
+			elif engine.stage == "LFB":
+				engine.set_fuel_source(self.stages["LFB"])
+				self.stages["LFB"].fueling(engine)
 			else:
 				engine.set_fuel_source(self.stages["RLV"])
 				self.stages["RLV"].fueling(engine)
+
 
 
 	def attach_engine(self, engine_data):
@@ -305,10 +309,16 @@ class Vehicle():
 			engine.burn_fuel(time_inc, self.prev.alt)
 
 	def getTotalFuelUsed(self):
-		fuelUsed = 0
+		#self.fuel_used_per_stage_report()
+		fuel_used = 0
 		for name, stage in self.stages:
-			fuelUsed += stage.fuelUsed
-		return fuelUsed
+			fuel_used += stage.fuel_used
+		return fuel_used
+
+	def fuel_used_per_stage_report(self):
+		fuel_used = 0
+		for name, stage in self.stages.iteritems():
+			print name, stage, stage.fuel_used
 
 	'''
 	def act_on_engines(self, engineName, callback):
@@ -340,6 +350,18 @@ class Vehicle():
 				engine.setThrottle(engine.max_throt, time_inc)
 			else:
 				engine.setThrottle(throt, time_inc)
+
+	def setEngineThrottleByStage(self, engineName, throt, stage):
+		engine = self.find_engine_by_stage(engineName, stage)
+		if throt == "max":
+			engine.setThrottle(engine.max_throt)
+		elif throt == "min":
+			engine.setThrottle(engine.min_throt)
+		elif throt == "off":
+			engine.setThrottle(0.0)
+		else:
+			engine.setThrottle(throt)
+
 
 	def setEngineAssignedThrustPerEngine(self, engineName, thrust):
 		engines = self.find_engines(engineName)
@@ -392,7 +414,7 @@ class Vehicle():
 		else:
 			engines = self.engines
 		for engine in engines:
-			print "Name: {}\nThrottle: {}\nThrust: {}\nFuel Used: {}".format(engine.name, engine.get_throt(),engine.get_thrust_total(), engine.get_fuelUsed())
+			print "Name: {}\nThrottle: {}\nThrust: {}\nFuel Used: {}".format(engine.name, engine.get_throt(),engine.get_thrust_total(), engine.get_fuel_used())
 
 	def handle_event(self, event):
 		if event["name"] == "Adjust weight":
@@ -406,6 +428,10 @@ class Vehicle():
 		stage = self.stages[event["stage"]]
 		start_time = event["start_time"]
 		end_time = event["end_time"]
+
+		if event["name"] == "Set Target Throttle By Stage":
+			self.setEngineThrottleByStage(event["engine"], event["target"], event["stage"])
+
 
 		if event["name"] == "Jettison":
 			stage.jettison()

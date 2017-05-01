@@ -5,6 +5,7 @@ import generalEquations as equ
 
 class RocketEngine:
 	def __init__(self, engineStats):
+		self.attached = True
 		self.throt = [0.0]
 		self.burn_rate = []
 		self.messages = []
@@ -51,6 +52,10 @@ class RocketEngine:
 
 	def setThrottle(self, requested_throt, time_inc = 1):
 		#Limit the throttle to its max change limit
+		if requested_throt == self.get_throt():
+			self.throt.append(requested_throt)
+			return requested_throt
+
 		if requested_throt > self.get_throt():
 			direction = 1.0
 			verb = "increased"
@@ -96,8 +101,9 @@ class RocketEngine:
 	def burn_fuel(self, time_inc, alt = None):
 		# alt is ignored for this engine type
 		if self.throt_avg > 0.0:
-			print self.name, "\nthrot_avg", self.throt_avg, "\neff burn rate", self.get_eff_fuel_burn_rate(),"\ntime_inc", time_inc, "\n\n"
-			self.fuel_source.fuel_used += self.get_eff_fuel_burn_rate() * time_inc
+			inc_fuel_used = self.get_eff_fuel_burn_rate() * time_inc
+			print self.name, "\nthrot_avg", self.throt_avg, "\neff burn rate", self.get_eff_fuel_burn_rate(),"\ntime_inc", time_inc, "\nInc fuel used", inc_fuel_used, "\n"
+			self.fuel_source.fuel_used += inc_fuel_used
 
 	def specific_impulse_at_alt(self, alt):
 		patm = equ.percentOfAtmosphericPressure(alt)

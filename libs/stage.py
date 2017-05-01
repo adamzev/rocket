@@ -44,7 +44,9 @@ class Stage:
 		return self.fuel_used
 
 	def get_fuel_remaining(self):
-		return self.fuel - self.fuel_used
+		fuel_remaining = self.fuel - self.fuel_used
+		assert not self.attached or fuel_remaining > 0
+		return fuel_remaining
 
 	def get_fuel_burn_rate(self):
 		burn = 0.0
@@ -54,6 +56,7 @@ class Stage:
 
 	def jettison(self):
 		print("\nEVENT: Jettisoned {}".format(self.name))
+		self.attached = False
 		# if rocket total weight is calculated on total values change to be fueled_weight:
 		# if rocket total weight is calculated on lift-off values use this:
-		self.fuel_used = self.initial_weight
+		self.fuel_used = self.lift_off_weight
