@@ -7,7 +7,7 @@
             "initial_weight": 2225000,
             "fuel": 1825000,
             "adc_K": 0.142,
-            "stage": "SRB"
+            "name": "SRB"
         },
         "orbiter": {
             "fuel_type": "Liquid",
@@ -16,7 +16,7 @@
             "initial_weight": 3000000,
             "fuel": 3000000,
             "adc_K": 0.475,
-            "stage": "orbiter"
+            "name": "orbiter"
         },
         "RLV": {
             "fuel_type": "Liquid",
@@ -25,7 +25,7 @@
             "initial_weight": 13681275,
             "fuel": 11424385,
             "adc_K": 1.419,
-            "stage": "RLV"
+            "name": "RLV"
         },
         "LFB": {
             "fuel_type": "Liquid",
@@ -34,7 +34,7 @@
             "initial_weight": 6593725,
             "fuel": 5844557,
             "adc_K": 0.35,
-            "stage": "LFB"
+            "name": "LFB"
         }
     },
     "name": "HLV * 2-8-4/13/4-9",

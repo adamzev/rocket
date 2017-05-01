@@ -139,6 +139,7 @@ class Main_program:
 		else:
 			self.HLV.cur.ADC_predicted = self.predict_ADC(self.HLV, self.events, "a")
 		print(self.HLV)
+		self.HLV.display_engine_messages()
 		self.HLV.save_current_row(True)
 
 

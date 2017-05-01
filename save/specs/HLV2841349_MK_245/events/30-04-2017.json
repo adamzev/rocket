@@ -1,0 +1,164 @@
+{
+    "tower_height": 300,
+    "file_name": "save/specs/HLV2841349_MK_245/events/30-04-2017",
+    "starting_thrust": [
+        {
+            "engine": "SRM",
+            "thrust": 3600000,
+            "stage": "SRB"
+        }
+    ],
+    "initial_alt": 0,
+    "friendly_name": "30-04-2017",
+    "A_hv_diff": 0.11,
+    "starting_throt": [
+        {
+            "engine": "SRM",
+            "throt": "max",
+            "stage": "SRB"
+        },
+        {
+            "engine": "SSME",
+            "throt": 0.7316,
+            "stage": "RLV"
+        },
+        {
+            "engine": "RL-10A4-2",
+            "throt": 0,
+            "stage": "orbiter"
+        },
+        {
+            "engine": "OME",
+            "throt": 0,
+            "stage": "orbiter"
+        },
+        {
+            "engine": "RD-171M",
+            "throt": 0.727,
+            "stage": "LFB"
+        },
+        {
+            "engine": "RS-68A",
+            "throt": 0.7816,
+            "stage": "RLV"
+        },
+        {
+            "engine": "SSME",
+            "throt": 0.7316,
+            "stage": "orbiter"
+        },
+        {
+            "engine": "RD-171M",
+            "throt": 0.727,
+            "stage": "LFB"
+        }
+    ],
+	"events" :
+	[
+		{
+			"name" : "Increase Throttle By Max Rate-Of-Change",
+			"engine": "RS-68A",
+			"start_time": 0.00,
+			"end_time" : 3.00
+		},
+		{
+			"name" : "Increase Throttle By Max Rate-Of-Change",
+			"engine": "RD-171M",
+			"start_time": 0.00,
+			"end_time" : 3.00
+		},
+		{
+			"name" : "Increase Throttle By Max Rate-Of-Change",
+			"engine": "SSME",
+			"start_time": 0.00,
+			"end_time" : 3.00
+		},
+		{
+			"name" : "Adjust weight",
+			"pre" : "True",
+			"amount" : -152.6415,
+			"start_time" : 1.0,
+			"end_time" : 1.0
+		},
+		{
+			"name" : "Adjust acceleration",
+			"pre" : "True",
+			"amount" : 0.002576,
+			"start_time" : 3.0,
+			"end_time" : 3.0
+		},
+		{
+			"name" : "Reduce Thrust",
+			"engine": "SRM",
+			"start_time": 24.00,
+			"end_time" : 45.00,
+			"rate" : -20000.0
+		},
+		{
+			"name" : "Power Down",
+			"engine": "SRM",
+			"start_time": 60.00,
+			"end_time" : 75.00
+		},
+		{
+			"name" : "Jettison",
+			"stage": "SRB",
+			"start_time": 75.00,
+			"end_time" : 75.00
+		},
+		{
+			"name" : "Reduce Throttle By Max Rate-Of-Change",
+			"engine": "RD-171M",
+			"start_time": 135.83,
+			"end_time" : 138.83
+		},
+		{
+			"name" : "Engine Cut-off",
+			"engine": "RD-171M",
+			"start_time": 138.83,
+			"end_time" : 138.83
+		},
+		{
+			"name" : "Jettison",
+			"stage": "LFB",
+			"start_time": 138.83,
+			"end_time" : 138.83
+		},
+		{
+			"name" : "Reduce Throttle By Max Rate-Of-Change",
+			"engine": "SSME",
+			"start_time": 214.663,
+			"end_time" : 218.1418
+		}, 
+		{
+			"name" : "Reduce Throttle By Max Rate-Of-Change",
+			"engine": "RS-68A",
+			"start_time": 214.663,
+			"end_time" : 218.1418
+		}, 
+		{
+			"name" : "Engine Cut-off",
+			"engine": "SSME",
+			"start_time": 218.1418,
+			"end_time" : 218.1418
+		}, 
+		{
+			"name" : "Engine Cut-off",
+			"engine": "RS-68A",
+			"start_time": 218.1418,
+			"end_time" : 218.1418
+		},
+		{
+			"name" : "Jettison",
+			"stage": "RLV",
+			"start_time": 218.1418,
+			"end_time" : 218.1418
+		},
+		{
+			"name" : "Increase Throttle By Max Rate-Of-Change",
+			"engine": "RL-10A-2",
+			"start_time": 218.1,
+			"end_time" : 218.1
+		}
+	]
+}

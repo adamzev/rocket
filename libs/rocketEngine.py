@@ -1,6 +1,7 @@
 import logging
-from util import *
+from util import func
 from util.text_interface import *
+import generalEquations as equ
 
 class RocketEngine:
 	def __init__(self, engineStats):
@@ -12,7 +13,7 @@ class RocketEngine:
 			setattr(self, key, value)
 
 	def __str__(self):
-		return "Name={} Throt={} Eff Burn Rate={} Thrust={}".format(self.name, self.throt_avg, self.get_eff_fuel_burn_rate(), self.get_thrust_total())
+		return "Name={} Throt={} Eff Burn Rate={} Thrust={} Count={} Stage={}".format(self.name, self.throt_avg, self.get_eff_fuel_burn_rate(), self.get_thrust_total(), self.engine_count, self.stage)
 
 	@staticmethod
 	def factory(engine_data):
@@ -33,20 +34,20 @@ class RocketEngine:
 
 	@property
 	def throt_avg(self):
-		return average(self.get_throt(), self.get_throt("prev"))
+		return equ.average(self.get_throt(), self.get_throt("prev"))
 
 	def get_throt(self, when = "current"):
-		return get_value(self.throt, when)
+		return func.get_value(self.throt, when)
 
 	def get_burn_rate(self, when = "current"):
-		return get_value(self.burn_rate, when)
+		return func.get_value(self.burn_rate, when)
 
 
 	def get_thrust_total(self, when = "current"):
-		return get_value(self.thrust_total, when)
+		return func.get_value(self.thrust_total, when)
 
 	def get_thrust_per_engine(self, when = "current"):
-		return get_value(self.thrust_total, when) / self.engine_count
+		return func.get_value(self.thrust_total, when) / self.engine_count
 
 	def setThrottle(self, requested_throt, time_inc = 1):
 		#Limit the throttle to its max change limit
@@ -99,7 +100,7 @@ class RocketEngine:
 			self.fuel_source.fuel_used += self.get_eff_fuel_burn_rate() * time_inc
 
 	def specific_impulse_at_alt(self, alt):
-		patm = percentOfAtmosphericPressure(alt)
+		patm = equ.percentOfAtmosphericPressure(alt)
 		pctVac = 1 - patm
 		return self.specImp_sl + (pctVac * (self.specImp_vac - self.specImp_sl))
 
@@ -153,7 +154,7 @@ class SolidRocketEngine(RocketEngine):
 		if srm_entry_mode == "cube root":
 			pass
 	def thrustAtAlt(self, alt):
-		patm = percentOfAtmosphericPressure(alt)
+		patm = equ.percentOfAtmosphericPressure(alt)
 		pctVac = 1.0 - patm
 		return self.get_thrust_total() * self.get_throt()
 

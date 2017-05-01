@@ -38,7 +38,7 @@ class Stage:
 	def fueling(self, engine):
 		self.fueling_engines.append(engine)
 	def __str__(self):
-		return "Stage Name = {} Fuel Remaining = {} Burn Rate = {}".format(self.type, self.get_fuel_remaining(), self.get_fuel_burn_rate())
+		return "Stage Name = {} Fuel Remaining = {} Burn Rate = {}".format(self.name, self.get_fuel_remaining(), self.get_fuel_burn_rate())
 
 	def get_fuel_used(self):
 		return self.fuel_used
@@ -53,7 +53,7 @@ class Stage:
 		return burn
 
 	def jettison(self):
-		print("\nEVENT: Jettisoned {}".format(self.type))
+		print("\nEVENT: Jettisoned {}".format(self.name))
 		# if rocket total weight is calculated on total values change to be fueled_weight:
 		# if rocket total weight is calculated on lift-off values use this:
 		self.fuel_used = self.initial_weight

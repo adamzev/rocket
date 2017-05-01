@@ -1,4 +1,5 @@
 from title import *
+from colorama import Fore, Back, Style
 from datetime import date
 import time
 import libs.rocketEngine
@@ -20,7 +21,7 @@ def create_stage_specs(stage_type, fuel_type):
 	else:
 		stage_specs['jettison_weight'] = 0
 	stage_specs['fuel'] = stage_specs['initial_weight'] - stage_specs['jettison_weight']
-	stage_specs['stage'] = stage_type
+	stage_specs['name'] = stage_type
 	stage_specs['fuel_type'] = fuel_type
 	print("Fuel available in {} is {}".format(stage_type, stage_specs['fuel']))
 	return stage_specs
@@ -114,7 +115,7 @@ def get_initial_conditions():
 
 
 def get_events(spec_name, rocket):
-	folder = "save/specs/" + spec_name + "/events"
+	folder = spec_name + "/events"
 	return fileMan.get_json_file_data(folder, "events", lambda: create_events(rocket))
 
 def get_specs():

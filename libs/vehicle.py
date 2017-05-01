@@ -5,7 +5,7 @@ from physicalStatus import PhysicalStatus
 from stage import *
 import generalEquations as equ
 from util.text_interface import *
-
+import util.func as func
 import libs.query as q
 from libs import fileManager as fileMan
 
@@ -145,20 +145,21 @@ class Vehicle():
 		engine data to a json object.
 		'''
 		available_engines = Vehicle.load_available_engines()
-
 		engine_data = []
 		for selected_engine in selected_engines:
 			name = selected_engine["engine_name"]
 			count = selected_engine["engine_count"]
 			stage = selected_engine["stage"]
+			
 			try:
-				engine = available_engines[name]
+				engine = copy.copy(available_engines[name])
 				engine["engine_count"] = count
 				engine["name"] = name
 				engine["stage"] = stage
 				engine_data.append(engine)
 			except KeyError:
 				print ("ERROR Engine {} not found".format(name))
+		func.pretty_json(engine_data)
 		return engine_data
 
 	def set_time_inc(self):
@@ -309,35 +310,53 @@ class Vehicle():
 			fuelUsed += stage.fuelUsed
 		return fuelUsed
 
+	'''
+	def act_on_engines(self, engineName, callback):
+		engines = self.find_engines(engineName)
+		for engine in engines:
+			callback(engine)
+
+	def act_on_engines_by_stage(self, engineName, callback):
+		engines = self.find_engines_by_stage(engineName, stage)
+		for engine in engines:
+			callback(engine)
+	'''
 	def setEngineThrottleOverride(self, engineName, throt):
-		engine = self.find_engine(engineName)
-		if throt == "max":
-			engine.setThrottleOverride(engine.max_throt)
-		elif throt == "min":
-			engine.setThrottleOverride(engine.min_throt)
-		elif throt == "off":
-			engine.setThrottleOverride(0.0)
-		else:
-			engine.setThrottleOverride(throt)
+		engines = self.find_engines(engineName)
+		for engine in engines:
+			if throt == "max":
+				engine.setThrottleOverride(engine.max_throt)
+			elif throt == "min":
+				engine.setThrottleOverride(engine.min_throt)
+			elif throt == "off":
+				engine.setThrottleOverride(0.0)
+			else:
+				engine.setThrottleOverride(throt)
 
 	def setEngineThrottle(self, engineName, throt, time_inc):
-		engine = self.find_engine(engineName)
-		if throt == "max":
-			engine.setThrottle(engine.max_throt, time_inc)
-		else:
-			engine.setThrottle(throt, time_inc)
+		engines = self.find_engines(engineName)
+		for engine in engines:
+			if throt == "max":
+				engine.setThrottle(engine.max_throt, time_inc)
+			else:
+				engine.setThrottle(throt, time_inc)
 
 	def setEngineAssignedThrustPerEngine(self, engineName, thrust):
-		engine = self.find_engine(engineName)
-		if thrust == "max":
-			engine.set_assigned_thrust_per_engine(engine.thrust_sl)
-		else:
-			engine.set_assigned_thrust_per_engine(thrust)
+		engines = self.find_engines(engineName)
+		for engine in engines:
+			if thrust == "max":
+				engine.set_assigned_thrust_per_engine(engine.thrust_sl)
+			else:
+				engine.set_assigned_thrust_per_engine(thrust)
 
 
 	def get_engine_throttle(self, engineName):
 		engine = self.find_engine(engineName)
 		return engine.throt
+
+	def print_engines(self):
+		for engine in self.engines:
+			print engine.name, engine.engine_count, engine.stage
 
 	def display_engine_messages(self):
 		for engine in self.engines:
@@ -345,12 +364,26 @@ class Vehicle():
 				print (message)
 			engine.messages = []
 
+	def find_engine_by_stage(self, engineName, stage):
+		''' returns the first engine with the given name and stage '''
+		for engine in self.engines:
+			if engine.name == engineName and engine.stage == stage:
+				return engine
 
 	def find_engine(self, engineName):
-		''' returns the engine with the given name '''
+		''' returns the first engine with the given name '''
 		for engine in self.engines:
 			if engine.name == engineName:
 				return engine
+
+	def find_engines(self, engineName):
+		''' returns all the engines with the given name '''
+		engines = []
+		for engine in self.engines:
+			if engine.name == engineName:
+				engines.append(engine)
+		return engines
+
 
 	def engine_status(self, engineName = None):
 		''' Prints the Throttle, thrust and fuel used for every engine '''
@@ -378,32 +411,32 @@ class Vehicle():
 			stage.jettison()
 			self.adc_K -= stage.adc_K
 			for engine in self.engines:
-				if engine.stage == stage.type:
+				if engine.stage == stage.name:
 					engine.setThrottleOverride(0)
 					engine.setThrottleOverride(0)
-				if engine.stage == "orbiter" and stage.type == "RLV":
+				if engine.stage == "orbiter" and stage.name == "RLV":
 					#orbiter engines use RLV as fuel source until RLV is jettisoned
 					engine.set_fuel_source(self.stages["orbiter"])
 
 	def handle_engine_event(self, event):
-		engine = self.find_engine(event["engine"])
+		engines = self.find_engines(event["engine"])
 		start_time = event["start_time"]
 		end_time = event["end_time"]
 		time_inc = self.get_time_inc()
+		for engine in engines:
+			if event["name"] == "Reduce Thrust" and self.time < event["end_time"]:
+				engine.reduceThrust(event["rate"], time_inc)
 
-		if event["name"] == "Reduce Thrust" and self.time < event["end_time"]:
-			engine.reduceThrust(event["rate"], time_inc)
+			if event["name"] == "Power Down":
+				engine.power_down(start_time, end_time, self.time, time_inc, self.cur.alt)
 
-		if event["name"] == "Power Down":
-			engine.power_down(start_time, end_time, self.time, time_inc, self.cur.alt)
+			if event["name"] == "Increase Throttle By Max Rate-Of-Change":
+				engine.setThrottle(engine.max_throt, time_inc)
 
-		if event["name"] == "Increase Throttle By Max Rate-Of-Change":
-			engine.setThrottle(engine.max_throt, time_inc)
+			if event["name"] == "Reduce Throttle By Max Rate-Of-Change":
+				engine.setThrottle(engine.min_throt, time_inc)
 
-		if event["name"] == "Reduce Throttle By Max Rate-Of-Change":
-			engine.setThrottle(engine.min_throt, time_inc)
-
-		if event["name"] == "Engine Cut-off":
-			engine.setThrottleOverride(0.0)
-			engine.setThrottleOverride(0.0)
-			print("\nEVENT: {} cut-off".format(engine.name))
+			if event["name"] == "Engine Cut-off":
+				engine.setThrottleOverride(0.0)
+				engine.setThrottleOverride(0.0)
+				print("\nEVENT: {} cut-off".format(engine.name))

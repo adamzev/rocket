@@ -1,3 +1,5 @@
+import generalEquations as equ
+
 class TwoD(object):
 	def __init__(self, horiz = 0.0, vert = 0.0, total = 0.0):
 		self._horiz = horiz
