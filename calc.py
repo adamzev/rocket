@@ -7,6 +7,28 @@ import libs.velocity
 import numpy as np
 
 
+def prompt_thrust_at_alt():
+	print "Thrust at alt Calculator"
+	alt = float(raw_input("Alt? "))
+	engines = libs.vehicle.Vehicle.load_available_engines()
+	engine_list = []
+	n = 1
+	for key, value in engines.iteritems():
+		engine_list.append(value)
+		print("{}) {}".format(n, key))
+		n += 1
+
+	engine_num = q.query_int("Select an engine number: ", None, 1, n-1)
+	selected_engine = engine_list[engine_num-1]
+	engine_num = q.query_int("How many? ", None, 1, 100)
+	selected_engine["engine_count"] = engine_num
+	engine = libs.rocketEngine.RocketEngine.factory(selected_engine)
+	throt = q.query_min_max("Throttle? ")
+	engine.setThrottleOverride(throt)
+	engine.setThrottleOverride(throt)
+	print engine.thrustAtAlt(alt)
+
+
 def prompt_PATM():
 	print "Percent of Atm Pressure Calculator"
 	alt = float(raw_input("Alt? "))

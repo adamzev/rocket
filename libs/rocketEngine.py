@@ -102,7 +102,7 @@ class RocketEngine:
 		# alt is ignored for this engine type
 		if self.throt_avg > 0.0:
 			inc_fuel_used = self.get_eff_fuel_burn_rate() * time_inc
-			print self.name, "\nthrot_avg", self.throt_avg, "\neff burn rate", self.get_eff_fuel_burn_rate(),"\ntime_inc", time_inc, "\nInc fuel used", inc_fuel_used, "\n"
+			print self.name, self.stage, "\nthrot_avg", self.throt_avg, "\neff burn rate", self.get_eff_fuel_burn_rate(),"\ntime_inc", time_inc, "\nInc fuel used", inc_fuel_used, "\n"
 			self.fuel_source.fuel_used += inc_fuel_used
 
 	def specific_impulse_at_alt(self, alt):

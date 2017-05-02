@@ -18,6 +18,7 @@ menu_data = {
 	{ "title": "Big G", "type": FUNCTION, "function": prompt_big_G },
 	{ "title": "ADC K", "type": FUNCTION, "function": prompt_ADC },
 	{ "title": "Pre-burn", "type": FUNCTION, "function": prompt_preburn },
+	{ "title": "Engine Thrust at Alt", "type": FUNCTION, "function": prompt_thrust_at_alt },
 
   ]
 }

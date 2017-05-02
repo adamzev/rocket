@@ -128,14 +128,33 @@
 			"name" : "Set Target Throttle By Stage",
 			"engine": "SSME",
 			"stage": "RLV",
-			"target": "min",
-			"start_time": 214.663,
-			"end_time" : 218.1418
+			"target": 0.82,
+			"start_time": 214.8078,
+			"end_time" : 214.8078
 		}, 
 		{
-			"name" : "Reduce Throttle By Max Rate-Of-Change",
+			"name" : "Set Target Throttle By Stage",
+			"engine": "SSME",
+			"stage": "RLV",
+			"target": "min",
+			"start_time": 215.8078,
+			"end_time" : 218.1418
+		},
+		{
+			"name" : "Set Target Throttle By Stage",
 			"engine": "RS-68A",
-			"start_time": 214.663,
+			"stage": "RLV",
+			"target": 0.93,
+			"start_time": 214.8078,
+			"end_time" : 214.8078
+		}, 
+
+		{
+			"name" : "Set Target Throttle By Stage",
+			"engine": "RS-68A",
+			"stage": "RLV",
+			"target": "min",
+			"start_time": 216.8078,
 			"end_time" : 218.1418
 		}, 
 		{
@@ -159,9 +178,9 @@
 		},
 		{
 			"name" : "Increase Throttle By Max Rate-Of-Change",
-			"engine": "RL-10A-2",
-			"start_time": 218.1,
-			"end_time" : 218.1
+			"engine": "RL-10A4-2",
+			"start_time": 218.1418,
+			"end_time" : 222.1418
 		}
 	]
 }

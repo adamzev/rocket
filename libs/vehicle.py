@@ -176,7 +176,7 @@ class Vehicle():
 
 	def get_A_vert_eff_avg(self):
 		A_vert_eff = equ.average(self.cur.A.vert_eff, self.prev.A.vert_eff)
-		if self.cur.alt > self.ground_level:
+		if self.prev.alt > self.ground_level:
 			return A_vert_eff
 		else:
 			if A_vert_eff < 0:  #Not enough force to lift off, but don't move down if on the ground
