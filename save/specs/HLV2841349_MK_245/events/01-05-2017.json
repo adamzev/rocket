@@ -128,9 +128,9 @@
 			"name" : "Set Target Throttle By Stage",
 			"engine": "SSME",
 			"stage": "RLV",
-			"target": 0.82,
+			"target": 0.87,
 			"start_time": 214.8078,
-			"end_time" : 214.8078
+			"end_time" : 215.8078
 		}, 
 		{
 			"name" : "Set Target Throttle By Stage",
@@ -139,22 +139,21 @@
 			"target": "min",
 			"start_time": 215.8078,
 			"end_time" : 218.1418
-		},
-		{
-			"name" : "Set Target Throttle By Stage",
-			"engine": "RS-68A",
-			"stage": "RLV",
-			"target": 0.93,
-			"start_time": 214.8078,
-			"end_time" : 214.8078
 		}, 
-
 		{
 			"name" : "Set Target Throttle By Stage",
 			"engine": "RS-68A",
 			"stage": "RLV",
 			"target": "min",
-			"start_time": 216.8078,
+			"start_time": 214.8078,
+			"end_time" : 218.1418
+		}, 
+		{
+			"name" : "Set Target Throttle By Stage",
+			"engine": "RS-68A",
+			"stage": "RLV",
+			"target": "min",
+			"start_time": 214.8078,
 			"end_time" : 218.1418
 		}, 
 		{
