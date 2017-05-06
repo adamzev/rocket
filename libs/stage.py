@@ -20,7 +20,7 @@ class Stage:
 		while add_more:
 			print "\n\nSelect engines for the {}".format(stage_name)
 			this_engine = {}
-			engine = libs.Vehicle.select_engine_from_list(stage_name, fuel_type)
+			engine = libs.Vehicle.select_engine_from_list(fuel_type)
 			if engine:
 				func.pretty_json(engine)
 				engine_name = engine.keys()[0]
@@ -28,7 +28,7 @@ class Stage:
 				count = float(q.query_int("How many {}s?".format(engine_name)))
 				this_engine["engine_count"] = count
 				this_engine["engine_name"] = engine_name
-				this_engine["stage"] = engine[engine_name]["stage"]
+				this_engine["stage"] = stage_name
 				selected_engines.append(this_engine)
 				print("{} {} engines are now attached.".format(int(count), this_engine["engine_name"]))
 			else:

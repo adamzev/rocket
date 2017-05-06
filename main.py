@@ -11,7 +11,8 @@ from title import *
 from libs import *
 from libs.vehicle import *
 
-log = logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO)
+
 class Main_program:
 	def __init__(self, specs = []):
 		self.specs = specs

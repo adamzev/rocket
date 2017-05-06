@@ -12,6 +12,8 @@ def query_multiple(queries):
 		else:
 			results[name] = query_string(queries[name]['prompt'])
 
+	return results
+
 def query_string(question, default=None, input_func=raw_input):
 	while True:
 		ans = input_func(question)
@@ -143,3 +145,40 @@ def query_min_max(question, min_num=0.0, max_num=1.0):
 			return float(choice)
 		else:
 			sys.stdout.write("Please respond with 'min', 'max', 'off' or a number between {} and {}. \n".format(min_num, max_num))
+
+def query_from_list(intro, options, select_multiple=True, callback=None):
+	''' Creates a simple text menu that numbers options
+		Options are either a dict containting a "name" key or list of strings
+		Can be used to select one option or an array of multiple options
+	'''
+	while True:
+		print("\n{}\n".format(intro))
+		n = 1
+		if select_multiple:
+			results = []
+
+		for option in options:
+			try:
+				name = option["name"]
+			except TypeError:
+				name = option
+			print("{}) {}".format(n, name))
+			n += 1
+
+		if select_multiple:
+			print("{}) Finished entering events".format(n))
+		option_num = query_int("Select an event number: ", None, 1, n)
+
+		if 0 <= option_num < n:
+			selection = options[option_num - 1]
+			if select_multiple:
+				if callback:
+					results.append(callback(selection))
+				else:
+					results.append(selection)
+			else:
+				return selection
+		elif option_num == n and select_multiple:
+			return results
+		else:
+			print("Please enter a valid number.")

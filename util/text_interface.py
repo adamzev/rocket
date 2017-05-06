@@ -8,6 +8,7 @@ from libs.stage import Stage
 import libs.query as q
 import func
 import libs.fileManager as fileMan
+from libs.eventsManager import EventManager
 
 
 
@@ -32,32 +33,9 @@ def create_stage_specs(stage_type, fuel_type):
 	return stage_specs
 
 def create_events(rocket):
+	event_man = EventManager(rocket)
 
-	starting_thottles = []
-	starting_thrusts = []
-	today = date.fromtimestamp(time.time())
-	version = q.query_string("What is the version date (hit enter for today's date)? ", today.strftime("%d-%m-%Y"))
-	initial_alt = q.query_float("What is initial alt? ")
-	A_hv_diff = q.query_float("What is desired A_h - A_v difference? ")
-	tower_height = q.query_float("What is tower height?  ")
-
-	for engine in rocket.engines:
-		answer = q.query_min_max("What is the starting throttle for {} attached to the {}".format(engine.name, engine.stage))
-		starting_thottles.append({"engine" : engine.name, "stage":engine.stage, "throt" : answer})
-		if engine.type == "Solid":
-			answer = q.query_min_max("What is the starting " + Fore.RED + "thrust per engine for {}".format(engine.name) + Style.RESET_ALL, 0, float('inf'))
-			starting_thrusts.append({"engine" : engine.name, "stage":engine.stage, "thrust" : answer})
-	events = {
-		"file_name" : rocket.specs["file_name"] + "/events/" + version,
-		"friendly_name" : version,
-		"starting_throt" : starting_thottles,
-		"starting_thrust" : starting_thrusts,
-		"initial_alt" : initial_alt,
-		"A_hv_diff" : A_hv_diff,
-		"tower_height" : tower_height,
-
-	}
-
+	events = event_man.events
 	save_settings = q.query_yes_no("Do you want to save these events? ", "yes")
 	if save_settings:
 		fileMan.save_file(events)

@@ -109,7 +109,7 @@ class Vehicle():
 
 
 	@staticmethod
-	def select_engine_from_list(stage_name, fuel_type):
+	def select_engine_from_list(fuel_type=None):
 		''' select an engine from a list
 		Returns False if the user is done entering engines
 		'''
@@ -117,7 +117,7 @@ class Vehicle():
 		n = 1
 		compatable_engines = []
 		for key, value in engines.iteritems():
-			if fuel_type == value['type']:
+			if fuel_type == None or fuel_type == value['type']:
 				compatable_engines.append({key:value})
 				print("{}) {}".format(n, key))
 				n += 1
@@ -128,11 +128,9 @@ class Vehicle():
 			return False
 		else:
 			selected_engine = compatable_engines[engine_num-1]
-			engine_name = selected_engine.items()[0]
-			engine_name = engine_name[0]
-			selected_engine[engine_name]['stage'] = stage_name
 			return selected_engine
 
+	
 	@staticmethod
 	def load_available_engines():
 		''' Loads the available engine json datafile '''
@@ -150,7 +148,7 @@ class Vehicle():
 			name = selected_engine["engine_name"]
 			count = selected_engine["engine_count"]
 			stage = selected_engine["stage"]
-			
+
 			try:
 				engine = copy.copy(available_engines[name])
 				engine["engine_count"] = count
