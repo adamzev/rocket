@@ -146,28 +146,29 @@ def query_min_max(question, min_num=0.0, max_num=1.0):
 		else:
 			sys.stdout.write("Please respond with 'min', 'max', 'off' or a number between {} and {}. \n".format(min_num, max_num))
 
-def query_from_list(intro, options, select_multiple=True, callback=None):
+def query_from_list(list_name, intro, options, select_multiple=True, callback=None, min_selections = 1):
 	''' Creates a simple text menu that numbers options
 		Options are either a dict containting a "name" key or list of strings
 		Can be used to select one option or an array of multiple options
 	'''
+	if select_multiple:
+		results = []
+
 	while True:
 		print("\n{}\n".format(intro))
 		n = 1
-		if select_multiple:
-			results = []
 
 		for option in options:
 			try:
-				name = option["name"]
+				item_name = option["name"]
 			except TypeError:
-				name = option
-			print("{}) {}".format(n, name))
+				item_name = option
+			print("{}) {}".format(n, item_name))
 			n += 1
 
 		if select_multiple:
-			print("{}) Finished entering events".format(n))
-		option_num = query_int("Select an event number: ", None, 1, n)
+			print("{}) Finished entering {}s".format(n, list_name))
+		option_num = query_int("Select an {} number: ".format(list_name), None, 1, n)
 
 		if 0 <= option_num < n:
 			selection = options[option_num - 1]
@@ -179,6 +180,9 @@ def query_from_list(intro, options, select_multiple=True, callback=None):
 			else:
 				return selection
 		elif option_num == n and select_multiple:
-			return results
+			if len(results) >= min_selections:
+				return results
+			else:
+				print("Please select at least {} {}s".format(min_selections, list_name))
 		else:
 			print("Please enter a valid number.")

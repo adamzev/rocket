@@ -2,7 +2,7 @@ from math import sqrt
 import copy
 from rocketEngine import RocketEngine
 from physicalStatus import PhysicalStatus
-from stage import *
+from stage import Stage
 import generalEquations as equ
 from util.text_interface import *
 import util.func as func
@@ -17,7 +17,7 @@ class Vehicle():
 			alt=0,
 			earth_rotation_mph=earth_rotation_mph
 		)
-		self.specs = specs
+
 		self.cur.V.horiz_mph = earth_rotation_mph
 		self.cur.V.vert = 0.0
 		self.ground_level = 0.0 # overwriten by initial alt
@@ -28,12 +28,8 @@ class Vehicle():
 		self.prev = copy.deepcopy(self.cur)
 		self.name = "{} MK {}".format(specs["name"], specs["MK"])
 		self.load_time_incs = load_time_incs
-		self.stages = self.init_stages(specs["stages"])
-		self.engines = []
-		self.attach_engines(specs["engines"])
-		self.set_engine_initial_fuel_source()
+		
 
-		self.set_adc_K(specs["stages"])
 
 
 		self.time = 0.0
@@ -108,57 +104,6 @@ class Vehicle():
 		fileMan.save_csv(row1+row2, 'data/rows.csv')
 
 
-	@staticmethod
-	def select_engine_from_list(fuel_type=None):
-		''' select an engine from a list
-		Returns False if the user is done entering engines
-		'''
-		engines = Vehicle.load_available_engines()
-		n = 1
-		compatable_engines = []
-		for key, value in engines.iteritems():
-			if fuel_type == None or fuel_type == value['type']:
-				compatable_engines.append({key:value})
-				print("{}) {}".format(n, key))
-				n += 1
-
-		print("{}) Finished entering engines for this stage".format(n))
-		engine_num = q.query_int("Select an engine number: ", None, 1, n)
-		if engine_num == n:
-			return False
-		else:
-			selected_engine = compatable_engines[engine_num-1]
-			return selected_engine
-
-	
-	@staticmethod
-	def load_available_engines():
-		''' Loads the available engine json datafile '''
-		available_engines_json = fileMan.load_json("save/engine/rocketEngineData.json")
-		return available_engines_json["rocketEngines"]
-
-	@staticmethod
-	def load_engine_data(selected_engines):
-		''' Takes a json object with the engine_name and engine_count and loads the matching
-		engine data to a json object.
-		'''
-		available_engines = Vehicle.load_available_engines()
-		engine_data = []
-		for selected_engine in selected_engines:
-			name = selected_engine["engine_name"]
-			count = selected_engine["engine_count"]
-			stage = selected_engine["stage"]
-
-			try:
-				engine = copy.copy(available_engines[name])
-				engine["engine_count"] = count
-				engine["name"] = name
-				engine["stage"] = stage
-				engine_data.append(engine)
-			except KeyError:
-				print ("ERROR Engine {} not found".format(name))
-		func.pretty_json(engine_data)
-		return engine_data
 
 	def set_time_inc(self):
 		''' sets the current time increment based on the current time and the time_incs object '''
@@ -188,39 +133,6 @@ class Vehicle():
 		self.time += self.time_inc
 		self.prev = copy.deepcopy(self.cur)
 		self.cur = PhysicalStatus()
-
-
-	def init_stages(self, stage_data):
-		stages = {}
-		for stage_type, stage_datum in stage_data.iteritems():
-			stages[stage_type] = Stage(stage_datum)
-		return stages
-
-	def set_engine_initial_fuel_source(self):
-		for engine in self.engines:
-			if engine.type == "Solid":
-				engine.set_fuel_source(self.stages["SRB"])
-				self.stages["SRB"].fueling(engine)
-			elif engine.stage == "LFB":
-				engine.set_fuel_source(self.stages["LFB"])
-				self.stages["LFB"].fueling(engine)
-			else:
-				engine.set_fuel_source(self.stages["RLV"])
-				self.stages["RLV"].fueling(engine)
-
-
-
-	def attach_engine(self, engine_data):
-		engine = RocketEngine.factory(engine_data)
-		self.engines.append(engine)
-
-
-	def attach_engines(self, selected_engines):
-		''' loads engine data from file matching the given names
-		'''
-		engine_data = Vehicle.load_engine_data(selected_engines)
-		for engine in engine_data:
-			self.attach_engine(engine)
 
 	def set_adc_K(self, stages):
 		adc_K = 0.0

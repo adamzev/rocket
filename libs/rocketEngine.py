@@ -17,6 +17,18 @@ class RocketEngine:
 		return "Name={} Throt={} Eff Burn Rate={} Thrust={} Count={} Stage={}".format(self.name, self.throt_avg, self.get_eff_fuel_burn_rate(), self.get_thrust_total(), self.engine_count, self.stage)
 
 	@staticmethod
+	def collect_engine_details(engine_data):
+		func.pretty_json(engine_data)
+		engine_name = engine_data.keys()[0]
+		# only accept integer values but store as float for compatibility
+		count = float(q.query_int("How many {}s?".format(engine_name)))
+		this_engine["engine_count"] = count
+		this_engine["engine_name"] = engine_name
+		this_engine["stage"] = stage_name
+		selected_engines.append(this_engine)
+		print("{} {} engines are now attached.".format(int(count), this_engine["engine_name"]))
+
+	@staticmethod
 	def factory(engine_data):
 		''' creates engines that burn either solid or liquid fuel '''
 		if engine_data["type"] == "Solid":

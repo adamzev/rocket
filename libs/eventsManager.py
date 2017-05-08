@@ -170,13 +170,13 @@ class EventManager:
 		return result
 
 	def select_from_list_of_available_events(self):
-		events = q.query_from_list("Add events to the flight plan: ", self.available_events, True, self.collect_event_details)
+		events = q.query_from_list("event", "Add events to the flight plan: ", self.available_events, True, self.collect_event_details)
 		self.events["events"] = events
 
 	def collect_version(self):
 		today = date.fromtimestamp(time.time())
 		self.events["friendly_name"] = q.query_string("What is the version date (hit enter for today's date)? ", today.strftime("%d-%m-%Y"))
-		self.events["file_name"] = self.rocket.specs["file_name"] + "/events/" + self.events["version"],
+		self.events["file_name"] = self.rocket.specs["file_name"] + "/events/" + self.events["friendly_name"]
 
 	def collect_starting_engine_settings(self):
 		starting_thottles = []

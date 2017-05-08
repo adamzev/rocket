@@ -9,7 +9,7 @@ from generalEquations import *
 from util.text_interface import *
 from title import *
 from libs import *
-from libs.vehicle import *
+from libs.vehicleFactory import VehicleFactory
 
 logging.basicConfig(level=logging.INFO)
 
@@ -24,9 +24,9 @@ class Main_program:
 		assert self.specs is not False
 
 		if QUICKRUN:
-			self.HLV = Vehicle(self.specs, True)
+			self.HLV = VehicleFactory.create_vehicle(self.specs, True)
 		else:
-			self.HLV = Vehicle(self.specs)
+			self.HLV = VehicleFactory.create_vehicle(self.specs)
 		event_file = get_events(self.specs["file_name"], self.HLV)
 		self.events = event_file["events"]
 		try:
