@@ -154,11 +154,11 @@ class EventManager:
 			if field["type"] == "string_from_list":
 
 				if field_name == "engine_name":
-					engine_data = Vehicle.select_engine_from_list()
-					result[field_name] = engine_data.keys()[0]
+					engine_name = q.query_from_list("engine", "Select an engine: ", self.rocket.list_engine_names(), False)
+					result[field_name] = engine_name
 
 				if field_name == "stage":
-					result[field_name] = q.query_from_list("Select a stage: ", self.rocket.stages.keys(), False)
+					result[field_name] = q.query_from_list("stage", "Select a stage: ", self.rocket.stages.keys(), False)
 
 			if field["type"] == "array":
 				for i in range(0, int((result["end_time"]- result["start_time"]) / 3) + 1):

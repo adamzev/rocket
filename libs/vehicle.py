@@ -11,15 +11,22 @@ from libs import fileManager as fileMan
 
 class Vehicle():
 
-	def __init__(self, specs, load_time_incs=False):
+	def __init__(self, specs, stages, engines):
 		earth_rotation_mph = specs["earth_rotation_mph"]
 		self.cur = PhysicalStatus(
 			alt=0,
 			earth_rotation_mph=earth_rotation_mph
 		)
 
+		self.specs = specs
+
+		self.stages = stages
+		self.engines = engines
+		self.load_time_incs = False
+		self.time = 0
 		self.cur.V.horiz_mph = earth_rotation_mph
 		self.cur.V.vert = 0.0
+		self.tower_height = 0
 		self.ground_level = 0.0 # overwriten by initial alt
 		self.cur.A.horiz = 0.0
 		self.cur.A.vert = 0.0
@@ -27,18 +34,6 @@ class Vehicle():
 		self.cur.weight = self.lift_off_weight
 		self.prev = copy.deepcopy(self.cur)
 		self.name = "{} MK {}".format(specs["name"], specs["MK"])
-		self.load_time_incs = load_time_incs
-		
-
-
-
-		self.time = 0.0
-		if load_time_incs:
-			time_incs_json = fileMan.load_json('save/time/time_incs.json')
-			self.time_incs = time_incs_json['time_incs']
-			self.set_time_inc()
-		else:
-			self.time_inc = 0.1
 
 		#self.A_hv_diff = specs["A_hv_diff"]
 
@@ -134,13 +129,6 @@ class Vehicle():
 		self.prev = copy.deepcopy(self.cur)
 		self.cur = PhysicalStatus()
 
-	def set_adc_K(self, stages):
-		adc_K = 0.0
-		for stage_name, stage_values in stages.iteritems():
-			adc_K += stage_values["adc_K"]
-		self.adc_K = adc_K
-
-
 	def updateAlt (self, time_inc):
 		self.cur.alt = equ.altitude(self.prev.alt, self.prev.V.vert, self.cur.V.vert_inc, time_inc)
 
@@ -224,6 +212,12 @@ class Vehicle():
 		for name, stage in self.stages:
 			fuel_used += stage.fuel_used
 		return fuel_used
+
+	def list_engine_names(self):
+		engine_names = []
+		for engine in self.engines:
+			engine_names.append(engine.name)
+		return engine_names
 
 	def fuel_used_per_stage_report(self):
 		fuel_used = 0

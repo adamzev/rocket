@@ -32,6 +32,7 @@ class Main_program:
 		try:
 			self.HLV.cur.alt = event_file["initial_alt"]
 			self.HLV.ground_level = self.HLV.cur.alt
+			self.HLV.tower_height = event_file["tower_height"]
 		except IndexError:
 			sys.exit("Initial alt required in event file.")
 		self.starting_thrust = event_file["starting_thrust"]
@@ -55,7 +56,11 @@ class Main_program:
 		else:
 			rocket.cur.A_vert_eff = float(assigned_A_v)
 			rocket.cur.A.vert = assigned_A_v + rocket.prev.big_G
-			rocket.cur.A.update(False, True, True)
+			try:
+				rocket.cur.A.update(False, True, True)
+			except ValueError:
+				print("Invalid assigned A v")
+				exit()
 
 		rocket.update_V_inc(rocket.time_inc)
 		rocket.cur.V.horiz = rocket.prev.V.horiz + rocket.cur.V.horiz_inc
@@ -73,6 +78,7 @@ class Main_program:
 
 
 	def set_initial_conditions(self):
+
 		for eng_start in self.starting_throt:
 			self.HLV.setEngineThrottleOverride(eng_start["engine"], eng_start["throt"])
 			self.HLV.setEngineThrottleOverride(eng_start["engine"], eng_start["throt"])

@@ -15,22 +15,39 @@ from libs import fileManager as fileMan
 
 class VehicleFactory():
 	''' Creates vehicles (heavy lift vehicles) '''
-	def __init__():
+	def __init__(self):
 		pass
 
 
 	@classmethod
 	def create_vehicle(cls, specs, load_time_incs=False):
-		rocket = Vehicle(specs, load_time_incs=False)
-		stages = cls.init_stages(specs["stages"])
-		rocket.stages = stages
 
-		engines = []
-		cls.attach_engines(specs["engines"])
-		cls.set_engine_initial_fuel_source()
-		cls.set_adc_K(specs["stages"])
+		stages = cls.init_stages(specs["stages"])
+		engines = cls.create_engines(specs["engines"])
+		cls.set_engine_initial_fuel_source(engines, stages)
+
+		rocket = Vehicle(specs, stages, engines)
+		rocket.adc_K = cls.get_total_adc_K(specs["stages"])
+
+		rocket.time = 0.0
+		if load_time_incs:
+			time_incs_json = fileMan.load_json('save/time/time_incs.json')
+			rocket.time_incs = time_incs_json['time_incs']
+			rocket.set_time_inc()
+			rocket.load_time_incs = True
+		else:
+			rocket.time_inc = 0.1
+			rocket.load_time_incs = False
+
 
 		return rocket
+
+	@classmethod
+	def get_total_adc_K(cls, stages):
+		adc_K = 0.0
+		for stage_name, stage_values in stages.iteritems():
+			adc_K += stage_values["adc_K"]
+		return adc_K
 
 
 	@staticmethod
@@ -53,12 +70,12 @@ class VehicleFactory():
 		available_engines_json = fileMan.load_json("save/engine/rocketEngineData.json")
 		return available_engines_json["rocketEngines"]
 
-	@staticmethod
-	def load_engine_data(selected_engines):
+	@classmethod
+	def load_engine_data(cls, selected_engines):
 		''' Takes a json object with the engine_name and engine_count and loads the matching
 		engine data to a json object.
 		'''
-		available_engines = self.load_available_engines()
+		available_engines = cls.load_available_engines()
 		engine_data = []
 		for selected_engine in selected_engines:
 			name = selected_engine["engine_name"]
@@ -84,17 +101,18 @@ class VehicleFactory():
 			stages[stage_type] = Stage(stage_datum)
 		return stages
 
-	def set_engine_initial_fuel_source(self):
-		for engine in self.engines:
+	@staticmethod
+	def set_engine_initial_fuel_source(engines, stages):
+		for engine in engines:
 			if engine.type == "Solid":
-				engine.set_fuel_source(self.stages["SRB"])
-				self.stages["SRB"].fueling(engine)
+				engine.set_fuel_source(stages["SRB"])
+				stages["SRB"].fueling(engine)
 			elif engine.stage == "LFB":
-				engine.set_fuel_source(self.stages["LFB"])
-				self.stages["LFB"].fueling(engine)
+				engine.set_fuel_source(stages["LFB"])
+				stages["LFB"].fueling(engine)
 			else:
-				engine.set_fuel_source(self.stages["RLV"])
-				self.stages["RLV"].fueling(engine)
+				engine.set_fuel_source(stages["RLV"])
+				stages["RLV"].fueling(engine)
 
 
 
@@ -107,17 +125,13 @@ class VehicleFactory():
 	def create_engines(cls, selected_engines):
 		''' loads engine data from file matching the given names
 		'''
-		engine_data = Vehicle.load_engine_data(selected_engines)
+		engine_data = cls.load_engine_data(selected_engines)
 		engines = []
 		for engine in engine_data:
 			engines.append(cls.create_engine(engine))
 		return engines
 
+	@classmethod
+	def select_engines(cls, stage_name, fuel_type):
+		return cls.select_engine_from_list(stage_name, fuel_type)
 
-	def select_engines(stage_name, fuel_type):
-		return Vehicle.select_engine_from_list(stage_name, fuel_type)
-
-	def fueling(self, engine):
-		self.fueling_engines.append(engine)
-	def __str__(self):
-		return "Stage Name = {} Fuel Remaining = {} Burn Rate = {}".format(self.name, self.get_fuel_remaining(), self.get_fuel_burn_rate())

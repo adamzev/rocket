@@ -13,6 +13,14 @@ class Stage:
 		for key, value in stage_specs.iteritems():
 			setattr(self, key, value)
 
+	def __str__(self):
+		return "Stage Name = {} Fuel Remaining = {} Burn Rate = {}".format(self.name, self.get_fuel_remaining(), self.get_fuel_burn_rate())
+
+
+	def fueling(self, engine):
+		self.fueling_engines.append(engine)
+
+
 	def get_fuel_used(self):
 		return self.fuel_used
 
