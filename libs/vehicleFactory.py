@@ -135,3 +135,15 @@ class VehicleFactory():
 	def select_engines(cls, stage_name, fuel_type):
 		return cls.select_engine_from_list(stage_name, fuel_type)
 
+	@staticmethod
+	def collect_engine_details(engine_data):
+		func.pretty_json(engine_data)
+		engine_name = engine_data.keys()[0]
+		# only accept integer values but store as float for compatibility
+		count = float(q.query_int("How many {}s?".format(engine_name)))
+		this_engine = {}
+		this_engine["engine_count"] = count
+		this_engine["engine_name"] = engine_name
+		this_engine["stage"] = stage_name
+		print("{} {} engines are now attached.".format(int(count), this_engine["engine_name"]))
+		return this_engine

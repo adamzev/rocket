@@ -13,7 +13,7 @@ class EventManager:
 			"duration_type" : "interval",
 			"data_needed": [
 				{
-					"field" : "engine_name",
+					"field" : "engine",
 					"type" : "string_from_list",
 					"prompt" : "Select an engine from the list: "
 				},
@@ -30,7 +30,7 @@ class EventManager:
 			"duration_type" : "interval",
 			"data_needed": [
 				{
-					"field" : "engine_name",
+					"field" : "engine",
 					"type" : "string_from_list",
 					"prompt" : "Select an engine from the list: "
 				},
@@ -52,12 +52,12 @@ class EventManager:
 			"duration_type" : "interval",
 			"data_needed": [
 				{
-					"field" : "engine_name",
+					"field" : "engine",
 					"type" : "string_from_list",
 					"prompt" : "Select an engine from the list: "
 				},
 				{
-					"field" : "rate_of_change",
+					"field" : "rate",
 					"type" : "float",
 					"prompt" : "Enter the change in thrust per second (use a negative number for a decrease)\n Thrust: "
 				}
@@ -69,9 +69,14 @@ class EventManager:
 			"duration_type" : "instant",
 			"data_needed": [
 				{
-					"field" : "adjustment",
+					"field" : "amount",
 					"type" : "float",
 					"prompt" : "Enter the change in weight (use a negative number for a decrease) \n Weight: "
+				},
+				{
+					"field" : "pre",
+					"type" : "yes_no",
+					"prompt" : "Enter the change to this row (rather than the next)?: "
 				}
 			]
 		},
@@ -81,9 +86,14 @@ class EventManager:
 			"duration_type" : "instant",
 			"data_needed": [
 				{
-					"field" : "adjustment",
+					"field" : "amount",
 					"type" : "float",
 					"prompt" : "Enter the change in acceleration (use a negative number for a decrease)\nAcceleration: "
+				},
+				{
+					"field" : "pre",
+					"type" : "yes_no",
+					"prompt" : "Enter the change to this row (rather than the next)?: "
 				}
 			]
 		},
@@ -92,6 +102,11 @@ class EventManager:
 			"description": "Power down a rocket engine based on thrust. This is only used for solid fueled boosters.",
 			"duration_type" : "interval",
 			"data_needed": [
+				{
+					"field" : "engine",
+					"type" : "string_from_list",
+					"prompt" : "Select an engine from the list: "
+				},
 				{
 					"field" : "thrusts",
 					"type" : "array",
@@ -153,7 +168,7 @@ class EventManager:
 
 			if field["type"] == "string_from_list":
 
-				if field_name == "engine_name":
+				if field_name == "engine":
 					engine_name = q.query_from_list("engine", "Select an engine: ", self.rocket.list_engine_names(), False)
 					result[field_name] = engine_name
 
@@ -161,11 +176,17 @@ class EventManager:
 					result[field_name] = q.query_from_list("stage", "Select a stage: ", self.rocket.stages.keys(), False)
 
 			if field["type"] == "array":
-				for i in range(0, int((result["end_time"]- result["start_time"]) / 3) + 1):
-					result[field_name] = q.query_float(field["prompt"]+str(result["start_time"] + i))
+				values = []
+				for i in range(int(result["start_time"]), int(result["end_time"]), 3):
+					values.append(q.query_float(field["prompt"]+str(i)+": "))
+				result[field_name] = values
 
 			if field["type"] == "min_max_float":
 				result[field_name] = q.query_min_max(field["prompt"])
+
+			if field["type"] == "yes_no":
+				result[field_name] = q.query_yes_no(field["prompt"])
+
 		print result
 		return result
 

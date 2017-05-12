@@ -19,7 +19,7 @@ class Vehicle():
 		)
 
 		self.specs = specs
-
+		self.time_incs = None
 		self.stages = stages
 		self.engines = engines
 		self.load_time_incs = False
@@ -28,8 +28,10 @@ class Vehicle():
 		self.cur.V.vert = 0.0
 		self.tower_height = 0
 		self.ground_level = 0.0 # overwriten by initial alt
+		self.adc_K = 0.0
 		self.cur.A.horiz = 0.0
 		self.cur.A.vert = 0.0
+		self.A_hv_diff = 0.0
 		self.lift_off_weight = specs["lift_off_weight"]
 		self.cur.weight = self.lift_off_weight
 		self.prev = copy.deepcopy(self.cur)
@@ -238,22 +240,12 @@ class Vehicle():
 	def setEngineThrottleOverride(self, engineName, throt):
 		engines = self.find_engines(engineName)
 		for engine in engines:
-			if throt == "max":
-				engine.setThrottleOverride(engine.max_throt)
-			elif throt == "min":
-				engine.setThrottleOverride(engine.min_throt)
-			elif throt == "off":
-				engine.setThrottleOverride(0.0)
-			else:
-				engine.setThrottleOverride(throt)
+			engine.setThrottleOverride(throt)
 
 	def setEngineThrottle(self, engineName, throt, time_inc):
 		engines = self.find_engines(engineName)
 		for engine in engines:
-			if throt == "max":
-				engine.setThrottle(engine.max_throt, time_inc)
-			else:
-				engine.setThrottle(throt, time_inc)
+			engine.setThrottle(throt, time_inc)
 
 	def setEngineThrottleByStage(self, engineName, throt, stage):
 		engine = self.find_engine_by_stage(engineName, stage)
@@ -321,23 +313,29 @@ class Vehicle():
 			print "Name: {}\nThrottle: {}\nThrust: {}\nFuel Used: {}".format(engine.name, engine.get_throt(),engine.get_thrust_total(), engine.get_fuel_used())
 
 	def handle_event(self, event):
-		if event["name"] == "Adjust weight":
+		event_handled = False
+		if event["name"] == "Adjust Weight":
+			event_handled = True
 			print "Adjusting weight"
 			self.lift_off_weight += event["amount"]
-		if event["name"] == "Adjust acceleration":
+		if event["name"] == "Adjust Acceleration":
+			event_handled = True
 			print "Adjusting weight"
 			self.cur.A.total += event["amount"]
+		assert event_handled
 
 	def handle_stage_event(self, event):
+		event_handled = False
 		stage = self.stages[event["stage"]]
 		start_time = event["start_time"]
 		end_time = event["end_time"]
 
 		if event["name"] == "Set Target Throttle By Stage":
+			event_handled = True
 			self.setEngineThrottleByStage(event["engine"], event["target"], event["stage"])
 
-
 		if event["name"] == "Jettison":
+			event_handled = True
 			stage.jettison()
 			self.adc_K -= stage.adc_K
 			for engine in self.engines:
@@ -348,25 +346,32 @@ class Vehicle():
 					#orbiter engines use RLV as fuel source until RLV is jettisoned
 					engine.set_fuel_source(self.stages["orbiter"])
 
+		assert event_handled
+
 	def handle_engine_event(self, event):
+		event_handled = False
 		engines = self.find_engines(event["engine"])
 		start_time = event["start_time"]
 		end_time = event["end_time"]
 		time_inc = self.get_time_inc()
 		for engine in engines:
-			if event["name"] == "Reduce Thrust" and self.time < event["end_time"]:
-				engine.reduceThrust(event["rate"], time_inc)
+			if event["name"] == "Change Thrust":
+				event_handled = True
+				if self.time < event["end_time"]:
+					engine.changeThrust(event["rate"], time_inc)
 
-			if event["name"] == "Power Down":
+			if event["name"] == "Power Down Thrust":
+				event_handled = True
 				engine.power_down(start_time, end_time, self.time, time_inc, self.cur.alt)
 
-			if event["name"] == "Increase Throttle By Max Rate-Of-Change":
-				engine.setThrottle(engine.max_throt, time_inc)
-
-			if event["name"] == "Reduce Throttle By Max Rate-Of-Change":
-				engine.setThrottle(engine.min_throt, time_inc)
+			if event["name"] == "Set Throttle Target":
+				event_handled = True
+				target = event["target"]
+				engine.setThrottle(target, time_inc)
 
 			if event["name"] == "Engine Cut-off":
+				event_handled = True
 				engine.setThrottleOverride(0.0)
 				engine.setThrottleOverride(0.0)
 				print("\nEVENT: {} cut-off".format(engine.name))
+		assert event_handled

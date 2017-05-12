@@ -3,6 +3,7 @@ from util.text_interface import *
 from libs.rocketEngine import *
 from libs.stage import *
 import libs.vehicle
+import libs.vehicleFactory
 import libs.velocity
 import numpy as np
 
@@ -10,7 +11,7 @@ import numpy as np
 def prompt_thrust_at_alt():
 	print "Thrust at alt Calculator"
 	alt = float(raw_input("Alt? "))
-	engines = libs.vehicle.Vehicle.load_available_engines()
+	engines = libs.vehicleFactory.VehicleFactory.load_available_engines()
 	engine_list = []
 	n = 1
 	for key, value in engines.iteritems():
@@ -144,7 +145,7 @@ def prompt_preburn():
 	alt = query_float("What is the alt for the preburn? ")
 	preburn = Stage({})
 	engines = []
-	engine_rows = Vehicle.load_engine_data(spec_data["engines"])
+	engine_rows = VehicleFactory.load_engine_data(spec_data["engines"])
 	for engine_row in engine_rows:
 		engine = RocketEngine.factory(engine_row)
 		engine.set_fuel_source(preburn)

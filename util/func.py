@@ -6,6 +6,20 @@ import glob
 from colorama import init, Fore, Back, Style
 init()
 
+def is_float(the_string):
+	try:
+		x = float(the_string)
+		return True
+	except ValueError:
+		return False
+
+def is_int(the_string):
+	try:
+		x = int(the_string)
+		return True
+	except ValueError:
+		return False
+
 def remove_non_alphanumeric(your_string):
 	return re.sub(r'\W+', '', your_string)
 

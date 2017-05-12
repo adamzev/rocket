@@ -119,7 +119,7 @@ class Main_program:
 				if round(rocket.time, 4) >= event["start_time"] and round(rocket.time, 4) <= event["end_time"]:
 					if "stage" in event.keys():
 						rocket.handle_stage_event(event)
-					if "engine" in event.keys():
+					elif "engine" in event.keys():
 						rocket.handle_engine_event(event)
 					else:
 						rocket.handle_event(event)

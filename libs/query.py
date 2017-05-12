@@ -1,4 +1,5 @@
 import sys
+from util import func
 
 def query_multiple(queries):
 	results = {}
@@ -58,21 +59,6 @@ def query_yes_no(question, default="yes"):
 							 "(or 'y' or 'n').\n")
 
 
-def is_float(the_string):
-	try:
-		x = float(the_string)
-		return True
-	except ValueError:
-		return False
-
-def is_int(the_string):
-	try:
-		x = int(the_string)
-		return True
-	except ValueError:
-		return False
-
-
 def query_float(question, default=None):
 	"""Ask a question via raw_input() and return their answer.
 
@@ -89,7 +75,7 @@ def query_float(question, default=None):
 		choice = choice.replace(",", "")
 		if default is not None and choice == '':
 			return default
-		elif is_float(choice):
+		elif func.is_float(choice):
 			return float(choice)
 		else:
 			sys.stdout.write("Please respond with a valid number.\n")
@@ -109,7 +95,7 @@ def query_int(question, default=None, min_num=None, max_num=None):
 		choice = choice.replace(",", "")
 		if default is not None and choice == '':
 			return default
-		if is_int(choice):
+		if func.is_int(choice):
 			choice = int(choice)
 			if min_num is None and max_num is None:
 				return choice
@@ -141,7 +127,7 @@ def query_min_max(question, min_num=0.0, max_num=1.0):
 		choice = raw_input().lower()
 		if choice == 'min' or choice == 'max' or choice == 'off':
 			return choice
-		elif is_float(choice) and min_num <= float(choice) <= max_num:
+		elif func.is_float(choice) and min_num <= float(choice) <= max_num:
 			return float(choice)
 		else:
 			sys.stdout.write("Please respond with 'min', 'max', 'off' or a number between {} and {}. \n".format(min_num, max_num))

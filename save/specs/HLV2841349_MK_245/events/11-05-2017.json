@@ -1,1 +1,149 @@
-{"tower_height": 500.0, "file_name": "save/specs/HLV2841349_MK_245/events/11-05-2017", "starting_thrust": [{"engine": "SRM", "thrust": 3600000.0, "stage": "SRB"}], "initial_alt": 0.0, "friendly_name": "11-05-2017", "A_hv_diff": 0.11, "starting_throt": [{"engine": "SRM", "throt": 1.0, "stage": "SRB"}, {"engine": "SSME", "throt": 0.7316, "stage": "orbiter"}, {"engine": "RL-10A4-2", "throt": 0.0, "stage": "orbiter"}, {"engine": "OME", "throt": 0.0, "stage": "orbiter"}, {"engine": "RD-171M", "throt": 0.727, "stage": "RLV"}, {"engine": "RS-68A", "throt": 0.7816, "stage": "RLV"}, {"engine": "SSME", "throt": 0.7316, "stage": "RLV"}, {"engine": "RD-171M", "throt": 0.727, "stage": "LFB"}], "events": [{"start_time": 0.0, "engine_name": "RS-68A", "target": 1.0, "name": "Set Throttle Target", "end_time": 3.0}, {"start_time": 0.0, "engine_name": "RD-171M", "target": 1.0, "name": "Set Throttle Target", "end_time": 3.0}, {"start_time": 0.0, "engine_name": "SSME", "target": 1.0, "name": "Set Throttle Target", "end_time": 3.0}, {"rate_of_change": -20000.0, "start_time": 24.0, "engine_name": "SRM", "name": "Change Thrust", "end_time": 45.0}, {"start_time": 60.0, "name": "Power Down Thrust", "thrusts": 3500000.0, "end_time": 75.0}, {"start_time": 75.0, "stage": "SRB", "name": "Jettison", "end_time": 75.0}, {"start_time": 135.83, "engine_name": "RD-171M", "target": 0.0, "name": "Set Throttle Target", "end_time": 138.83}, {"target": 0.0, "engine_name": "RS-68A", "start_time": 214.8078, "end_time": 218.1418, "stage": "RLV", "name": "Set Throttle Target By Stage"}, {"target": 0.0, "engine_name": "SSME", "start_time": 214.8078, "end_time": 218.1418, "stage": "RLV", "name": "Set Throttle Target By Stage"}, {"start_time": 218.1418, "stage": "RLV", "name": "Jettison", "end_time": 218.1418}, {"start_time": 218.1, "engine_name": "RL-10A4-2", "target": 1.0, "name": "Set Throttle Target", "end_time": 219.1}, {"start_time": 3.0, "adjustment": 0.002576, "name": "Adjust Acceleration", "end_time": 3.0}, {"start_time": 1.0, "adjustment": -152.6415, "name": "Adjust Weight", "end_time": 1.0}]}
+{
+    "tower_height": 300,
+    "file_name": "save/specs/HLV2841349_MK_245/events/11-05-2017",
+    "starting_thrust": [
+        {
+            "engine": "SRM",
+            "thrust": 3600000,
+            "stage": "SRB"
+        }
+    ],
+    "initial_alt": 0,
+    "friendly_name": "11-05-2017",
+    "A_hv_diff": 0.11,
+    "starting_throt": [
+        {
+            "engine": "SRM",
+            "throt": 1,
+            "stage": "SRB"
+        },
+        {
+            "engine": "SSME",
+            "throt": 0.7316,
+            "stage": "orbiter"
+        },
+        {
+            "engine": "RL-10A4-2",
+            "throt": 0,
+            "stage": "orbiter"
+        },
+        {
+            "engine": "OME",
+            "throt": 0,
+            "stage": "orbiter"
+        },
+        {
+            "engine": "RD-171M",
+            "throt": 0.727,
+            "stage": "RLV"
+        },
+        {
+            "engine": "RS-68A",
+            "throt": 0.7816,
+            "stage": "RLV"
+        },
+        {
+            "engine": "SSME",
+            "throt": 0.7316,
+            "stage": "RLV"
+        },
+        {
+            "engine": "RD-171M",
+            "throt": 0.727,
+            "stage": "LFB"
+        }
+    ],
+    "events": [
+        {
+            "start_time": 0,
+            "engine": "RS-68A",
+            "target": 1,
+            "name": "Set Throttle Target",
+            "end_time": 3
+        },
+        {
+            "start_time": 0,
+            "engine": "RD-171M",
+            "target": 1,
+            "name": "Set Throttle Target",
+            "end_time": 3
+        },
+        {
+            "start_time": 0,
+            "engine": "SSME",
+            "target": 1,
+            "name": "Set Throttle Target",
+            "end_time": 3
+        },
+        {
+            "rate": -20000,
+            "start_time": 24,
+            "engine": "SRM",
+            "name": "Change Thrust",
+            "end_time": 45
+        },
+        {
+            "start_time": 60,
+			"engine": "SRM",
+            "name": "Power Down Thrust",
+            "thrusts": 3500000,
+            "end_time": 75
+        },
+        {
+            "start_time": 75,
+            "stage": "SRB",
+            "name": "Jettison",
+            "end_time": 75
+        },
+        {
+            "start_time": 135.83,
+            "engine": "RD-171M",
+            "target": 0,
+            "name": "Set Throttle Target",
+            "end_time": 138.83
+        },
+        {
+            "target": 0,
+            "engine": "RS-68A",
+            "start_time": 214.8078,
+            "end_time": 218.1418,
+            "stage": "RLV",
+            "name": "Set Throttle Target By Stage"
+        },
+        {
+            "target": 0,
+            "engine": "SSME",
+            "start_time": 214.8078,
+            "end_time": 218.1418,
+            "stage": "RLV",
+            "name": "Set Throttle Target By Stage"
+        },
+        {
+            "start_time": 218.1418,
+            "stage": "RLV",
+            "name": "Jettison",
+            "end_time": 218.1418
+        },
+        {
+            "start_time": 218.1,
+            "engine": "RL-10A4-2",
+            "target": 1,
+            "name": "Set Throttle Target",
+            "end_time": 219.1
+        },
+        {
+            "start_time": 3,
+			"pre" : "True",
+            "amount": 0.002576,
+            "name": "Adjust Acceleration",
+            "end_time": 3
+        },
+        {
+            "start_time": 0,
+			"pre" : "True",
+            "amount": -152.6415,
+            "name": "Adjust Weight",
+            "end_time": 0
+        }
+    ]
+}
