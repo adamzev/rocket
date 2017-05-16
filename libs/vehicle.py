@@ -25,8 +25,13 @@ class Vehicle():
 		self.stages = stages
 		self.engines = engines
 		self.load_time_incs = False
+		self.V_v_target_hit = False # Has the rocket hit the V_v target
+		self.V_v_giveback_target_hit = False # Has the rocket hit the V_v giveback target
+		self.V_v_target = 0
+		self.V_v_giveback_target = 0
 		self.time = 0
 		self.cur.V.horiz_mph = earth_rotation_mph
+		self.A_ease_in = 0.1 # used to adjust the acceleration to ease in to the target V_v
 		self.cur.V.vert = 0.0
 		self.tower_height = 0
 		self.ground_level = 0.0 # overwriten by initial alt
@@ -135,6 +140,11 @@ class Vehicle():
 		self.time += self.time_inc
 		self.prev = copy.deepcopy(self.cur)
 		self.cur = PhysicalStatus()
+		self.check_state()
+
+	def check_state(self):
+		for name, stage in self.stages.iteritems():
+			stage.check_state()
 
 	def updateAlt (self, time_inc):
 		self.cur.alt = equ.altitude(self.prev.alt, self.prev.V.vert, self.cur.V.vert_inc, time_inc)
@@ -171,9 +181,7 @@ class Vehicle():
 		self.cur.V.horiz_mph = self.prev.V.horiz_mph + self.prev.V.horiz_mph_inc
 
 
-	def select_A_vert(self):
-		if self.prev.alt <= self.tower_height:
-			return "a"
+	def A_vert_formula(self, A_hv_diff):
 		A_horiz = A_vert_eff = 0.0
 		A = self.cur.A.total
 		G = self.prev.big_G
@@ -186,6 +194,24 @@ class Vehicle():
 			A_horiz_bump += 0.01
 
 		return A_vert_eff
+
+
+	def select_A_vert(self):
+		V_v_accuracy = 0.001
+		if self.prev.alt <= self.tower_height:
+			return "a"
+		
+		if not self.V_v_target_hit and not self.V_v_giveback_target_hit:
+			if func.almost_equal(self.V_v_target, self.prev.V.vert, V_v_accuracy):
+				self.V_vert_hit = True
+				return 0.0
+			elif self.prev.V.vert > self.V_v_target: # overshot target
+				self.A_ease_in /= 2.0
+				return -1.0 * self.A_ease_in 
+			elif self.prev.V.vert > self.V_v_target - self.V_v_target * .05: # within 5 percent of the target
+				return self.A_ease_in
+			else:
+				return self.A_vert_formula(self.A_hv_diff)
 
 	def updateA(self):
 		self.cur.A.set_raw(self.prev.force, self.cur.weight)

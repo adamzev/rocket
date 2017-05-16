@@ -73,3 +73,6 @@ def real_quadradric(a , b, c):
 ''' SET BREAKPOINTS BY '''
 def break_point():
 	import pdb; pdb.set_trace()
+
+def almost_equal(x,y,threshold=0.0001):
+	return abs(x-y) < threshold
