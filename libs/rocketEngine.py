@@ -7,10 +7,11 @@ import mode
 class RocketEngine:
 	def __init__(self, engineStats):
 		self.attached = True
-		self.throt = [0.0]
-		self.burn_rate = []
+		self.throt_cur = 0.0
+		self.throt_prev = 0.0
+		self.burn_rate = 0.0
 		self.messages = []
-		self.thrust_total = [0.0]
+		self.thrust_total = 0.0
 
 		# The following are overwritten by engine stats
 		self.min_throt = 0.0
@@ -63,31 +64,37 @@ class RocketEngine:
 		''' allows setting throttle without regard to the engine's max rate of change '''
 
 		requested_throt = self.requested_throt_to_float(requested_throt)
-		self.throt.append(requested_throt)
+		self.throt_cur = requested_throt
 
 	@property
 	def throt_avg(self):
 		return equ.average(self.get_throt(), self.get_throt("prev"))
 
 	def get_throt(self, when="current"):
-		return func.get_value(self.throt, when)
+		if when == "current":
+			return self.throt_cur
+		elif when == "prev":
+			return self.throt_prev
+		else:
+			raise ValueError("Only current and prev values stored")
 
 	def get_burn_rate(self, when="current"):
-		return func.get_value(self.burn_rate, when)
+		return self.burn_rate
 
 
 	def get_thrust_total(self, when="current"):
-		return func.get_value(self.thrust_total, when)
+		return self.thrust_total
 
-	def get_thrust_per_engine(self, when="current"):
-		return func.get_value(self.thrust_total, when) / self.engine_count
+	def get_thrust_per_engine(self):
+		return self.thrust_total / self.engine_count
 
 	def setThrottle(self, requested_throt, time_inc):
+		self.throt_prev = self.throt_cur
 		#Limit the throttle to its max change limit
 		requested_throt = self.requested_throt_to_float(requested_throt)
 
 		if requested_throt == self.get_throt():
-			self.throt.append(requested_throt)
+			self.throt_cur = requested_throt
 			return requested_throt
 
 		if requested_throt > self.get_throt():
@@ -103,16 +110,16 @@ class RocketEngine:
 			throt = requested_throt
 		if throt > self.max_throt:
 			logging.debug("Max Throt achieved for %s", self.name)
-			self.throt.append(self.max_throt)
+			self.throt_cur = self.max_throt
 		elif throt < self.min_throt:
 			if direction < 0:
 				logging.debug("%s Engine shutoff", self.name)
-				self.throt.append(0)
+				self.throt_cur = 0
 			else:
 				logging.debug("%s Engine set to min throt", self.name)
-				self.throt.append(self.min_throt)
+				self.throt_cur = self.min_throt
 		else:
-			self.throt.append(throt)
+			self.throt_cur = throt
 
 		if self.get_throt("prev") != self.get_throt():
 			self.messages.append("\nEVENT: {} Throttle {} from {} to {} time inc {}".format(self.name, verb, self.get_throt("prev"), self.get_throt(), time_inc))
@@ -122,14 +129,10 @@ class RocketEngine:
 		patm = equ.percentOfAtmosphericPressure(alt)
 		pctVac = 1.0 - patm
 		if mode.THROTTLE_FINAL_UP and self.get_throt("prev") < self.get_throt():
-			self.thrust_total.append(self.engine_count * self.get_throt() * (self.thrust_sl + (pctVac * (self.thrust_vac - self.thrust_sl))))
+			self.thrust_total = self.engine_count * self.get_throt() * (self.thrust_sl + (pctVac * (self.thrust_vac - self.thrust_sl)))
 		else:
-			self.thrust_total.append(self.engine_count * self.throt_avg * (self.thrust_sl + (pctVac * (self.thrust_vac - self.thrust_sl))))
+			self.thrust_total = self.engine_count * self.throt_avg * (self.thrust_sl + (pctVac * (self.thrust_vac - self.thrust_sl)))
 		return self.get_thrust_total()
-
-	def reduceThrottlePerc(self, perc):
-		''' reduces the throttle by a given percent. Not used? '''
-		self.throt.append(self.throt - perc)
 
 	def get_eff_fuel_burn_rate(self, for_all=True):
 		''' returns the average throttle times the burn rate '''
@@ -158,23 +161,22 @@ class SolidRocketEngine(RocketEngine):
 	engine_type = "Solid"
 	def __init__(self, engine_data):
 		RocketEngine.__init__(self, engine_data)
-		self.assigned_thrust = [0.0]
+		self.assigned_thrust = 0.0
 		self.assigned_burn_rates_for_SRM_power_down = [10064.81592, 8100, 5700, 4000, 2150, 0]
 		#self.assigned_burn_rates_for_SRM_power_down = [10195.695, 8750, 5500, 3500, 2150]
 		#self.assigned_thrust_per_engine_for_SRM_power_down = [3150000, 2729000, 2343000, 1473250, 937750, 576250, 0] other sim
 		self.assigned_thrust_per_engine_for_SRM_power_down = [2625000, 2120000, 1498500, 1055000, 568570, 0]
 	def set_assigned_thrust_per_engine(self, thrust):
-		self.thrust_total.append(thrust * self.engine_count)
+		self.thrust_total = thrust * self.engine_count
 
 	def burn_fuel(self, time_inc, alt):
 
 		if self.throt_avg > 0.0:
-			self.burn_rate.append(self.get_thrust_total()  / self.specific_impulse_at_alt(alt))
+			self.burn_rate = self.get_thrust_total()  / self.specific_impulse_at_alt(alt)
 			self.fuel_source.fuel_used += self.get_burn_rate() * time_inc * self.get_throt()
 		# print "solid rocket {} at alt {}".format(self.get_burn_rate(), alt)
 	def adjust_thrust_to_burn_at_rate_per_engine(self, rate, alt):
-		self.burn_rate.append(rate)
-		self.burn_rate.append(rate)
+		self.burn_rate = rate
 		thrust = rate * self.specific_impulse_at_alt(alt)
 		throt = thrust / self.thrust_sl
 
