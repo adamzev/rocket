@@ -8,6 +8,8 @@ class Stage:
 
 	def __init__(self, stage_specs):
 		self.fuel_used = 0.0
+		self.fuel = 0.0
+		self.name = "Not set"
 		self.fueling_engines = []
 		self.holding_engines = []
 		for key, value in stage_specs.iteritems():
@@ -16,6 +18,10 @@ class Stage:
 	def __str__(self):
 		return "Stage Name = {} Fuel Remaining = {} Burn Rate = {}".format(self.name, self.get_fuel_remaining(), self.get_fuel_burn_rate())
 
+
+	def check_state(self):
+		fuel_remaining = self.fuel - self.fuel_used
+		assert not self.attached or fuel_remaining > 0
 
 	def fueling(self, engine):
 		self.fueling_engines.append(engine)
@@ -26,7 +32,7 @@ class Stage:
 
 	def get_fuel_remaining(self):
 		fuel_remaining = self.fuel - self.fuel_used
-		assert not self.attached or fuel_remaining > 0
+		self.check_state
 		return fuel_remaining
 
 	def get_fuel_burn_rate(self):

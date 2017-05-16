@@ -135,6 +135,11 @@ class Vehicle():
 		self.time += self.time_inc
 		self.prev = copy.deepcopy(self.cur)
 		self.cur = PhysicalStatus()
+		self.check_state()
+
+	def check_state(self):
+		for name, stage in self.stages.iteritems():
+			stage.check_state()
 
 	def updateAlt (self, time_inc):
 		self.cur.alt = equ.altitude(self.prev.alt, self.prev.V.vert, self.cur.V.vert_inc, time_inc)

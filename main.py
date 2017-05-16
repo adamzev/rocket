@@ -113,10 +113,19 @@ class Main_program:
 		return ADC_prediction
 
 	def check_for_event(self, events, rocket, pre=False):
+		if mode.GIVEN_INTERVALS:
+			decimal_precision = 4
+		else:
+			if rocket.get_time_inc() == 0.1:
+				decimal_precision = 1
+			elif rocket.get_time_inc() == 0.01:
+				decimal_precision = 2
+			else:
+				raise ValueError("Unsupported time inc")
 		for event in events:
 			preEvent = "pre" in event
 			if (preEvent and pre) or (not preEvent and not pre): #is this a pre or post calculation event
-				if round(rocket.time, 4) >= event["start_time"] and round(rocket.time, 4) <= event["end_time"]:
+				if round(rocket.time, decimal_precision) >= event["start_time"] and round(rocket.time, decimal_precision) <= event["end_time"]:
 					if "stage" in event.keys():
 						rocket.handle_stage_event(event)
 					elif "engine" in event.keys():
