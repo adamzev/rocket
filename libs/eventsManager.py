@@ -25,7 +25,7 @@ class EventManager:
 			]
 		},
 		{
-			"name" :"Set Throttle Target By Stage",
+			"name" :"Set Target Throttle By Stage",
 			"description": "Set the target throttle for all engines that match a name in a given stage",
 			"duration_type" : "interval",
 			"data_needed": [

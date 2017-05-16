@@ -8,6 +8,7 @@ from util.text_interface import *
 import util.func as func
 import libs.query as q
 from libs import fileManager as fileMan
+import mode
 
 class Vehicle():
 
@@ -20,6 +21,7 @@ class Vehicle():
 
 		self.specs = specs
 		self.time_incs = None
+		self.time_inc = 0.1
 		self.stages = stages
 		self.engines = engines
 		self.load_time_incs = False
@@ -110,9 +112,12 @@ class Vehicle():
 				break
 
 	def get_time_inc(self):
-		for timeIncrements in self.time_incs:
-			if round(self.time, 4) < timeIncrements["until"]:
-				return timeIncrements["time_inc"]
+		if mode.GIVEN_INTERVALS:
+			for timeIncrements in self.time_incs:
+				if round(self.time, 4) < timeIncrements["until"]:
+					return timeIncrements["time_inc"]
+		else:
+			return self.time_inc
 
 	def get_A_vert_eff_avg(self):
 		A_vert_eff = equ.average(self.cur.A.vert_eff, self.prev.A.vert_eff)
@@ -167,11 +172,11 @@ class Vehicle():
 
 
 	def select_A_vert(self):
-		if self.cur.alt <= self.tower_height:
+		if self.prev.alt <= self.tower_height:
 			return "a"
 		A_horiz = A_vert_eff = 0.0
 		A = self.cur.A.total
-		G = self.cur.big_G
+		G = self.prev.big_G
 
 		A_horiz_bump = 0.01
 		while A_horiz <= A_vert_eff + self.A_hv_diff:
@@ -247,7 +252,7 @@ class Vehicle():
 		for engine in engines:
 			engine.setThrottle(throt, time_inc)
 
-	def setEngineThrottleByStage(self, engineName, throt, stage):
+	def setEngineThrottleByStage(self, engineName, throt, time_inc, stage):
 		engine = self.find_engine_by_stage(engineName, stage)
 		if throt == "max":
 			engine.setThrottle(engine.max_throt)
@@ -256,7 +261,7 @@ class Vehicle():
 		elif throt == "off":
 			engine.setThrottle(0.0)
 		else:
-			engine.setThrottle(throt)
+			engine.setThrottle(throt,time_inc)
 
 
 	def setEngineAssignedThrustPerEngine(self, engineName, thrust):
@@ -273,10 +278,12 @@ class Vehicle():
 		return engine.throt
 
 	def print_engines(self):
+		''' Prints the name, count and stage of the vehicles engines '''
 		for engine in self.engines:
 			print engine.name, engine.engine_count, engine.stage
 
 	def display_engine_messages(self):
+		''' Prints and empties the queue of engine messages '''
 		for engine in self.engines:
 			for message in engine.messages:
 				print (message)
@@ -303,16 +310,17 @@ class Vehicle():
 		return engines
 
 
-	def engine_status(self, engineName = None):
+	def engine_status(self, engineName=None):
 		''' Prints the Throttle, thrust and fuel used for every engine '''
 		if engineName:
 			engines = [self.find_engine(engineName)]
 		else:
 			engines = self.engines
 		for engine in engines:
-			print "Name: {}\nThrottle: {}\nThrust: {}\nFuel Used: {}".format(engine.name, engine.get_throt(),engine.get_thrust_total(), engine.get_fuel_used())
+			print "Name: {}\nThrottle: {}\nThrust: {}\nFuel Used: {}".format(engine.name, engine.get_throt(), engine.get_thrust_total(), engine.get_fuel_used())
 
 	def handle_event(self, event):
+		''' Takes an event object (with name and event specific keys) and calls functions relating to that '''
 		event_handled = False
 		if event["name"] == "Adjust Weight":
 			event_handled = True
@@ -325,14 +333,15 @@ class Vehicle():
 		assert event_handled
 
 	def handle_stage_event(self, event):
+		''' Takes an event object (with name, stage and event specific keys) and calls functions relating to that '''
 		event_handled = False
 		stage = self.stages[event["stage"]]
-		start_time = event["start_time"]
-		end_time = event["end_time"]
+		start_time = event["start_time"] #pylint: disable=W0612
+		end_time = event["end_time"] #pylint: disable=W0612
 
 		if event["name"] == "Set Target Throttle By Stage":
 			event_handled = True
-			self.setEngineThrottleByStage(event["engine"], event["target"], event["stage"])
+			self.setEngineThrottleByStage(event["engine"], event["target"], self.get_time_inc(), event["stage"])
 
 		if event["name"] == "Jettison":
 			event_handled = True
@@ -349,6 +358,7 @@ class Vehicle():
 		assert event_handled
 
 	def handle_engine_event(self, event):
+		''' Takes an event object (with name, engine and event specific keys) and calls functions relating to that '''
 		event_handled = False
 		engines = self.find_engines(event["engine"])
 		start_time = event["start_time"]

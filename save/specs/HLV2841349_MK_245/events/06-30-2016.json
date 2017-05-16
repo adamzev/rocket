@@ -103,12 +103,18 @@
             "end_time": 138.83
         },
         {
+            "start_time": 138.83,
+            "stage": "LFB",
+            "name": "Jettison",
+            "end_time": 138.83
+        },
+        {
             "target": 0,
             "engine": "RS-68A",
             "start_time": 214.8078,
             "end_time": 218.1418,
             "stage": "RLV",
-            "name": "Set Throttle Target By Stage"
+            "name": "Set Target Throttle By Stage"
         },
         {
             "target": 0,
@@ -116,7 +122,7 @@
             "start_time": 214.8078,
             "end_time": 218.1418,
             "stage": "RLV",
-            "name": "Set Throttle Target By Stage"
+            "name": "Set Target Throttle By Stage"
         },
         {
             "start_time": 218.1418,

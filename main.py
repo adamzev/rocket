@@ -3,7 +3,7 @@ import logging
 import copy
 import pprint
 import sys
-from mode import *
+import mode
 
 from generalEquations import *
 from util.text_interface import *
@@ -48,19 +48,19 @@ class Main_program:
 		rocket.updateWeight(rocket.time_inc)
 		rocket.updateA()
 		self.check_for_event(events, rocket, True)
+		if not mode.GIVEN_AVS:
+			assigned_A_v = rocket.cur.A_vert_eff = rocket.select_A_vert()
 		if assigned_A_v == "a" or assigned_A_v == "all":
 			rocket.cur.A.vert = rocket.cur.A.total
 			rocket.cur.A.horiz = 0.0
 			rocket.cur.A.vert_eff = rocket.cur.A.vert - rocket.prev.big_G
-
 		else:
-			rocket.cur.A_vert_eff = float(assigned_A_v)
-			rocket.cur.A.vert = assigned_A_v + rocket.prev.big_G
+			rocket.cur.A.vert = rocket.cur.A_vert_eff + rocket.prev.big_G
 			try:
 				rocket.cur.A.update(False, True, True)
 			except ValueError:
-				print("Invalid assigned A v")
-				exit()
+				print("Invalid assigned A v. A v = {} A total = {}".format(rocket.cur.A.vert, rocket.cur.A.total))
+				raise
 
 		rocket.update_V_inc(rocket.time_inc)
 		rocket.cur.V.horiz = rocket.prev.V.horiz + rocket.cur.V.horiz_inc
@@ -78,7 +78,7 @@ class Main_program:
 
 
 	def set_initial_conditions(self):
-
+		''' sets the initial thrusts and throttles of the engines '''
 		for eng_start in self.starting_throt:
 			self.HLV.setEngineThrottleOverride(eng_start["engine"], eng_start["throt"])
 			self.HLV.setEngineThrottleOverride(eng_start["engine"], eng_start["throt"])
@@ -92,7 +92,7 @@ class Main_program:
 		''' returns a ADC prediction based on test runs of different ADC values '''
 		threshold = 0.000001
 		ADC_error = 100000.0
-		ADC_prediction = 0.0
+		ADC_prediction = rocket.cur.ADC_actual
 		tries = 0
 		while abs(ADC_error) > threshold:
 			rocket_copy = copy.deepcopy(rocket)
@@ -103,10 +103,10 @@ class Main_program:
 			#except ValueError:
 			#	ADC_error = 100000.0
 			#	ADC_prediction = ADC_prediction / 2.0
-			#ADC_error = rocket_copy.cur.ADC_error
-			#ADC_actual = rocket_copy.cur.ADC_actual
+			ADC_error = rocket_copy.cur.ADC_error
+			ADC_actual = rocket_copy.cur.ADC_actual
 			#print ("Predicted ADC = {}\nerror={}\nadc_calc={}".format(ADC_prediction*10000.0, ADC_error*10000.0, ADC_actual*10000.0))
-			#ADC_prediction -= ADC_error/2.0
+			ADC_prediction -= ADC_error/2.0
 			#print ("New Prediction = {}".format(ADC_prediction*10000.0))
 			rocket_copy = None
 			tries += 1
@@ -157,21 +157,7 @@ class Main_program:
 	def sim_rocket(self):
 		''' Main function for conducting a rocket simulation '''
 		i = 0
-		asssigned_vs = ["a", "a", "a", "a", 0.580023, 0.555, 0.548, 0.535, 0.532, 0.524, 0.505, 0.49, 0.485, 0.48, 0.482, 0.49, 0.5,
-			0.524, 0.550, 0.585, 0.622, 0.655, 0.679, 0.665, 0.695, 0.725, 0.740, 0.740, 0.73, 0.72, 0.72, 0.72, .7, 0.68, 0.59,
-			0.5, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.08, 0.030147717, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-			0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-			0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.2, -0.4, -0.4, -0.39, -0.38, -0.37, -0.36, -0.35, -0.34, -0.33,
-			-0.32, -0.31, -0.30, -0.29, -0.28, -0.27, -0.26, -0.26, -0.25, -0.24, -0.23, -0.22, -0.21, -0.2, -0.19, -0.18, -0.17, -0.16
-			-0.15, -0.14, -0.13, -0.12, -0.12, -0.12, -0.12, -0.12, -0.12, -0.11, -0.10, -0.026826337, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-			0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
-		]
 
-		predictedADCs = [0.00079, 0.00285, 0.0142, 0.0328, 0.0611, 0.1000, 0.1546, 0.2021, 0.2582, 0.314, 0.368, 0.4164, 0.4616, 0.5010, 0.5353, 0.5635,
-			0.5853, 0.6026, 0.6086, 0.6136, 0.6185, 0.592, 0.595, 0.5605, 0.5172, 0.4775, 0.4775, 0.4287, 0.374, 0.3467, 0.3167, 0.279, 0.2476, 0.2174,
-			0.1894, 0.1642, 0.1424, 0.1237, 0.1074, 0.08978, 0.0815, 0.07162, 0.06283, 0.05383, 0.04916, 0.044155, 0.03816, 0.0365, 0.0360, 0.0346, 0.0331, 0.0331,
-
-		]
 		while self.HLV.cur.V.horiz_mph < self.COAST_SPEED:
 			if GIVEN_AVS:
 				try:
@@ -180,7 +166,7 @@ class Main_program:
 					print "Sim complete"
 					break
 			else:
-				assigned_A_v = self.HLV.select_A_vert()
+				assigned_A_v = None
 			i += 1
 
 			self.compute_row(self.HLV, self.events, assigned_A_v)
@@ -195,7 +181,7 @@ class Main_program:
 				print(self.HLV)
 				self.HLV.save_current_row()
 				self.HLV.display_engine_messages()
-			self.HLV.fuel_used_per_stage_report()
+			# self.HLV.fuel_used_per_stage_report()
 
 print(TITLE)
 Rocketman = Main_program()

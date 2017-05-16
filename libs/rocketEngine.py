@@ -2,6 +2,7 @@ import logging
 from util import func
 from util.text_interface import *
 import generalEquations as equ
+import mode
 
 class RocketEngine:
 	def __init__(self, engineStats):
@@ -120,9 +121,10 @@ class RocketEngine:
 		''' calculates the thrust at altitude and stores and returns that value '''
 		patm = equ.percentOfAtmosphericPressure(alt)
 		pctVac = 1.0 - patm
-
-		self.thrust_total.append(self.engine_count * self.get_throt() * (self.thrust_sl + (pctVac * (self.thrust_vac - self.thrust_sl))))
-		print self.stage, self.name, self.get_thrust_total()
+		if mode.THROTTLE_FINAL_UP and self.get_throt("prev") < self.get_throt():
+			self.thrust_total.append(self.engine_count * self.get_throt() * (self.thrust_sl + (pctVac * (self.thrust_vac - self.thrust_sl))))
+		else:
+			self.thrust_total.append(self.engine_count * self.throt_avg * (self.thrust_sl + (pctVac * (self.thrust_vac - self.thrust_sl))))
 		return self.get_thrust_total()
 
 	def reduceThrottlePerc(self, perc):
@@ -142,7 +144,7 @@ class RocketEngine:
 		'''
 		if self.throt_avg > 0.0:
 			inc_fuel_used = self.get_eff_fuel_burn_rate() * time_inc
-			print self.name, self.stage, "\nthrot_avg", self.throt_avg, "\neff burn rate", self.get_eff_fuel_burn_rate(), "\ntime_inc", time_inc, "\nInc fuel used", inc_fuel_used, "\n"
+			# print self.name, self.stage, "\nthrot_avg", self.throt_avg, "\neff burn rate", self.get_eff_fuel_burn_rate(), "\ntime_inc", time_inc, "\nInc fuel used", inc_fuel_used, "\n"
 			self.fuel_source.fuel_used += inc_fuel_used
 
 	def specific_impulse_at_alt(self, alt):
@@ -183,16 +185,19 @@ class SolidRocketEngine(RocketEngine):
 		currentThrust = self.get_thrust_per_engine()
 		newThrust = currentThrust + rate * time_inc
 		self.set_assigned_thrust_per_engine(newThrust)
+		message = None
 		if rate < 0:
-			print("\nEVENT: Reduced thrust of {} to {}".format(self.name, newThrust))
+			message = "\nEVENT: Reduced thrust of {} to {}".format(self.name, newThrust)
 		if rate > 0:
-			print("\nEVENT: Increased thrust of {} to {}".format(self.name, newThrust))
+			message = "\nEVENT: Increased thrust of {} to {}".format(self.name, newThrust)
+		if message:
+			self.messages.append(message)
 
 	def power_down(self, start_time, end_time, time, time_inc, alt):
 		eventTime = end_time - start_time #
 		fuelRemaining = self.fuel_source.get_fuel_remaining()
 		srm_entry_mode = "array"
-		print ("\nEVENT: power down {}".format(self.name))
+		self.messages.append("\nEVENT: power down {}".format(self.name))
 		if srm_entry_mode == "manual":
 			thrust = raw_input("Enter the assigned SRM thrust per engine:")
 			self.set_assigned_thrust_per_engine(thrust)
