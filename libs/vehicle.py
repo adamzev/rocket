@@ -27,8 +27,8 @@ class Vehicle():
 		self.load_time_incs = False
 		self.V_v_target_hit = False # Has the rocket hit the V_v target
 		self.V_v_giveback_target_hit = False # Has the rocket hit the V_v giveback target
-		self.V_v_target = 0
-		self.V_v_giveback_target = 0
+		self.V_v_target = 0.0
+		self.V_v_giveback_target = 0.0
 		self.time = 0
 		self.cur.V.horiz_mph = earth_rotation_mph
 		self.A_ease_in = 0.1 # used to adjust the acceleration to ease in to the target V_v
@@ -197,17 +197,21 @@ class Vehicle():
 
 
 	def select_A_vert(self):
-		V_v_accuracy = 0.001
+		V_v_accuracy = 0.0000001
 		if self.prev.alt <= self.tower_height:
 			return "a"
-		
-		if not self.V_v_target_hit and not self.V_v_giveback_target_hit:
+
+		# giveback not implemented: and not self.V_v_giveback_target_hit
+		if self.V_v_target_hit:
+			return 0
+		else:
 			if func.almost_equal(self.V_v_target, self.prev.V.vert, V_v_accuracy):
-				self.V_vert_hit = True
+				print("V vert target of {} fps hit!".format(self.V_v_target))
+				self.V_v_target_hit = True
 				return 0.0
 			elif self.prev.V.vert > self.V_v_target: # overshot target
-				self.A_ease_in /= 2.0
-				return -1.0 * self.A_ease_in 
+				self.A_ease_in /= 1.5
+				return -1.0 * self.A_ease_in
 			elif self.prev.V.vert > self.V_v_target - self.V_v_target * .05: # within 5 percent of the target
 				return self.A_ease_in
 			else:
@@ -300,6 +304,7 @@ class Vehicle():
 
 
 	def get_engine_throttle(self, engineName):
+		''' Takes an engine name string and returns that engines throttle '''
 		engine = self.find_engine(engineName)
 		return engine.throt
 
@@ -343,7 +348,7 @@ class Vehicle():
 		else:
 			engines = self.engines
 		for engine in engines:
-			print "Name: {}\nThrottle: {}\nThrust: {}\nFuel Used: {}".format(engine.name, engine.get_throt(), engine.get_thrust_total(), engine.get_fuel_used())
+			print(engine)
 
 	def handle_event(self, event):
 		''' Takes an event object (with name and event specific keys) and calls functions relating to that '''
@@ -370,6 +375,7 @@ class Vehicle():
 			self.setEngineThrottleByStage(event["engine"], event["target"], self.get_time_inc(), event["stage"])
 
 		if event["name"] == "Jettison":
+			#func.break_point()
 			event_handled = True
 			stage.jettison()
 			self.adc_K -= stage.adc_K

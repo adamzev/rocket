@@ -24,7 +24,10 @@ class VehicleFactory():
 
 		stages = cls.init_stages(specs["stages"])
 		engines = cls.create_engines(specs["engines"])
+		cls.set_holding_engines(stages, engines)
 		cls.set_engine_initial_fuel_source(engines, stages)
+		for name, stage in stages.iteritems():
+			stage.attached_engine_report()
 
 		rocket = Vehicle(specs, stages, engines)
 		rocket.adc_K = cls.get_total_adc_K(specs["stages"])
@@ -42,6 +45,13 @@ class VehicleFactory():
 
 		return rocket
 
+	@classmethod
+	def set_holding_engines(cls, stages, engines):
+		''' adds the appropriate engines to each stage '''
+		for name, stage in stages.iteritems():
+			for engine in engines:
+				if engine.stage == stage.name:
+					stage.attach_engine(engine)
 	@classmethod
 	def get_total_adc_K(cls, stages):
 		adc_K = 0.0

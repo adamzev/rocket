@@ -15,9 +15,10 @@ logging.basicConfig(level=logging.INFO)
 
 class Main_program:
 	def __init__(self, specs = []):
+		self.messages = []
 		self.specs = specs
 		self.alt = 30.0
-		self.COAST_SPEED = 166000
+		self.COAST_SPEED = 16600
 		self.endTime = 10.0
 
 		self.specs = get_specs()
@@ -31,10 +32,14 @@ class Main_program:
 		self.events = event_file["events"]
 		try:
 			self.HLV.cur.alt = event_file["initial_alt"]
+			self.HLV.V_v_target = event_file["V_v_target"]
+			self.HLV.V_v_giveback_target = event_file["V_v_giveback_target"]
+
 			self.HLV.ground_level = self.HLV.cur.alt
 			self.HLV.tower_height = event_file["tower_height"]
 		except IndexError:
-			sys.exit("Initial alt required in event file.")
+			print("Initial alt, V_vert_target and giveback_target required in event file.")
+			raise
 		self.starting_thrust = event_file["starting_thrust"]
 		self.starting_throt = event_file["starting_throt"]
 
@@ -124,14 +129,20 @@ class Main_program:
 				raise ValueError("Unsupported time inc")
 		for event in events:
 			preEvent = "pre" in event
+			assert round(event["start_time"], decimal_precision) <= round(event["end_time"], decimal_precision)
 			if (preEvent and pre) or (not preEvent and not pre): #is this a pre or post calculation event
-				if round(rocket.time, decimal_precision) >= event["start_time"] and round(rocket.time, decimal_precision) <= event["end_time"]:
+				if round(event["start_time"], decimal_precision) <= round(rocket.time, decimal_precision) <= round(event["end_time"], decimal_precision):
 					if "stage" in event.keys():
 						rocket.handle_stage_event(event)
 					elif "engine" in event.keys():
 						rocket.handle_engine_event(event)
 					else:
 						rocket.handle_event(event)
+
+	def add_unique_message(self, message):
+		''' adds a message if it does not match the previous message '''
+		if not self.messages or message != self.messages[-1]:
+			self.messages.append(message)
 
 	def initialize_rocket(self):
 		self.check_for_event(self.events, self.HLV, True)
@@ -168,6 +179,11 @@ class Main_program:
 		i = 0
 
 		while self.HLV.cur.V.horiz_mph < self.COAST_SPEED:
+			''' prints and clears the message queue '''
+			for message in self.messages:
+				print(message)
+
+			self.messages = []
 			if GIVEN_AVS:
 				try:
 					assigned_A_v = asssigned_vs[i]
@@ -187,9 +203,9 @@ class Main_program:
 			else:
 				self.HLV.cur.ADC_predicted = self.predict_ADC(self.HLV, self.events, assigned_A_v)
 			if GIVEN_INTERVALS or round(self.HLV.time, 1).is_integer():
+				self.HLV.display_engine_messages()
 				print(self.HLV)
 				self.HLV.save_current_row()
-				self.HLV.display_engine_messages()
 			# self.HLV.fuel_used_per_stage_report()
 
 print(TITLE)
