@@ -26,18 +26,22 @@ class Vehicle():
 		self.engines = engines
 		self.load_time_incs = False
 		self.V_v_target_hit = False # Has the rocket hit the V_v target
+		self.V_v_start_giveback = False
 		self.V_v_giveback_target_hit = False # Has the rocket hit the V_v giveback target
+		self.A_v_giveback = -0.4
 		self.V_v_target = 0.0
 		self.V_v_giveback_target = 0.0
 		self.time = 0
 		self.cur.V.horiz_mph = earth_rotation_mph
 		self.A_ease_in = 0.1 # used to adjust the acceleration to ease in to the target V_v
+		self.A_ease_in_giveback = 0.1
 		self.cur.V.vert = 0.0
 		self.tower_height = 0
 		self.ground_level = 0.0 # overwriten by initial alt
 		self.adc_K = 0.0
 		self.cur.A.horiz = 0.0
 		self.cur.A.vert = 0.0
+		self.V_v_accuracy = 0.0000001
 		self.A_hv_diff = 0.0
 		self.lift_off_weight = specs["lift_off_weight"]
 		self.cur.weight = self.lift_off_weight
@@ -196,26 +200,54 @@ class Vehicle():
 		return A_vert_eff
 
 
+	def select_A_vert_for_V_v_target(self):
+		if func.almost_equal(self.V_v_target, self.prev.V.vert, self.V_v_accuracy):
+			print("V vert target of {} fps hit!".format(self.V_v_target))
+			self.V_v_target_hit = True
+			return 0.0
+		elif self.prev.V.vert > self.V_v_target: # overshot target
+			self.A_ease_in /= 1.5
+			return -1.0 * self.A_ease_in
+		elif self.prev.V.vert > self.V_v_target - self.V_v_target * .05: # within 5 percent of the target
+			return self.A_ease_in
+		else:
+			return self.A_vert_formula(self.A_hv_diff)
+
+	def select_A_vert_for_V_v_giveback(self):
+		if not self.V_v_giveback_target_hit:
+			if func.almost_equal(self.V_v_giveback_target, self.prev.V.vert, self.V_v_accuracy):
+				self.V_v_giveback_target_hit = True
+				return 0
+
+			# if A_v_giveback <= -0.10 slowly approach -0.10
+			# stop at -0.10 unless you've undershot
+			if abs(self.prev.V.vert - self.V_v_giveback_target) < 10:
+				if self.prev.V.vert > self.V_v_giveback_target:
+					return -1.0 * self.A_ease_in_giveback
+				else:
+					self.A_ease_in_giveback /= 1.5
+					return self.A_ease_in_giveback
+			elif self.prev.V.vert > self.V_v_giveback_target:
+				if self.A_v_giveback <= -0.10:
+					self.A_v_giveback += 0.0003
+				else:
+					return -0.10
+			return self.A_v_giveback
+		else:
+			return 0
+
+
 	def select_A_vert(self):
 		V_v_accuracy = 0.0000001
 		if self.prev.alt <= self.tower_height:
 			return "a"
 
-		# giveback not implemented: and not self.V_v_giveback_target_hit
-		if self.V_v_target_hit:
+		if self.V_v_start_giveback:
+			return self.select_A_vert_for_V_v_giveback()
+		elif self.V_v_target_hit:
 			return 0
 		else:
-			if func.almost_equal(self.V_v_target, self.prev.V.vert, V_v_accuracy):
-				print("V vert target of {} fps hit!".format(self.V_v_target))
-				self.V_v_target_hit = True
-				return 0.0
-			elif self.prev.V.vert > self.V_v_target: # overshot target
-				self.A_ease_in /= 1.5
-				return -1.0 * self.A_ease_in
-			elif self.prev.V.vert > self.V_v_target - self.V_v_target * .05: # within 5 percent of the target
-				return self.A_ease_in
-			else:
-				return self.A_vert_formula(self.A_hv_diff)
+			return self.select_A_vert_for_V_v_target()
 
 	def updateA(self):
 		self.cur.A.set_raw(self.prev.force, self.cur.weight)
@@ -361,6 +393,11 @@ class Vehicle():
 			event_handled = True
 			print "Adjusting weight"
 			self.cur.A.total += event["amount"]
+		if event["name"] == "Giveback V Vert":
+			event_handled = True
+			print("EVENT: Starting to giveback V vert to {}fps".format(event["target"]))
+			self.V_v_giveback_target = event["target"]
+			self.V_v_start_giveback = True
 		assert event_handled
 
 	def handle_stage_event(self, event):

@@ -14,9 +14,9 @@ from libs.vehicleFactory import VehicleFactory
 logging.basicConfig(level=logging.INFO)
 
 class Main_program:
-	def __init__(self, specs = []):
+	def __init__(self):
+		''' initializes the main program '''
 		self.messages = []
-		self.specs = specs
 		self.alt = 30.0
 		self.COAST_SPEED = 16600
 		self.endTime = 10.0
@@ -33,7 +33,6 @@ class Main_program:
 		try:
 			self.HLV.cur.alt = event_file["initial_alt"]
 			self.HLV.V_v_target = event_file["V_v_target"]
-			self.HLV.V_v_giveback_target = event_file["V_v_giveback_target"]
 
 			self.HLV.ground_level = self.HLV.cur.alt
 			self.HLV.tower_height = event_file["tower_height"]

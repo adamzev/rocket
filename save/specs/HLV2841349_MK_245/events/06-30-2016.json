@@ -12,7 +12,6 @@
     "friendly_name": "11-05-2017",
     "A_hv_diff": 0.11,
     "V_v_target": 2000,
-    "V_v_giveback_target": 1200,
     "starting_throt": [
         {
             "engine": "SRM",
@@ -62,6 +61,12 @@
             "target": 1,
             "name": "Set Throttle Target",
             "end_time": 3
+        },
+        {
+            "start_time": 215.8,
+            "target": 1200,
+            "name": "Giveback V Vert",
+            "end_time": 215.8
         },
         {
             "start_time": 0,
