@@ -126,6 +126,18 @@ class EventManager:
 				}
 			]
 		},
+		{
+			"name" :"Giveback V Vert",
+			"description": "Select a V Vert giveback target and time to start reducing V vert.",
+			"duration_type" : "instant",
+			"data_needed": [
+				{
+					"field" : "target",
+					"type" : "float",
+					"prompt" : "Enter the giveback target V vert in fps (typically 1200fps): "
+				}
+			]
+		},
 
 	]
 	def __init__(self, rocket):
@@ -133,20 +145,23 @@ class EventManager:
 		self.collect_version()
 		self.collect_starting_engine_settings()
 		self.collect_launch_pad()
-		self.collect_A_v_goals()
+		self.collect_goals()
 		self.select_from_list_of_available_events()
 
 
 	def collect_launch_pad(self):
+		''' queries and stores event info regarding the initial alt and tower height '''
 		initial_alt = q.query_float("What is initial alt? ")
 		tower_height = q.query_float("What is tower height?  ")
 		self.events["initial_alt"] = initial_alt
 		self.events["tower_height"] = tower_height
 
 
-	def collect_A_v_goals(self):
+	def collect_goals(self):
 		A_hv_diff = q.query_float("What is desired A_h - A_v difference? ")
 		self.events["A_hv_diff"] = A_hv_diff
+		V_v_target = q.query_float("What is desired V vert target (typically 2000fps)? ")
+		self.events["V_v_target"] = V_v_target
 
 
 	def collect_event_details(self, event):

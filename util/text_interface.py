@@ -4,6 +4,7 @@ from datetime import date
 import time
 import libs.rocketEngine
 from libs.vehicle import Vehicle
+from libs.vehicleFactory import VehicleFactory
 from libs.stage import Stage
 import libs.query as q
 import func
@@ -71,7 +72,8 @@ def create_specs():
 
 	selected_engines = []
 	for stage_name, stage_data in stages.iteritems():
-		selected_engines += Stage.select_engines(stage_name, stage_data["fuel_type"])
+		print (stage_name)
+		selected_engines += VehicleFactory.select_engines(stage_name, stage_data["fuel_type"])
 	friendly_name = "{} MK {}".format(name, MK)
 	clean_name = func.remove_non_alphanumeric(name)
 	clean_MK = func.remove_non_alphanumeric(MK)

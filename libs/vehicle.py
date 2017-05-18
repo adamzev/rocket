@@ -190,6 +190,9 @@ class Vehicle():
 		A = self.cur.A.total
 		G = self.prev.big_G
 
+		self.A_hv_diff = (self.prev.A.horiz + self.prev.A.vert_eff) * 0.4 -0.38
+		if self.A_hv_diff < 0.020:
+			self.A_hv_diff = 0.020
 		A_horiz_bump = 0.01
 		while A_horiz <= A_vert_eff + self.A_hv_diff:
 			A_horiz = ((sqrt(2.0*A**2.0 - G**2.0))-G)/2.0 + A_horiz_bump
@@ -201,6 +204,9 @@ class Vehicle():
 
 
 	def select_A_vert_for_V_v_target(self):
+		''' In order to have the rocket approach and hit a vertical velocity target,
+		a vertical acceleration is chosen.
+		'''
 		if func.almost_equal(self.V_v_target, self.prev.V.vert, self.V_v_accuracy):
 			print("V vert target of {} fps hit!".format(self.V_v_target))
 			self.V_v_target_hit = True
@@ -214,6 +220,9 @@ class Vehicle():
 			return self.A_vert_formula(self.A_hv_diff)
 
 	def select_A_vert_for_V_v_giveback(self):
+		''' In order to have the rocket reduce to and hit a vertical velocity giveback target,
+		a vertical acceleration is chosen.
+		'''
 		if not self.V_v_giveback_target_hit:
 			if func.almost_equal(self.V_v_giveback_target, self.prev.V.vert, self.V_v_accuracy):
 				self.V_v_giveback_target_hit = True
@@ -238,7 +247,6 @@ class Vehicle():
 
 
 	def select_A_vert(self):
-		V_v_accuracy = 0.0000001
 		if self.prev.alt <= self.tower_height:
 			return "a"
 

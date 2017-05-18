@@ -62,7 +62,7 @@ class RocketEngine:
 
 	def setThrottleOverride(self, requested_throt):
 		''' allows setting throttle without regard to the engine's max rate of change '''
-
+		self.throt_prev = self.throt_cur
 		requested_throt = self.requested_throt_to_float(requested_throt)
 		self.throt_cur = requested_throt
 

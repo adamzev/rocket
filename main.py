@@ -7,7 +7,7 @@ import mode
 
 from generalEquations import *
 from util.text_interface import *
-from title import *
+import util.title as title
 from libs import *
 from libs.vehicleFactory import VehicleFactory
 
@@ -24,7 +24,7 @@ class Main_program:
 		self.specs = get_specs()
 		assert self.specs is not False
 
-		if QUICKRUN:
+		if mode.QUICKRUN:
 			self.HLV = VehicleFactory.create_vehicle(self.specs, True)
 		else:
 			self.HLV = VehicleFactory.create_vehicle(self.specs)
@@ -160,7 +160,7 @@ class Main_program:
 		self.check_for_event(self.events, self.HLV)
 
 		self.HLV.cur.force = self.HLV.get_total_thrust()
-		if QUICKRUN:
+		if mode.QUICKRUN:
 			self.HLV.cur.ADC_predicted = 0.00023
 		else:
 			self.HLV.cur.ADC_predicted = self.predict_ADC(self.HLV, self.events, "a")
@@ -183,7 +183,7 @@ class Main_program:
 				print(message)
 
 			self.messages = []
-			if GIVEN_AVS:
+			if mode.GIVEN_AVS:
 				try:
 					assigned_A_v = asssigned_vs[i]
 				except IndexError:
@@ -194,20 +194,20 @@ class Main_program:
 			i += 1
 
 			self.compute_row(self.HLV, self.events, assigned_A_v)
-			if GIVEN_GUESSES:
+			if mode.GIVEN_GUESSES:
 				try:
 					self.HLV.cur.ADC_predicted = predictedADCs.pop(0)
 				except IndexError:
 					self.HLV.cur.ADC_predicted = 0.0
 			else:
 				self.HLV.cur.ADC_predicted = self.predict_ADC(self.HLV, self.events, assigned_A_v)
-			if GIVEN_INTERVALS or round(self.HLV.time, 1).is_integer():
+			if mode.GIVEN_INTERVALS or round(self.HLV.time, 1).is_integer():
 				self.HLV.display_engine_messages()
 				print(self.HLV)
 				self.HLV.save_current_row()
 			# self.HLV.fuel_used_per_stage_report()
 
-print(TITLE)
+print(title.TITLE)
 Rocketman = Main_program()
 Rocketman.set_initial_conditions()
 Rocketman.initialize_rocket()

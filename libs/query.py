@@ -132,7 +132,7 @@ def query_min_max(question, min_num=0.0, max_num=1.0):
 		else:
 			sys.stdout.write("Please respond with 'min', 'max', 'off' or a number between {} and {}. \n".format(min_num, max_num))
 
-def query_from_list(list_name, intro, options, select_multiple=True, callback=None, min_selections = 1):
+def query_from_list(list_name, intro, options, select_multiple=True, callback=None, min_selections=1):
 	''' Creates a simple text menu that numbers options
 		Options are either a dict containting a "name" key or list of strings
 		Can be used to select one option or an array of multiple options
@@ -149,6 +149,8 @@ def query_from_list(list_name, intro, options, select_multiple=True, callback=No
 				item_name = option["name"]
 			except TypeError:
 				item_name = option
+			except KeyError:
+				item_name = option.keys()[0]
 			print("{}) {}".format(n, item_name))
 			n += 1
 

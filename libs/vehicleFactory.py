@@ -60,20 +60,20 @@ class VehicleFactory():
 		return adc_K
 
 
-	@staticmethod
-	def select_engine_from_list(stage_name=None, fuel_type=None):
+	@classmethod
+	def select_engine_from_list(cls, stage_name=None, fuel_type=None):
 		''' select an engine from a list
 		Returns False if the user is done entering engines
 		'''
-		engines = self.load_available_engines()
+		engines = cls.load_available_engines()
 		compatable_engines = []
 		for key, value in engines.iteritems():
-			if fuel_type == None or fuel_type == value['type']:
+			if fuel_type is None or fuel_type == value['type']:
 				compatable_engines.append({key:value})
 
-		selected_engines = q.query_from_list("engine", "Select an engine number: ", compatable_engines, True, lambda x: RocketEngine.collect_engine_details(x, stage_name))
+		selected_engines = q.query_from_list("engine", "Select an engine number: ", compatable_engines, True, lambda x: cls.collect_engine_details(x, stage_name))
 		return selected_engines
-	
+
 	@staticmethod
 	def load_available_engines():
 		''' Loads the available engine json datafile '''
@@ -146,7 +146,7 @@ class VehicleFactory():
 		return cls.select_engine_from_list(stage_name, fuel_type)
 
 	@staticmethod
-	def collect_engine_details(engine_data):
+	def collect_engine_details(engine_data, stage_name):
 		func.pretty_json(engine_data)
 		engine_name = engine_data.keys()[0]
 		# only accept integer values but store as float for compatibility
