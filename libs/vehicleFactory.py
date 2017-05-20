@@ -13,7 +13,7 @@ import libs.query as q
 from libs import fileManager as fileMan
 
 
-class VehicleFactory():
+class VehicleFactory(object):
 	''' Creates vehicles (heavy lift vehicles) '''
 	def __init__(self):
 		pass
@@ -48,14 +48,14 @@ class VehicleFactory():
 	@classmethod
 	def set_holding_engines(cls, stages, engines):
 		''' adds the appropriate engines to each stage '''
-		for name, stage in stages.iteritems():
+		for stage in stages.values():
 			for engine in engines:
 				if engine.stage == stage.name:
 					stage.attach_engine(engine)
 	@classmethod
 	def get_total_adc_K(cls, stages):
 		adc_K = 0.0
-		for stage_name, stage_values in stages.iteritems():
+		for stage_values in stages.values():
 			adc_K += stage_values["adc_K"]
 		return adc_K
 

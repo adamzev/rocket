@@ -64,15 +64,21 @@ def get_value(myArray, when="current"):
 
 
 def real_quadradric(a , b, c):
+	''' returns the x values for given a, b, c where ax^2 + bx + c =0
+	Only handles quads with real results
+	'''
 	disc = b**2 - 4 * a * c
 	assert disc >= 0
 
 	x1 = (-b + disc**0.5)/(2.0*a)
 	x2 = (-b - disc**0.5)/(2.0*a)
+	return x1, x2
 
-''' SET BREAKPOINTS BY '''
+
 def break_point():
+	''' Inserts a breakpoint '''
 	import pdb; pdb.set_trace()
 
-def almost_equal(x,y,threshold=0.0001):
+def almost_equal(x, y, threshold=0.0001):
+	''' returns boolean regarding whether abs(x-y) is within a given threshold '''
 	return abs(x-y) < threshold

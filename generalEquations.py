@@ -50,14 +50,7 @@ def percentOfAtmosphericPressure(alt):
 def percentOfVac(alt):
 	''' Takes the altitude and returns the percent of vacuum (1 - atmospheric pressure)'''
 	return 1.0 - percentOfAtmosphericPressure(alt)
-'''
-Orbital Velocity (OV) is that horizontal velocity needed to counteract Earth's gravity at a given altitude
 
-OV decreases as you increase your radial distance from the center of the Earth, i.e. increase altitude.
-
-Alt in feet
-
-'''
 
 def mphToFps(mph):
 	return 5280.0*mph/(60.0*60.0)

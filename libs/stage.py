@@ -1,8 +1,5 @@
-import libs
 import util.func as func
 import generalEquations as equ
-import libs.query as q
-
 
 class Stage:
 
@@ -29,10 +26,14 @@ class Stage:
 			print(engine)
 
 	def check_state(self):
+		''' checks if the stage is in a valid state:
+		If it is attached, is fuel remaining positive?
+		'''
 		fuel_remaining = self.fuel - self.fuel_used
 		assert not self.attached or fuel_remaining > 0
 
 	def fueling(self, engine):
+		''' adds an engine to the list of engines that this stage is provide fuel for '''
 		self.fueling_engines.append(engine)
 
 

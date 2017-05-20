@@ -6,11 +6,10 @@ from stage import Stage
 import generalEquations as equ
 from util.text_interface import *
 import util.func as func
-import libs.query as q
 from libs import fileManager as fileMan
 import mode
 
-class Vehicle():
+class Vehicle(object):
 
 	def __init__(self, specs, stages, engines):
 		earth_rotation_mph = specs["earth_rotation_mph"]
@@ -20,7 +19,7 @@ class Vehicle():
 		)
 
 		self.specs = specs
-		self.time_incs = None
+		self.time_incs = {}
 		self.time_inc = 0.1
 		self.stages = stages
 		self.engines = engines
@@ -297,7 +296,7 @@ class Vehicle():
 		return engine_names
 
 	def fuel_used_per_stage_report(self):
-		fuel_used = 0
+		''' prints a report of stage names and fuel used '''
 		for name, stage in self.stages.iteritems():
 			print name, stage, stage.fuel_used
 

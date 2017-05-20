@@ -178,7 +178,6 @@ class SolidRocketEngine(RocketEngine):
 	def adjust_thrust_to_burn_at_rate_per_engine(self, rate, alt):
 		self.burn_rate = rate
 		thrust = rate * self.specific_impulse_at_alt(alt)
-		throt = thrust / self.thrust_sl
 
 		self.set_assigned_thrust_per_engine(thrust)
 		self.set_assigned_thrust_per_engine(thrust)
