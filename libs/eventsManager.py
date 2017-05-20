@@ -2,7 +2,7 @@ import libs.query as q
 from datetime import date
 import time
 from colorama import Fore, Back, Style
-from libs import Vehicle
+from libs.vehicle import Vehicle
 
 class EventManager:
 	events = {}

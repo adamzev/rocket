@@ -2,12 +2,12 @@ from math import sqrt
 import copy
 
 
-from vehicle import Vehicle
+from libs.vehicle import Vehicle
 from stage import Stage
 from rocketEngine import RocketEngine
 
 import generalEquations as equ
-from util.text_interface import *
+from libs.spec_creator import *
 import util.func as func
 import libs.query as q
 from libs import fileManager as fileMan

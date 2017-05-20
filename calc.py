@@ -1,5 +1,5 @@
 from generalEquations import *
-from util.text_interface import *
+from libs.spec_creator import *
 from libs.rocketEngine import *
 from libs.stage import *
 import libs.vehicle

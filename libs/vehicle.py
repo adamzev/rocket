@@ -1,10 +1,13 @@
 from math import sqrt
 import copy
-from rocketEngine import RocketEngine
+
+from colorama import Fore, Back, Style
+
+from libs.rocketEngine import RocketEngine
 from physicalStatus import PhysicalStatus
 from stage import Stage
 import generalEquations as equ
-from util.text_interface import *
+from libs.spec_creator import *
 import util.func as func
 from libs import fileManager as fileMan
 import mode

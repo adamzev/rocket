@@ -1,6 +1,18 @@
 import sys
 from util import func
 
+def query_unknown_type(question, sample_data):
+	''' query for a value of unknown type (primarily used to replace a value with another value of the same type) '''
+	if isinstance(sample_data, float):
+		result = query_float(question)
+	elif isinstance(sample_data, bool):
+		result = query_float(question)
+	elif isinstance(sample_data, int):
+		result = query_int(question)
+	else:
+		result = query_string(question)
+	return result
+
 def query_multiple(queries):
 	results = {}
 	for name in queries:

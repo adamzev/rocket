@@ -1,5 +1,9 @@
-import util.func as func
-import generalEquations as equ
+''' Stage of a heavy lift vehicle
+	attach_engine(engine)
+	attached_engine_report
+	jettison
+'''
+import libs.exceptions as exceptions
 
 class Stage:
 
@@ -25,15 +29,21 @@ class Stage:
 		for engine in self.attached_engines:
 			print(engine)
 
+	@staticmethod
+	def check_fuel(fuel, fuel_used, attached):
+		''' Check if FuelValueError should be raised '''
+		fuel_remaining = fuel - fuel_used
+		if attached and fuel_remaining < 0:
+			raise exceptions.FuelValueError("More fuel was used than available")
+
 	def check_state(self):
-		''' checks if the stage is in a valid state:
-		If it is attached, is fuel remaining positive?
+		''' check if the stage is in a valid state:
+		a) check fuel level
 		'''
-		fuel_remaining = self.fuel - self.fuel_used
-		assert not self.attached or fuel_remaining > 0
+		self.check_fuel(self.fuel, self.fuel_used, self.attached)
 
 	def fueling(self, engine):
-		''' adds an engine to the list of engines that this stage is provide fuel for '''
+		''' add an engine to the list of engines that this stage provides fuel for '''
 		self.fueling_engines.append(engine)
 
 

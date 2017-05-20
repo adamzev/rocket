@@ -1,10 +1,10 @@
 import logging
 from util import func
-from util.text_interface import *
+from libs.spec_creator import *
 import generalEquations as equ
 import mode
 
-class RocketEngine:
+class RocketEngine(object):
 	def __init__(self, engineStats):
 		self.attached = True
 		self.throt_cur = 0.0

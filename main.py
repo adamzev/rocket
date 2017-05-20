@@ -1,10 +1,17 @@
-import math
+''' Simulate a heavy lift vehicle '''
+import sys
+import os
+import traceback
 import logging
-import copy
-import mode
 
+import copy
+import mode as mode
+
+import libs.query as q
+import libs.exceptions as exceptions
+import libs.edit_json as edit_json
 from generalEquations import *
-from util.text_interface import *
+from libs.spec_creator import *
 import util.title as title
 from libs import *
 from libs.vehicleFactory import VehicleFactory
@@ -13,6 +20,7 @@ logging.basicConfig(level=logging.INFO)
 
 class Main_program(object):
 	''' Stores and runs sims on a rocket '''
+	restart_menu = ["Restart", "Edit the specs", "Edit the events", "Quit"]
 	def __init__(self):
 		''' initializes the main program '''
 		self.messages = []
@@ -177,7 +185,8 @@ class Main_program(object):
 		''' Main function for conducting a rocket simulation '''
 		i = 0
 
-		while self.HLV.cur.V.horiz_mph < self.COAST_SPEED:
+#		while self.HLV.cur.V.horiz_mph < self.COAST_SPEED:
+		while self.HLV.cur.V.horiz_mph < 200:
 			# prints and clears the message queue
 			for message in self.messages:
 				print(message)
@@ -207,8 +216,52 @@ class Main_program(object):
 				self.HLV.save_current_row()
 			# self.HLV.fuel_used_per_stage_report()
 
-print(title.TITLE)
-Rocketman = Main_program()
-Rocketman.set_initial_conditions()
-Rocketman.initialize_rocket()
-Rocketman.sim_rocket()
+
+	def start(self):
+		''' start the simulation '''
+		self.set_initial_conditions()
+		self.initialize_rocket()
+		self.sim_rocket()
+
+
+
+def restart_menu(last_spec_file):
+	selection = q.query_from_list("option", "Select an option:", Main_program.restart_menu, False)
+	if selection == "Restart":
+		main()
+	elif selection == "Edit the specs":
+		edit_json.load_and_edit_file(last_spec_file+".json")
+	elif selection == "Edit the events":
+		print("Edit events not implemented")
+	elif selection == "Quit":
+		exit()
+	else:
+		print("Unknown selection")
+
+def main():
+	while True:
+		try:
+			print(title.TITLE)
+			Rocketman = Main_program()
+			Rocketman.start()
+		except exceptions.FuelValueError:
+			print("A stage ran out of fuel prior to jettisioning. Consider modifying the events.")
+			restart_menu(Rocketman.specs["file_name"])
+		# Catching all errors before exiting or allowing the user to try to fix the error
+		except Exception as e: #pylint: disable=W0703
+			if mode.PRETTY_ERRORS:
+				print "\nSorry, an error has occured. \n\nPlease email the following information to Adam (Adam@TutorDelphia.com) if modifying the spec or event file will not fix the error.\n"
+				print sys.exc_info()[0].__name__, os.path.basename(sys.exc_info()[2].tb_frame.f_code.co_filename), sys.exc_info()[2].tb_lineno
+				print e.__doc__
+				print e.message
+				print("An error has occured.")
+				if mode.RESTART_ON_ERROR:
+					restart_menu(Rocketman.specs["file_name"])
+				else:
+					raw_input("Press enter to quit")
+					exit()
+			else:
+				raise type(e), type(e)(e.message), sys.exc_info()[2]
+		else:
+			restart_menu(Rocketman.specs["file_name"])
+main()
