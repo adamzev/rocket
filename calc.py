@@ -5,6 +5,7 @@ from libs.stage import *
 import libs.vehicle
 import libs.vehicleFactory
 import libs.velocity
+import libs.query as q
 import numpy as np
 
 
@@ -142,7 +143,7 @@ def prompt_row():
 
 def prompt_preburn():
 	spec_data = get_json_file_data("specs", "spec", create_specs)
-	alt = query_float("What is the alt for the preburn? ")
+	alt = q.query_float("What is the alt for the preburn? ")
 	preburn = Stage({})
 	engines = []
 	engine_rows = VehicleFactory.load_engine_data(spec_data["engines"])
@@ -150,16 +151,16 @@ def prompt_preburn():
 		engine = RocketEngine.factory(engine_row)
 		engine.set_fuel_source(preburn)
 		engines.append(engine)
-		start_time = query_float("What is the {}'s start time (positive start times will be ignored for preburn)? ".format(engine.name))
+		start_time = q.query_float("What is the {}'s start time (positive start times will be ignored for preburn)? ".format(engine.name))
 		if start_time < 0:
-			start_throt = query_min_max("What is the starting throttle for {}".format(engine.name))
-			target_throt = query_min_max("What is the target throttle for {}".format(engine.name))
+			start_throt = q.query_min_max("What is the starting throttle for {}".format(engine.name))
+			target_throt = q.query_min_max("What is the target throttle for {}".format(engine.name))
 			# set each weight twice to set average weight
 			engine.setThrottleOverride(start_throt)
 			if engine.type == "Solid":
-				start_thrust = query_min_max("What is the starting " + Fore.RED + "thrust for {}".format(engine.name) + Style.RESET_ALL, 0, float("inf"))
-				start_thrust = query_min_max("What is the target " + Fore.RED + "thrust for {}".format(engine.name) + Style.RESET_ALL, 0, float("inf"))
-				engine.set_assigned_thrust_per_engine("SRM", start_thrust)
+				start_thrust = q.query_min_max("What is the starting " + Fore.RED + "thrust for {}".format(engine.name) + Style.RESET_ALL, 0, float("inf"))
+				start_thrust = q.query_min_max("What is the target " + Fore.RED + "thrust for {}".format(engine.name) + Style.RESET_ALL, 0, float("inf"))
+				engine.set_assigned_thrust_per_engine(start_thrust)
 
 	time_inc = 0.01
 	for i in np.arange(0, abs(start_time), time_inc):

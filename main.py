@@ -13,7 +13,8 @@ from libs.vehicleFactory import VehicleFactory
 
 logging.basicConfig(level=logging.INFO)
 
-class Main_program:
+class Main_program(object):
+	''' Stores and runs sims on a rocket '''
 	def __init__(self):
 		''' initializes the main program '''
 		self.messages = []
@@ -46,6 +47,7 @@ class Main_program:
 
 
 	def compute_row(self, rocket, events, assigned_A_v, testRun=False):
+		''' sims the rocket over the course of one time increment '''
 		rocket.tick()
 
 		rocket.burn_fuel(rocket.time_inc)
@@ -102,21 +104,20 @@ class Main_program:
 			rocket_copy = copy.deepcopy(rocket)
 			rocket_copy.cur.ADC_predicted = ADC_prediction
 			self.compute_row(rocket_copy, events, assigned_V, False)
-			#try:
 
-			#except ValueError:
-			#	ADC_error = 100000.0
-			#	ADC_prediction = ADC_prediction / 2.0
 			ADC_error = rocket_copy.cur.ADC_error
-			ADC_actual = rocket_copy.cur.ADC_actual
-			#print ("Predicted ADC = {}\nerror={}\nadc_calc={}".format(ADC_prediction*10000.0, ADC_error*10000.0, ADC_actual*10000.0))
+
 			ADC_prediction -= ADC_error/2.0
-			#print ("New Prediction = {}".format(ADC_prediction*10000.0))
+
 			rocket_copy = None
 			tries += 1
 		return ADC_prediction
 
-	def check_for_event(self, events, rocket, pre=False):
+	@staticmethod
+	def check_for_event(events, rocket, pre=False):
+		''' takes in a event dict and a vehicle (and optionally whether this a pre or post computation event)
+		checks if the current time increment matches with an event and passes to the correct handler
+		'''
 		if mode.GIVEN_INTERVALS:
 			decimal_precision = 4
 		else:
@@ -144,6 +145,7 @@ class Main_program:
 			self.messages.append(message)
 
 	def initialize_rocket(self):
+		''' sims the first time inc '''
 		self.check_for_event(self.events, self.HLV, True)
 		self.HLV.cur.set_big_G()
 		self.HLV.prev = copy.deepcopy(self.HLV.cur)
@@ -178,7 +180,7 @@ class Main_program:
 		i = 0
 
 		while self.HLV.cur.V.horiz_mph < self.COAST_SPEED:
-			''' prints and clears the message queue '''
+			# prints and clears the message queue
 			for message in self.messages:
 				print(message)
 
