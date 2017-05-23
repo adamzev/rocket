@@ -13,21 +13,8 @@ def query_unknown_type(question, sample_data):
 		result = query_string(question)
 	return result
 
-def query_multiple(queries):
-	results = {}
-	for name in queries:
-		if queries['type'] == "float":
-			results[name] = query_float(queries[name]['prompt'])
-		elif queries['type'] == "bool":
-			results[name] = query_float(queries[name]['prompt'])
-		elif queries['type'] == "int":
-			results[name] = query_int(queries[name]['prompt'])
-		else:
-			results[name] = query_string(queries[name]['prompt'])
-
-	return results
-
 def query_string(question, default=None, input_func=raw_input):
+	''' takes a question, default value and input func and returns a string value '''
 	while True:
 		ans = input_func(question)
 		if ans != "":

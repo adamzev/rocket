@@ -50,8 +50,6 @@ class Vehicle(object):
 		self.prev = copy.deepcopy(self.cur)
 		self.name = "{} MK {}".format(specs["name"], specs["MK"])
 
-		#self.A_hv_diff = specs["A_hv_diff"]
-
 
 	def __str__(self):
 		V_as = self.cur.V.air_speed_mph

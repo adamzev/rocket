@@ -1,6 +1,1 @@
-{
-  "tests/generalEquations_test.py::GeneralEquationTests::test_ADC": true, 
-  "tests/generalEquations_test.py::GeneralEquationTests::test_bigG": true, 
-  "tests/main_test.py": true, 
-  "tests/vehicle_test.py": true
-}
+{}

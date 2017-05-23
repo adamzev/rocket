@@ -1,145 +1,19 @@
-import libs.query as q
+''' query for flight profile information '''
 from datetime import date
 import time
+
 from colorama import Fore, Back, Style
-from libs.vehicle import Vehicle
 
-class EventManager:
+import libs.query as q
+import libs.fileManager as fileMan
+
+class EventManager(object):
+	''' collect information regarding the flight profile (events that occur during the flight)
+		for a given vehicle
+	'''
 	events = {}
-	available_events = [
-		{
-			"name" :"Set Throttle Target",
-			"description": "Set the target throttle for all engines (regardless of stage) that match a name",
-			"duration_type" : "interval",
-			"data_needed": [
-				{
-					"field" : "engine",
-					"type" : "string_from_list",
-					"prompt" : "Select an engine from the list: "
-				},
-				{
-					"field" : "target",
-					"type" : "min_max_float",
-					"prompt" : "Enter the target throttle: "
-				}
-			]
-		},
-		{
-			"name" :"Set Target Throttle By Stage",
-			"description": "Set the target throttle for all engines that match a name in a given stage",
-			"duration_type" : "interval",
-			"data_needed": [
-				{
-					"field" : "engine",
-					"type" : "string_from_list",
-					"prompt" : "Select an engine from the list: "
-				},
-				{
-					"field" : "stage",
-					"type" : "string_from_list",
-					"prompt" : "Select a stage from the list: "
-				},
-				{
-					"field" : "target",
-					"type" : "min_max_float",
-					"prompt" : "Enter the target throttle: "
-				}
-			]
-		},
-		{
-			"name" :"Change Thrust",
-			"description": "Change the thrust of a SRM by a given rate of change ",
-			"duration_type" : "interval",
-			"data_needed": [
-				{
-					"field" : "engine",
-					"type" : "string_from_list",
-					"prompt" : "Select an engine from the list: "
-				},
-				{
-					"field" : "rate",
-					"type" : "float",
-					"prompt" : "Enter the change in thrust per second (use a negative number for a decrease)\n Thrust: "
-				}
-			]
-		},
-		{
-			"name" :"Adjust Weight",
-			"description": "This can be used to correct errors or to jettison parts other than the listed stages",
-			"duration_type" : "instant",
-			"data_needed": [
-				{
-					"field" : "amount",
-					"type" : "float",
-					"prompt" : "Enter the change in weight (use a negative number for a decrease) \n Weight: "
-				},
-				{
-					"field" : "pre",
-					"type" : "yes_no",
-					"prompt" : "Enter the change to this row (rather than the next)?: "
-				}
-			]
-		},
-		{
-			"name" : "Adjust Acceleration",
-			"description": "This can be used to correct acceleration errors",
-			"duration_type" : "instant",
-			"data_needed": [
-				{
-					"field" : "amount",
-					"type" : "float",
-					"prompt" : "Enter the change in acceleration (use a negative number for a decrease)\nAcceleration: "
-				},
-				{
-					"field" : "pre",
-					"type" : "yes_no",
-					"prompt" : "Enter the change to this row (rather than the next)?: "
-				}
-			]
-		},
-		{
-			"name" :"Power Down Thrust",
-			"description": "Power down a rocket engine based on thrust. This is only used for solid fueled boosters.",
-			"duration_type" : "interval",
-			"data_needed": [
-				{
-					"field" : "engine",
-					"type" : "string_from_list",
-					"prompt" : "Select an engine from the list: "
-				},
-				{
-					"field" : "thrusts",
-					"type" : "array",
-					"prompt" : "Enter the thrusts in three second time intervals: "
-				}
-			]
-		},
-		{
-			"name" :"Jettison",
-			"description": "Jettison a stage.",
-			"duration_type" : "instant",
-			"data_needed": [
-				{
-					"field" : "stage",
-					"type" : "string_from_list",
-					"prompt" : "Select a stage from the list: "
-				}
-			]
-		},
-		{
-			"name" :"Giveback V Vert",
-			"description": "Select a V Vert giveback target and time to start reducing V vert.",
-			"duration_type" : "instant",
-			"data_needed": [
-				{
-					"field" : "target",
-					"type" : "float",
-					"prompt" : "Enter the giveback target V vert in fps (typically 1200fps): "
-				}
-			]
-		},
+	available_events = fileMan.load_json("save/events/events.json")["events"]
 
-	]
 	def __init__(self, rocket):
 		self.rocket = rocket
 		self.collect_version()
@@ -158,13 +32,24 @@ class EventManager:
 
 
 	def collect_goals(self):
-		A_hv_diff = q.query_float("What is desired A_h - A_v difference? ")
-		self.events["A_hv_diff"] = A_hv_diff
+		''' queries and stores the vertical velocity target '''
 		V_v_target = q.query_float("What is desired V vert target (typically 2000fps)? ")
 		self.events["V_v_target"] = V_v_target
 
 
 	def collect_event_details(self, event):
+		''' collect the requested fields for a given event object with keys:
+			name: the name of the event
+			duration_type: instant or interval
+			data_needed: an array of objects
+				field: name of the field needed
+				type: 
+					float, 
+					string_from_list,
+					array: just used for power down currently
+					min_max_float: typically used to throttle (min 0.0, max 1.0)
+					yes_no: get a bool
+		 '''
 		result = {}
 		result["name"] = event["name"]
 		print "\n", event["name"], "\n\n", event["description"], "\n"
@@ -206,15 +91,18 @@ class EventManager:
 		return result
 
 	def select_from_list_of_available_events(self):
+		''' list the available events, select multiple and collect details about the events'''
 		events = q.query_from_list("event", "Add events to the flight plan: ", self.available_events, True, self.collect_event_details)
 		self.events["events"] = events
 
 	def collect_version(self):
+		''' get the version (used for the file name) '''
 		today = date.fromtimestamp(time.time())
 		self.events["friendly_name"] = q.query_string("What is the version date (hit enter for today's date)? ", today.strftime("%d-%m-%Y"))
 		self.events["file_name"] = self.rocket.specs["file_name"] + "/events/" + self.events["friendly_name"]
 
 	def collect_starting_engine_settings(self):
+		''' collect the starting thrusts and throttles for the attached engines '''
 		starting_thottles = []
 		starting_thrusts = []
 

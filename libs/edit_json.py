@@ -14,14 +14,22 @@ def edit_list(list_to_edit):
 		print value
 		edit_it = q.query_yes_no("Modify the value? ", "no")
 		if edit_it:
-			new_list.append(modify_data(value))
+			new_list.append(edit_by_type(value))
 		else:
 			new_list.append(value)
 	return new_list
 
 
 def modify_data(value):
-	if isinstance(value, dict):
+	return q.query_unknown_type("Enter a new value:", value)
+
+
+def edit_by_type(value):
+	if isinstance(value, tuple):
+		raise ValueError("Replacing tuples is not implemented")
+	if isinstance(value, list):
+		return edit_list(value)
+	elif isinstance(value, dict):
 		return edit_dict_values(value)
 	else:
 		return q.query_unknown_type("Enter a new value:", value)
@@ -32,12 +40,9 @@ def edit_dict_values(json_data):
 		print (key + " : " + str(value))
 		edit_it = q.query_yes_no("Modify the value? ", "no")
 		if edit_it:
-			if isinstance(value, list):
-				json_data[key] = edit_list(value)
-			json_data[key] = modify_data(value)
+			json_data[key] = edit_by_type(value)
 
 	return json_data
-
 
 
 def load_and_edit_file(file_name):
