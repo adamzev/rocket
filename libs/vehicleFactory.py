@@ -9,7 +9,7 @@ from rocketEngine import RocketEngine
 import generalEquations as equ
 from libs.spec_creator import *
 import util.func as func
-import rocket.libs.query as q
+import libs.query as q
 from libs import fileManager as fileMan
 
 
@@ -44,6 +44,10 @@ class VehicleFactory(object):
 
 
 		return rocket
+
+	@classmethod
+	def edit_vehicile(cls, vehicle):
+		
 
 	@classmethod
 	def set_holding_engines(cls, stages, engines):
