@@ -109,7 +109,7 @@ class Vehicle(object):
 		headers = "time, alt, thrust, weight, ADC_guess, ADC_actual, ADC_adj, ADC_error, A_raw, A_total, A_h, A_v, bigG, V_as, V_horiz_mph, V_vert_inc, V_vert \n"
 		if first:
 			fileMan.create_csv(headers, 'data/rows.csv')
-		fileMan.save_csv(row1+row2, 'data/rows.csv')
+		fileMan.update_csv(row1+row2, 'data/rows.csv')
 
 
 
