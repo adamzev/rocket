@@ -87,10 +87,40 @@ def create_specs():
 		fileMan.save_file(specs)
 	return specs
 
+def change_specs(spec):
+	def change_engines():
+		choosen_stage = q.query_from_list("option", "Choose a stage:", [stage for stage in spec["stages"]], False)
+		choosen = q.query_from_list("option", "Add or remove?", ["Add", "Remove"], False)
+		if (choosen == "Add"):
+			selected_engines = []
+			selected_engines += VehicleFactory.select_engines(choosen_stage, spec["stages"][choosen_stage]["fuel_type"])
+			spec["engines"] += selected_engines
+		if (choosen == "Remove"):
+			q.query_from_list("option", "Choose an engine to remove?", [engine["engine_name"] for engine in spec["engines"] if engine["stage"] == choosen_stage] , False)
+
+	spec_functions = {
+		"name" : lambda : q.query_string("What is the vehicle called (for example: HLV * 4-8/6-9)? "),
+		"MK" : lambda : q.query_string("MK? ", "1"),
+		"lift_off_weight" :lambda : q.query_float("What is the weight at lift off? "),
+		"stages" : lambda : create_stages_specs(),
+		"engines" : lambda : change_engines(),
+		"earth_rotation_mph" : lambda : q.query_float("earth rotation mph? ")
+	}
+	spec_options = ["name", "MK", "lift_off_weight", "stages", "engines", "earth_rotation_mph"];
+	i = 0
+	change_another_property = True
+	while (change_another_property):
+		choosen_key = q.query_from_list("option", "Choose a property to change:", spec_options, False)
+		spec_functions[choosen_key]()
+		#for spec_key, spec_name in specs:
+		#	if (i == choosenKey):
+		#		spec[spec_key] = specs[spec_name]()
+		#		break
+		#	i += 1*/
+		change_another_property = q.query_yes_no("Change another property?")
 
 def get_initial_conditions():
 	return fileMan.get_json_file_data("initial_conditions", "initial conditions", set_initial_conditions)
-
 
 def get_events(spec_name, rocket):
 	folder = spec_name + "/events"

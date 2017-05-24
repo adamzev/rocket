@@ -229,7 +229,7 @@ def restart_menu(last_spec_file):
 	if selection == "Restart":
 		main()
 	elif selection == "Edit the specs":
-		edit_json.load_and_edit_file(last_spec_file+".json")
+		change_specs(fileMan.load_json(last_spec_file+".json"))
 	elif selection == "Edit the events":
 		print("Edit events not implemented")
 	elif selection == "Quit":

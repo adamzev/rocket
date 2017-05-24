@@ -46,10 +46,6 @@ class VehicleFactory(object):
 		return rocket
 
 	@classmethod
-	def edit_vehicile(cls, vehicle):
-		
-
-	@classmethod
 	def set_holding_engines(cls, stages, engines):
 		''' adds the appropriate engines to each stage '''
 		for stage in stages.values():
