@@ -185,8 +185,7 @@ class Main_program(object):
 		''' Main function for conducting a rocket simulation '''
 		i = 0
 
-#		while self.HLV.cur.V.horiz_mph < self.COAST_SPEED:
-		while self.HLV.cur.V.horiz_mph < 200:
+		while self.HLV.cur.V.horiz_mph < self.COAST_SPEED:
 			# prints and clears the message queue
 			for message in self.messages:
 				print(message)

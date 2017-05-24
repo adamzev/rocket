@@ -449,7 +449,7 @@ class Vehicle(object):
 
 			if event["name"] == "Power Down Thrust":
 				event_handled = True
-				engine.power_down(start_time, end_time, self.time, time_inc, self.cur.alt)
+				engine.power_down(start_time, end_time, self.time, time_inc, self.cur.alt, event["thrusts"])
 
 			if event["name"] == "Set Throttle Target":
 				event_handled = True

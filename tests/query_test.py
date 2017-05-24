@@ -20,7 +20,7 @@ class QueryTests(unittest.TestCase):
 			result = q.query_string("Test? ", None, lambda x, my_in=my_input: specific_input(my_in))
 			assert my_input == result
 	def test_query_random_string(self):
-		for i in range (1000):
+		for i in range(1000):
 			result = q.query_string("Test? ", None, rand_input)
 			assert isinstance(result, str)
 

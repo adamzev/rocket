@@ -77,7 +77,7 @@ class EventManager(object):
 
 			if field["type"] == "array":
 				values = []
-				for i in range(int(result["start_time"]), int(result["end_time"]), 3):
+				for i in range(int(result["start_time"]), int(result["end_time"]) + 3, 3):
 					values.append(q.query_float(field["prompt"]+str(i)+": "))
 				result[field_name] = values
 

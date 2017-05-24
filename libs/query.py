@@ -133,6 +133,7 @@ def query_min_max(question, min_num=0.0, max_num=1.0):
 
 def query_from_list(list_name, intro, options, select_multiple=True, callback=None, min_selections=1):
 	''' Creates a simple text menu that numbers options
+		List_name states what kind of thing you are selecting (such as "engine" or "option")
 		Options are either a dict containting a "name" key or list of strings
 		Can be used to select one option or an array of multiple options
 	'''
