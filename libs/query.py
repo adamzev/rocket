@@ -124,6 +124,7 @@ def query_min_max(question, min_num=0.0, max_num=1.0):
 	while True:
 		sys.stdout.write(question + prompt)
 		choice = raw_input().lower()
+		choice = choice.replace(",", "")
 		if choice == 'min' or choice == 'max' or choice == 'off':
 			return choice
 		elif func.is_float(choice) and min_num <= float(choice) <= max_num:

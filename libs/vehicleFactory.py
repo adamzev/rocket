@@ -71,7 +71,12 @@ class VehicleFactory(object):
 			if fuel_type is None or fuel_type == value['type']:
 				compatable_engines.append({key:value})
 
-		selected_engines = q.query_from_list("engine", "Select an engine number: ", compatable_engines, True, lambda x: cls.collect_engine_details(x, stage_name))
+		selected_engines = q.query_from_list(
+			"engine",
+			"Select an engine number: ",
+			compatable_engines, True,
+			lambda x: cls.collect_engine_details(x, stage_name)
+		)
 		return selected_engines
 
 	@staticmethod

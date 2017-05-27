@@ -40,7 +40,7 @@
 		},
 		{
 			"name" :"Change Thrust",
-			"description": "Change the thrust of a SRM by a given rate of change ",
+			"description": "Change the lbf of thrust of a SRM by a given rate of change ",
 			"duration_type" : "interval",
 			"data_needed": [
 				{
@@ -51,7 +51,7 @@
 				{
 					"field" : "rate",
 					"type" : "float",
-					"prompt" : "Enter the change in thrust per second (use a negative number for a decrease)\n Thrust: "
+					"prompt" : "Enter the change in lbf of thrust per second (use a negative number for a decrease)\n Thrust: "
 				}
 			]
 		},
@@ -102,7 +102,7 @@
 				{
 					"field" : "thrusts",
 					"type" : "array",
-					"prompt" : "Enter the thrusts in three second time intervals: "
+					"prompt" : "Enter the lbf of thrusts in three second time intervals: "
 				}
 			]
 		},

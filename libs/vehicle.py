@@ -63,14 +63,14 @@ class Vehicle(object):
 		ADC_adj = self.cur.ADC_adjusted
 		sign_symb = "+" if self.cur.V.vert_inc > 0 else "-"
 		row1 = "-"*140 + "\n"
-		row2 = "{:>46.6f}      {:>6.8f}     G={: <12.8f}\n".format(self.cur.A.total, self.cur.ADC_actual, big_G)
-		time_string = "{:<6.1f}".format(self.time)
+		row2 = "{:>48,.6f}      {:>6,.8f}     G={: <12,.8f}\n".format(self.cur.A.total, self.cur.ADC_actual, big_G)
+		time_string = "{:<6,.1f}".format(self.time)
 		time_string = Fore.RED + time_string + Style.RESET_ALL
-		row3 = "{}{:<12.2f} {:5} WT={:<11.2f}->{:>9.6f}      {:<12.8f}   Vh={:<12.6f} Vas={:<12.3f}     {:<12.6f} {:<10.8f}\n".format(
+		row3 = "{}{:<12,.2f} {:5} WT={:<13,.2f}->{:>9,.6f}      {:<12,.8f}   Vh={:<12,.6f} Vas={:<12,.3f}     {:<12,.6f} {:<10,.8f}\n".format(
 			sign_symb, self.cur.V.vert_inc, time_string, self.cur.weight, self.cur.A.raw, ADC_adj, self.cur.V.horiz_mph, V_as, A_v, A_h
 		)
-		alt_string = "ALT={:<.1f}\'".format(alt)
-		row4 = "{:<13.6f} {:<16} T={:<19.4f}  \"{:<.4f}\"\n".format(V_vert, alt_string, thrust, ADC_guess)
+		alt_string = "ALT={:<,.1f}\'".format(alt)
+		row4 = "{:<13,.6f} {:<16} T={:<19,.4f}  \"{:<,.4f}\"\n".format(V_vert, alt_string, thrust, ADC_guess)
 		return row1+row2+row3+row4
 
 	def save_current_row(self, first=False):

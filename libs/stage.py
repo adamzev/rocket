@@ -5,8 +5,8 @@
 '''
 import libs.exceptions as exceptions
 
-class Stage:
-
+class Stage(object):
+	''' actions and info regarding a stage of a heavy lift vehicle '''
 	def __init__(self, stage_specs):
 		self.fuel_used = 0.0
 		self.fuel = 0.0
@@ -22,9 +22,11 @@ class Stage:
 		return "Stage Name = {} Fuel Remaining = {} Burn Rate = {}".format(self.name, self.get_fuel_remaining(), self.get_fuel_burn_rate())
 
 	def attach_engine(self, engine):
+		''' add an engine object to the list of engines '''
 		self.attached_engines.append(engine)
 
 	def attached_engine_report(self):
+		''' view attached engines '''
 		print (" \n {}".format(self.name))
 		for engine in self.attached_engines:
 			print(engine)
@@ -48,14 +50,17 @@ class Stage:
 
 
 	def get_fuel_used(self):
+		''' get the fuel used '''
 		return self.fuel_used
 
 	def get_fuel_remaining(self):
+		''' get the fuel remaining '''
 		fuel_remaining = self.fuel - self.fuel_used
-		self.check_state
+		self.check_state()
 		return fuel_remaining
 
 	def get_fuel_burn_rate(self):
+		''' get the sum of the fueling engines burn rate '''
 		burn = 0.0
 		for engine in self.fueling_engines:
 			burn += engine.get_eff_fuel_burn_rate()
