@@ -242,7 +242,9 @@ def main():
 		try:
 			print(title.TITLE)
 			Rocketman = Main_program()
+			restart_menu(Rocketman.specs["file_name"])
 			Rocketman.start()
+
 		except exceptions.FuelValueError:
 			print("A stage ran out of fuel prior to jettisioning. Consider modifying the events.")
 			restart_menu(Rocketman.specs["file_name"])
