@@ -91,17 +91,17 @@ def change_specs(spec):
 	''' Change the spec of a saved engine file '''
 	def change_engines():
 		''' Add or remove engines from a spec file '''
-		choosen_stage = q.query_from_list("option", "Choose a stage:", [stage for stage in spec["stages"]], False)
-		choosen = q.query_from_list("option", "Add or remove?", ["Add", "Remove"], False)
-		if (choosen == "Add"):
+		chosen_stage = q.query_from_list("option", "Choose a stage:", [stage for stage in spec["stages"]], False)
+		chosen = q.query_from_list("option", "Add or remove?", ["Add", "Remove"], False)
+		if (chosen == "Add"):
 			selected_engines = []
-			selected_engines += VehicleFactory.select_engines(choosen_stage, spec["stages"][choosen_stage]["fuel_type"])
+			selected_engines += VehicleFactory.select_engines(chosen_stage, spec["stages"][chosen_stage]["fuel_type"])
 			spec["engines"] += selected_engines
-		if (choosen == "Remove"):
+		if (chosen == "Remove"):
 			q.query_from_list(
 				"option",
 				"Choose an engine to remove?",
-				[engine["engine_name"] for engine in spec["engines"] if engine["stage"] == choosen_stage],
+				[engine["engine_name"] for engine in spec["engines"] if engine["stage"] == chosen_stage],
 				False
 			)
 
