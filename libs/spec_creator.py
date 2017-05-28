@@ -1,12 +1,15 @@
+''' create a json spec file regarding the specs of a heavy lift vehicle '''
+from functools import partial
 import util.func as func
 from libs.vehicleFactory import VehicleFactory
-import libs.query as q
+from libs.query import Query as q
 import libs.fileManager as fileMan
 from libs.eventsManager import EventManager
 
 
 
 def create_stage_specs(stage_type, fuel_type):
+	''' query for stage specs '''
 	stage_specs = {}
 	stage_specs['attached'] = True
 	stage_specs['adc_K'] = q.query_float("What is the ADC K of the {}?". format(stage_type))
@@ -27,19 +30,14 @@ def create_stage_specs(stage_type, fuel_type):
 	return stage_specs
 
 def create_events(rocket):
-	event_man = EventManager(rocket)
+	''' create and save an event file '''
+	event_man = EventManager(rocket) # queries for the events for rocket
 
-	events = event_man.events
-	save_settings = q.query_yes_no("Do you want to save these events? ", "yes")
-	if save_settings:
-		fileMan.save_file(events)
-
-	return events
-	# start a menu that lists supported events
-	# add a submenu of engines that the event can be applied to
-	# query for details (start, end, target)
+	fileMan.ask_to_save(event_man.events, "Do you want to save these events? ")
+	return event_man.events
 
 def create_stages_specs():
+	''' queries for stage specs '''
 	stages = {}
 	stage_types = ["RLV", "orbiter"]
 	attach_SRB = q.query_yes_no("Does the rocket have a SRB? ", "yes")
@@ -57,10 +55,19 @@ def create_stages_specs():
 		stages[stage_type] = create_stage_specs(stage_type, fuel_type)
 	return stages
 
+query_vehicle_name = partial(q.query_string, "What is the vehicle called (for example: HLV * 4-8/6-9)? ")
+query_vehicle_MK = partial(q.query_string, "MK? ", "1")
+query_lift_off_weight = partial(q.query_float, "What is the weight at lift off? ")
+query_earths_rotation = partial(
+									q.query_float,
+									"earth rotation mph (hit enter for the default value of 912.67)? ",
+									912.67
+								)
 def create_specs():
-	name = q.query_string("What is the vehicle called (for example: HLV * 4-8/6-9)? ")
-	MK = q.query_string("MK? ", "1")
-	lift_off_weight = q.query_float("What is the weight at lift off? ")
+	''' query for the specs for a heavy lift vehicle '''
+	name = query_vehicle_name()
+	MK = query_vehicle_MK()
+	lift_off_weight = query_lift_off_weight()
 	stages = create_stages_specs()
 
 	selected_engines = []
@@ -82,52 +89,52 @@ def create_specs():
 		"earth_rotation_mph" : 912.67
 	}
 
-	save_settings = q.query_yes_no("Do you want to save these specs? ", "yes")
-	if save_settings:
-		fileMan.save_file(specs)
+	fileMan.ask_to_save(specs, "Do you want to save these specs? ")
 	return specs
 
-def change_specs(spec):
+def change_specs(specs):
 	''' Change the spec of a saved engine file '''
-	def change_engines():
-		''' Add or remove engines from a spec file '''
-		chosen_stage = q.query_from_list("option", "Choose a stage:", [stage for stage in spec["stages"]], False)
+	def change_engines(specs):
+		''' Add or remove engines from a specs file and returns the engine specs (not the whole spec file) '''
+		chosen_stage = q.query_from_list("option", "Choose a stage:", [stage for stage in specs["stages"]], False)
 		chosen = q.query_from_list("option", "Add or remove?", ["Add", "Remove"], False)
 		if (chosen == "Add"):
 			selected_engines = []
-			selected_engines += VehicleFactory.select_engines(chosen_stage, spec["stages"][chosen_stage]["fuel_type"])
-			spec["engines"] += selected_engines
+			selected_engines += VehicleFactory.select_engines(chosen_stage, specs["stages"][chosen_stage]["fuel_type"])
+			specs["engines"] += selected_engines
 		if (chosen == "Remove"):
-			q.query_from_list(
+			selected_engine = q.query_from_list(
 				"option",
 				"Choose an engine to remove?",
-				[engine["engine_name"] for engine in spec["engines"] if engine["stage"] == chosen_stage],
+				[engine["engine_name"] for engine in specs["engines"] if engine["stage"] == chosen_stage],
 				False
 			)
+			del specs["engines"][selected_engine]
+		return specs["engines"]
 
 	spec_functions = {
-		"name": lambda: q.query_string("What is the vehicle called (for example: HLV * 4-8/6-9)? "),
-		"MK": lambda: q.query_string("MK? ", "1"),
-		"lift_off_weight": lambda: q.query_float("What is the weight at lift off? "),
+		"name": query_vehicle_name,
+		"MK": query_vehicle_MK,
+		"lift_off_weight": query_lift_off_weight,
 		"stages": create_stages_specs,
-		"engines": change_engines,
-		"earth_rotation_mph": lambda: q.query_float("earth rotation mph? ")
+		"engines": lambda: change_engines(specs),
+		"earth_rotation_mph": query_earths_rotation
 	}
-	spec_options = ["name", "MK", "lift_off_weight", "stages", "engines", "earth_rotation_mph"]
 
 	change_another_property = True
 	while (change_another_property):
-		chosen_key = q.query_from_list("option", "Choose a property to change:", spec_options, False)
-		spec_functions[chosen_key]()
+		chosen_key = q.query_from_list("option", "Choose a property to change:", spec_functions.keys(), False)
+		specs[chosen_key] = spec_functions[chosen_key]()
 
 		change_another_property = q.query_yes_no("Change another property?")
 
-def get_initial_conditions():
-	return fileMan.get_json_file_data("initial_conditions", "initial conditions", set_initial_conditions)
+	fileMan.ask_to_save(specs, "Do you want to save these changes? ")
 
 def get_events(spec_name, rocket):
+	''' load or create an event file '''
 	folder = spec_name + "/events"
 	return fileMan.get_json_file_data(folder, "events", lambda: create_events(rocket))
 
 def get_specs():
+	''' get specs by asking the user to create them or select an existing file from a list '''
 	return fileMan.get_json_file_data("save/specs", "spec", create_specs)

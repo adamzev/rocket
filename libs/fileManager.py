@@ -1,11 +1,11 @@
+''' Create, load and save csv and json files '''
+
 import glob
 import json
 import os
 import errno
-import query as q
+from libs.query import Query as q
 import util.func as func
-
-from query import *
 
 def save_file(this_file):
 	file_name = this_file['file_name']
@@ -55,11 +55,23 @@ def make_dir(fileName):
 			if exc.errno != errno.EEXIST:
 				raise
 
+def ask_to_save(data, question="Would you like to save? "):
+	''' queries if the user wants to save a file
+		"data" is a dictionary with the key "file_name" which is the name and location to save the data
+	'''
+	save_this_data = q.query_yes_no(question, "yes")
+	if save_this_data:
+		save_file(data)
+
+
+
 def save_json(data, fileName):
+	''' creates a json file (overwriting any prior files) '''
 	make_dir(fileName)
 	with open(fileName+".json", "w") as outfile:
 		json.dump(data, outfile)
 
 def load_json(fileName):
+	''' loads the file with the given file name and returns the json data '''
 	with open(fileName) as data_file:
 		return json.load(data_file)
