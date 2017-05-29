@@ -51,6 +51,8 @@ def percentOfVac(alt):
 	''' Takes the altitude and returns the percent of vacuum (1 - atmospheric pressure)'''
 	return 1.0 - percentOfAtmosphericPressure(alt)
 
+def orbitalVelocity(alt):
+	return 17683.9567 * ((1.0 / (1.0 + (alt / 20902230.99)))** 0.5)
 
 def mphToFps(mph):
 	return 5280.0*mph/(60.0*60.0)

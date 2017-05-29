@@ -267,4 +267,5 @@ def main():
 				raise type(e), type(e)(e.message), sys.exc_info()[2]
 		else:
 			restart_menu(Rocketman.specs["file_name"])
-main()
+if __name__ == "__main__":
+	main()

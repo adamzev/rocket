@@ -301,17 +301,6 @@ class Vehicle(object):
 		for name, stage in self.stages.iteritems():
 			print name, stage, stage.fuel_used
 
-	'''
-	def act_on_engines(self, engineName, callback):
-		engines = self.find_engines(engineName)
-		for engine in engines:
-			callback(engine)
-
-	def act_on_engines_by_stage(self, engineName, callback):
-		engines = self.find_engines_by_stage(engineName, stage)
-		for engine in engines:
-			callback(engine)
-	'''
 	def setEngineThrottleOverride(self, engineName, throt):
 		engines = self.find_engines(engineName)
 		for engine in engines:

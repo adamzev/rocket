@@ -1,1 +1,3 @@
-{}
+{
+  "tests/vehicle_test.py": true
+}

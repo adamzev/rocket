@@ -61,13 +61,21 @@ class GeneralEquationTests(unittest.TestCase):
 		assert almost_equal(ge.ADC(airSpeed, alt, K), result, 0.0001)
 		assert accurateToPercent(ge.ADC(airSpeed, alt, K), result)
 
-	def test_ADC_86730ft(self):
-		airSpeed = 2681.804
-		alt = 86730
-		K = 1.832
-		result = 0.263529918
-		assert almost_equal(ge.ADC(airSpeed, alt, K), result, 0.000000000001)
-		assert accurateToPercent(ge.ADC(airSpeed, alt, K), result)
+	def test_ADC_13687ft(self):
+		airSpeed = 594.7295
+		alt = 13687
+		K = 2.386
+		result = 0.5019203
+		assert almost_equal(ge.ADC(airSpeed, alt, K), result, 0.001)
+		assert accurateToPercent(ge.ADC(airSpeed, alt, K), result, 0.999)
+
+	def test_ADC_89335ft(self):
+		airSpeed = 2183.4086
+		alt = 89335
+		K = 2.244
+		result = 0.1888547
+		assert almost_equal(ge.ADC(airSpeed, alt, K), result, 0.001)
+		assert accurateToPercent(ge.ADC(airSpeed, alt, K), result, 0.99)
 
 if __name__ == '__main__':
 	unittest.main()

@@ -15,8 +15,7 @@ class Velocity(TwoD):
 		OV decreases as you increase your radial distance from the center of the Earth, i.e. increase altitude.
 		Alt in feet
 		'''
-
-		return 17683.9567 * ((1.0 / (1.0 + (alt / 20902230.99)))** 0.5)
+		return orbitalVelocity(alt)
 
 	@property
 	def eff(self):

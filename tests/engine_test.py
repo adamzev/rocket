@@ -1,6 +1,10 @@
 import unittest
 
-from libs import rocketEngine as eng
+import sys, os
+myPath = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, myPath + '/../')
+
+from rocket.libs import rocketEngine as eng
 
 rdData = {
 	"name": "RD-171",
