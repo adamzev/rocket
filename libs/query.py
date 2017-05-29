@@ -2,12 +2,15 @@ import sys
 from util import func
 
 class Query(object):
+	''' query the user for multiple datatypes in a testable manner '''
 	input_func = raw_input
+	def __init__(self):
+		pass
 
 	@classmethod
 	def change_input_func(cls, input_func=raw_input):
 		''' change the input method '''
-		cls.input_func = input_func
+		cls.input_func = staticmethod(input_func)
 
 	@classmethod
 	def query_unknown_type(cls, question, sample_data):
