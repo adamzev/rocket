@@ -3,6 +3,7 @@ import sys
 import os
 import traceback
 import logging
+import datetime
 
 import copy
 import mode as mode
@@ -16,8 +17,9 @@ import util.title as title
 from libs import *
 from libs.vehicleFactory import VehicleFactory
 
-logging.basicConfig(level=logging.INFO)
-
+today = datetime.date.today().strftime("%B-%d-%Y")
+logging.basicConfig(filename="log/"+today+".log", level=logging.DEBUG)
+logging.debug("Started log")
 class Main_program(object):
 	''' Stores and runs sims on a rocket '''
 	restart_menu = ["Restart", "Edit the specs", "Edit the events", "Quit"]
