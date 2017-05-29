@@ -161,11 +161,8 @@ class SolidRocketEngine(RocketEngine):
 	engine_type = "Solid"
 	def __init__(self, engine_data):
 		RocketEngine.__init__(self, engine_data)
-		self.assigned_thrust = 0.0
-		self.assigned_burn_rates_for_SRM_power_down = [10064.81592, 8100, 5700, 4000, 2150, 0]
-		#self.assigned_burn_rates_for_SRM_power_down = [10195.695, 8750, 5500, 3500, 2150]
-		#self.assigned_thrust_per_engine_for_SRM_power_down = [3150000, 2729000, 2343000, 1473250, 937750, 576250, 0] other sim
-		self.assigned_thrust_per_engine_for_SRM_power_down = [2625000, 2120000, 1498500, 1055000, 568570, 0]
+		self.power_down_set = False
+
 	def set_assigned_thrust_per_engine(self, thrust):
 		self.thrust_total = thrust * self.engine_count
 
@@ -194,10 +191,10 @@ class SolidRocketEngine(RocketEngine):
 		if message:
 			self.messages.append(message)
 
-	def power_down(self, start_time, end_time, time, time_inc, alt):
-		eventTime = end_time - start_time #
+	def power_down(self, start_time, end_time, time, time_inc, alt, thrusts):
+		eventTime = end_time - start_time
 		fuelRemaining = self.fuel_source.get_fuel_remaining()
-		srm_entry_mode = "array"
+		srm_entry_mode = "array_thrust"
 		self.messages.append("\nEVENT: power down {}".format(self.name))
 		if srm_entry_mode == "manual":
 			thrust = raw_input("Enter the assigned SRM thrust per engine:")
@@ -205,8 +202,20 @@ class SolidRocketEngine(RocketEngine):
 		if srm_entry_mode == "array" and self.assigned_burn_rates_for_SRM_power_down: # [] is False
 			burn_rate = self.assigned_burn_rates_for_SRM_power_down.pop(0)
 			self.adjust_thrust_to_burn_at_rate_per_engine(burn_rate, alt)
-		if srm_entry_mode == "array_thrust" and self.assigned_thrust_per_engine_for_SRM_power_down:
-			self.set_assigned_thrust_per_engine(self.assigned_thrust_per_engine_for_SRM_power_down.pop(0))
+		if srm_entry_mode == "array_thrust":
+			if not self.power_down_set:
+				self.assigned_thrust_per_engine_for_SRM_power_down = thrusts
+				self.power_down_set = True
+
+			if self.assigned_thrust_per_engine_for_SRM_power_down:
+				thrust = func.linear_estimate(time, [i for i in range(int(start_time), int(end_time) + 3, 3)], thrusts)
+				print "EVENT: Set thrust per engine to {}".format(thrust)
+				self.set_assigned_thrust_per_engine(thrust)
+
+				# check how far through the event we are
+				# find the two closest thrusts
+				# check how far between those two times we are
+				# assigned the thrust
 		if srm_entry_mode == "linear":
 			pass
 		if srm_entry_mode == "cube root":

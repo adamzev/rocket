@@ -13,7 +13,6 @@
 				"specImp_sl" : 242.00,
 				"specImp_vac" : 268.20,
 				"thrust_controlled" : "True",
-				"adc_K" : 0.28400,
 				"type" : "Solid"
 			},
 		"SRMU" :
@@ -29,7 +28,6 @@
 				"specImp_sl" : 257.70,
 				"specImp_vac" : 285.60,
 				"thrust_controlled" : "True",
-				"adc_K" : 0.28400,
 				"type" : "Solid"
 			},
 		"RD-171M" :

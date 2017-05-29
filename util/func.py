@@ -63,7 +63,7 @@ def get_value(myArray, when="current"):
 		return prev(myArray)
 
 
-def real_quadradric(a , b, c):
+def real_quadradric(a, b, c):
 	''' returns the x values for given a, b, c where ax^2 + bx + c =0
 	Only handles quads with real results
 	'''
@@ -82,3 +82,33 @@ def break_point():
 def almost_equal(x, y, threshold=0.0001):
 	''' returns boolean regarding whether abs(x-y) is within a given threshold '''
 	return abs(x-y) < threshold
+
+def weighted_average(values, amounts):
+	''' return the weighted average given values and the frequencies (amounts) of the values '''
+	return sum(x * y for x, y in zip(values, amounts)) / sum(amounts)
+
+def linear_estimate(current_time, times, values):
+	''' convert stepwise data into a linear estimate '''
+	current_time = round(current_time, 5)
+	if len(times) != len(values):
+		raise ValueError
+	i = 0
+	for time in times:
+		if current_time <= time:
+			break
+		i += 1
+	else:
+		raise ValueError("Current time is greater than last time")
+	closest_times = (times[i-1], times[i])
+	closest_values = (values[i-1], values[i])
+	time_range = closest_times[1] - closest_times[0]
+	time_past_prior = current_time - closest_times[0]
+
+	progress = time_past_prior / time_range
+	print time_range, time_past_prior, progress
+	weights = [1 - progress, progress]
+	return weighted_average(closest_values, weights)
+
+def less_than_or_almost_equals(a, b, decimal_precision = 5):
+	''' compare floating point values withing a given precision '''
+	return round(a, decimal_precision) <= round(b, decimal_precision)

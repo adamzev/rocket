@@ -1,5 +1,7 @@
-''' Create, load and save csv and json files '''
-
+''' file manager handles loading and saving files
+	loads and saves json data
+	saves csv data
+'''
 import glob
 import json
 import os
@@ -40,14 +42,17 @@ def get_json_file_data(folder, name, creation_function):
 	return data
 
 def create_csv(data, fileName):
+	''' creates a csv file '''
 	with open(fileName, 'w') as outfile:
 		outfile.write(data)
 
-def save_csv(data, fileName):
+def update_csv(data, fileName):
+	''' appends data to a csv file '''
 	with open(fileName, 'a') as outfile:
 		outfile.write(data)
 
 def make_dir(fileName):
+	''' make a directory '''
 	if not os.path.exists(os.path.dirname(fileName)):
 		try:
 			os.makedirs(os.path.dirname(fileName))

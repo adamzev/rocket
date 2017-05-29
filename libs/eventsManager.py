@@ -77,7 +77,7 @@ class EventManager(object):
 
 			if field["type"] == "array":
 				values = []
-				for i in range(int(result["start_time"]), int(result["end_time"]), 3):
+				for i in range(int(result["start_time"]), int(result["end_time"]) + 3, 3):
 					values.append(q.query_float(field["prompt"]+str(i)+": "))
 				result[field_name] = values
 
@@ -110,7 +110,7 @@ class EventManager(object):
 			answer = q.query_min_max("What is the starting throttle for {} attached to the {}".format(engine.name, engine.stage))
 			starting_thottles.append({"engine" : engine.name, "stage":engine.stage, "throt" : answer})
 			if engine.type == "Solid":
-				answer = q.query_min_max("What is the starting " + Fore.RED + "thrust per engine for {}".format(engine.name) + Style.RESET_ALL, 0, float('inf'))
+				answer = q.query_min_max("What is the starting " + Fore.RED + "lbf of thrust per engine for {}".format(engine.name) + Style.RESET_ALL, 0, float('inf'))
 				starting_thrusts.append({"engine" : engine.name, "stage":engine.stage, "thrust" : answer})
 
 		self.events["starting_throt"] = starting_thottles

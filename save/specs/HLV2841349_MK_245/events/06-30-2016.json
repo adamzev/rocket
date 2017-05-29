@@ -93,7 +93,7 @@
             "start_time": 60,
 			"engine": "SRM",
             "name": "Power Down Thrust",
-            "thrusts": 3500000,
+            "thrusts": [2625000, 2120000, 1498500, 1055000, 568570, 0],
             "end_time": 75
         },
         {

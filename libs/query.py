@@ -140,6 +140,7 @@ class Query(object):
 		while True:
 			sys.stdout.write(question + prompt)
 			choice = cls.input_func().lower()
+			choice = choice.replace(",", "")
 			if choice == 'min' or choice == 'max' or choice == 'off':
 				return choice
 			elif func.is_float(choice) and min_num <= float(choice) <= max_num:
