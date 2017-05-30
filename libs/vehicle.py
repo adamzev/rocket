@@ -1,15 +1,14 @@
 from math import sqrt
 import copy
 
-from colorama import Fore, Back, Style
+from colorama import Fore, Style
 
-from libs.rocketEngine import RocketEngine
 from physicalStatus import PhysicalStatus
-from stage import Stage
 import generalEquations as equ
-from libs.spec_creator import *
-import util.func as func
+
 from libs import fileManager as fileMan
+
+import util.func as func
 import mode
 
 class Vehicle(object):
@@ -121,6 +120,7 @@ class Vehicle(object):
 				break
 
 	def get_time_inc(self):
+		''' get the current time interval '''
 		if mode.GIVEN_INTERVALS:
 			for timeIncrements in self.time_incs:
 				if round(self.time, 4) < timeIncrements["until"]:
@@ -129,6 +129,7 @@ class Vehicle(object):
 			return self.time_inc
 
 	def get_A_vert_eff_avg(self):
+		''' get the Accel vert eff average '''
 		A_vert_eff = equ.average(self.cur.A.vert_eff, self.prev.A.vert_eff)
 		if self.prev.alt > self.ground_level:
 			return A_vert_eff
@@ -147,7 +148,7 @@ class Vehicle(object):
 		self.check_state()
 
 	def check_state(self):
-		for name, stage in self.stages.iteritems():
+		for stage in self.stages.values():
 			stage.check_state()
 
 	def updateAlt (self, time_inc):
@@ -158,11 +159,11 @@ class Vehicle(object):
 
 	def updateWeight(self, time_inc):
 		fuel_used = 0.0
-		fuel_burn = 0.0
-		for name, stage in self.stages.iteritems():
+		for stage in self.stages.values():
 			fuel_used += stage.fuel_used
 		self.cur.weight = self.lift_off_weight - fuel_used
-		assert self.cur.weight > 0
+		if self.cur.weight < 0:
+			raise ValueError("Weight of the vehicle must be greater than 0")
 
 	def update_V_inc(self, time_inc):
 		#self.update_V_horiz_mph()
@@ -182,6 +183,7 @@ class Vehicle(object):
 
 
 	def update_V_horiz_mph(self):
+		''' increment the Velocity horizontal '''
 		self.cur.V.horiz_mph = self.prev.V.horiz_mph + self.prev.V.horiz_mph_inc
 
 
@@ -247,6 +249,7 @@ class Vehicle(object):
 
 
 	def select_A_vert(self):
+		''' selects the A vert based on the current height and vert velocity '''
 		if self.prev.alt <= self.tower_height:
 			return "a"
 
@@ -395,7 +398,9 @@ class Vehicle(object):
 			print("EVENT: Starting to giveback V vert to {}fps".format(event["target"]))
 			self.V_v_giveback_target = event["target"]
 			self.V_v_start_giveback = True
-		assert event_handled
+		if not event_handled:
+			message = "Event {} was not handled".format(event["name"])
+			raise ValueError(message)
 
 	def handle_stage_event(self, event):
 		''' Takes an event object (with name, stage and event specific keys) and calls functions relating to that '''

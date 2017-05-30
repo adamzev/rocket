@@ -1,5 +1,6 @@
+import os
 import curses
-import os 
+
 import util.menu as menu
 import calc
 
