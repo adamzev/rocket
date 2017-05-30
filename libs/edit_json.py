@@ -2,7 +2,7 @@
 
 import json
 import fileManager as fileMan
-import libs.query as q
+from libs.query import Query as q
 import util.func as func
 
 

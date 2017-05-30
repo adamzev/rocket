@@ -2,7 +2,7 @@ import unittest
 
 import rocket.libs.vehicle as V
 from rocket.util.func import almost_equal
-HLV = V.Vehicle("HLV * 4-8/6-9 MK: 3-36 Ver: 08-12-2016", 22191271.27, 1.832)
+#HLV = V.Vehicle("HLV * 4-8/6-9 MK: 3-36 Ver: 08-12-2016", 22191271.27, 1.832)
 # test cases adapted from `x-common//canonical-data.json` @ version: 1.0.0
 
 
