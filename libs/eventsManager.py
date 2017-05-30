@@ -4,7 +4,7 @@ import time
 
 from colorama import Fore, Back, Style
 
-import libs.query as q
+from libs.query import Query as q
 import libs.fileManager as fileMan
 
 class EventManager(object):
@@ -43,8 +43,8 @@ class EventManager(object):
 			duration_type: instant or interval
 			data_needed: an array of objects
 				field: name of the field needed
-				type: 
-					float, 
+				type:
+					float,
 					string_from_list,
 					array: just used for power down currently
 					min_max_float: typically used to throttle (min 0.0, max 1.0)

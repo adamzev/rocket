@@ -63,10 +63,26 @@ query_earths_rotation = partial(
 									"earth rotation mph (hit enter for the default value of 912.67)? ",
 									912.67
 								)
-def create_specs():
-	''' query for the specs for a heavy lift vehicle '''
+
+def query_name_and_MK():
 	name = query_vehicle_name()
 	MK = query_vehicle_MK()
+	friendly_name = "{} MK {}".format(name, MK)
+	clean_name = func.remove_non_alphanumeric(name)
+	clean_MK = func.remove_non_alphanumeric(MK)
+	file_name = "{}_MK_{}".format(clean_name, clean_MK)
+
+	name_spec = {
+		"name" : name,
+		"MK" : MK,
+		"friendly_name" : friendly_name,
+		"file_name" : "save/specs/"+file_name
+	}
+	return name_spec
+
+def create_specs():
+	''' query for the specs for a heavy lift vehicle '''
+	specs = query_name_and_MK()
 	lift_off_weight = query_lift_off_weight()
 	stages = create_stages_specs()
 
@@ -74,26 +90,21 @@ def create_specs():
 	for stage_name, stage_data in stages.iteritems():
 		print (stage_name)
 		selected_engines += VehicleFactory.select_engines(stage_name, stage_data["fuel_type"])
-	friendly_name = "{} MK {}".format(name, MK)
-	clean_name = func.remove_non_alphanumeric(name)
-	clean_MK = func.remove_non_alphanumeric(MK)
-	file_name = "{}_MK_{}".format(clean_name, clean_MK)
-	specs = {
-		"name" : name,
-		"MK" : MK,
-		"friendly_name" : friendly_name,
-		"file_name" : "save/specs/"+file_name,
+
+	specs.update({
 		"lift_off_weight" : lift_off_weight,
 		"stages" : stages,
 		"engines" : selected_engines,
 		"earth_rotation_mph" : 912.67
-	}
+	})
 
 	fileMan.ask_to_save(specs, "Do you want to save these specs? ")
 	return specs
 
 def change_specs(specs):
-	''' Change the spec of a saved engine file '''
+	''' chages the specs of a rocket
+		More generally, modify a dict using a dict of callbacks
+	'''
 	def change_engines(specs):
 		''' Add or remove engines from a specs file and returns the engine specs (not the whole spec file) '''
 		chosen_stage = q.query_from_list("option", "Choose a stage:", [stage for stage in specs["stages"]], False)
@@ -113,8 +124,10 @@ def change_specs(specs):
 		return specs["engines"]
 
 	spec_functions = {
-		"name": query_vehicle_name,
-		"MK": query_vehicle_MK,
+		"Name and MK": {
+			"keys" : ["name", "MK"],
+			"update_function" : query_name_and_MK,
+			},
 		"lift_off_weight": query_lift_off_weight,
 		"stages": create_stages_specs,
 		"engines": lambda: change_engines(specs),
@@ -124,7 +137,14 @@ def change_specs(specs):
 	change_another_property = True
 	while (change_another_property):
 		chosen_key = q.query_from_list("option", "Choose a property to change:", spec_functions.keys(), False)
-		specs[chosen_key] = spec_functions[chosen_key]()
+		if isinstance(spec_functions[chosen_key], dict): # dicts are used for editing multiple keys, str to edit just one
+			print("The previous values were: ")
+			for key in spec_functions[chosen_key]["keys"]:
+				print("{}: {}".format(key, specs[key]))
+			specs.update(spec_functions[chosen_key]["update_function"]())
+		else:
+			print("The previous value was: {}".format(specs[chosen_key]))
+			specs[chosen_key] = spec_functions[chosen_key]()
 
 		change_another_property = q.query_yes_no("Change another property?")
 

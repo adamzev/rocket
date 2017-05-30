@@ -8,13 +8,15 @@ import datetime
 import copy
 import mode as mode
 
-import libs.query as q
+from generalEquations import *
+
+import util.title as title
+
+from libs.query import Query as q
 import libs.exceptions as exceptions
 import libs.edit_json as edit_json
-from generalEquations import *
-from libs.spec_creator import *
-import util.title as title
-from libs import *
+import libs.spec_creator as spec_creator
+from libs import fileManager as fileMan
 from libs.vehicleFactory import VehicleFactory
 
 today = datetime.date.today().strftime("%B-%d-%Y")
@@ -30,14 +32,14 @@ class Main_program(object):
 		self.COAST_SPEED = 16600
 		self.endTime = 10.0
 
-		self.specs = get_specs()
+		self.specs = spec_creator.get_specs()
 		assert self.specs is not False
 
 		if mode.QUICKRUN:
 			self.HLV = VehicleFactory.create_vehicle(self.specs, True)
 		else:
 			self.HLV = VehicleFactory.create_vehicle(self.specs)
-		event_file = get_events(self.specs["file_name"], self.HLV)
+		event_file = spec_creator.get_events(self.specs["file_name"], self.HLV)
 		self.events = event_file["events"]
 		try:
 			self.HLV.cur.alt = event_file["initial_alt"]
@@ -231,7 +233,7 @@ def restart_menu(last_spec_file):
 	if selection == "Restart":
 		main()
 	elif selection == "Edit the specs":
-		change_specs(fileMan.load_json(last_spec_file+".json"))
+		spec_creator.change_specs(fileMan.load_json(last_spec_file+".json"))
 	elif selection == "Edit the events":
 		print("Edit events not implemented")
 	elif selection == "Quit":

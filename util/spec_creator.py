@@ -1,7 +1,7 @@
 ''' Manage the creation of spec and event files '''
 import util.func as func
 from libs.vehicleFactory import VehicleFactory
-import libs.query as q
+from libs.query import Query as q
 import libs.fileManager as fileMan
 from libs.eventsManager import EventManager
 

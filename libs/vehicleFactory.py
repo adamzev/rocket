@@ -2,14 +2,17 @@ from math import sqrt
 import copy
 
 
-from libs.vehicle import Vehicle
+
 from stage import Stage
 from rocketEngine import RocketEngine
 
 import generalEquations as equ
-from libs.spec_creator import *
+
 import util.func as func
-import libs.query as q
+
+from libs.vehicle import Vehicle
+import libs.spec_creator
+from libs.query import Query as q
 from libs import fileManager as fileMan
 
 
@@ -21,12 +24,12 @@ class VehicleFactory(object):
 
 	@classmethod
 	def create_vehicle(cls, specs, load_time_incs=False):
-
+		''' create a heavy lift vehicle '''
 		stages = cls.init_stages(specs["stages"])
 		engines = cls.create_engines(specs["engines"])
 		cls.set_holding_engines(stages, engines)
 		cls.set_engine_initial_fuel_source(engines, stages)
-		for name, stage in stages.iteritems():
+		for stage in stages.values():
 			stage.attached_engine_report()
 
 		rocket = Vehicle(specs, stages, engines)
@@ -54,6 +57,9 @@ class VehicleFactory(object):
 					stage.attach_engine(engine)
 	@classmethod
 	def get_total_adc_K(cls, stages):
+		''' totals the adc_Ks of the given stages
+			"stages" is a dict with Stage names as keys and stage specs as values
+		'''
 		adc_K = 0.0
 		for stage_values in stages.values():
 			adc_K += stage_values["adc_K"]
@@ -63,7 +69,7 @@ class VehicleFactory(object):
 	@classmethod
 	def select_engine_from_list(cls, stage_name=None, fuel_type=None):
 		''' select an engine from a list
-		Returns False if the user is done entering engines
+			Returns False if the user is done entering engines
 		'''
 		engines = cls.load_available_engines()
 		compatable_engines = []
@@ -88,7 +94,7 @@ class VehicleFactory(object):
 	@classmethod
 	def load_engine_data(cls, selected_engines):
 		''' Takes a json object with the engine_name and engine_count and loads the matching
-		engine data to a json object.
+			engine data to a json object.
 		'''
 		available_engines = cls.load_available_engines()
 		engine_data = []

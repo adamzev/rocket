@@ -5,7 +5,7 @@ from libs.stage import *
 import libs.vehicle
 import libs.vehicleFactory
 import libs.velocity
-import libs.query as q
+from libs.query import Query as q
 import numpy as np
 
 
