@@ -53,6 +53,9 @@ def mphToFps(mph):
 def fpsToMph(fps):
 	return fps*(60.0*60.0)/5280.0
 
+def average_list(values):
+	return sum(values)/float(len(values))
+
 def average(*args):
 	args = [x for x in args if x is not None]
 	# args = filter(None, args)   removes both zeros and None

@@ -11,7 +11,7 @@ import generalEquations as equ
 import util.func as func
 
 from libs.vehicle import Vehicle
-import libs.spec_creator
+
 from libs.query import Query as q
 from libs import fileManager as fileMan
 
@@ -77,10 +77,17 @@ class VehicleFactory(object):
 			if fuel_type is None or fuel_type == value['type']:
 				compatable_engines.append({key:value})
 
+		list_name = "engine"
+		intro = "Select an engine number: "
+		if stage_name:
+			list_name = "{} engine".format(stage_name)
+			intro = "Select an engine number to add to the {}: ".format(stage_name)
+
 		selected_engines = q.query_from_list(
-			"engine",
-			"Select an engine number: ",
-			compatable_engines, True,
+			list_name,
+			intro,
+			compatable_engines,
+			True,
 			lambda x: cls.collect_engine_details(x, stage_name)
 		)
 		return selected_engines
@@ -161,7 +168,7 @@ class VehicleFactory(object):
 		func.pretty_json(engine_data)
 		engine_name = engine_data.keys()[0]
 		# only accept integer values but store as float for compatibility
-		count = float(q.query_int("How many {}s?".format(engine_name)))
+		count = float(q.query_int("How many {}s? ".format(engine_name)))
 		this_engine = {}
 		this_engine["engine_count"] = count
 		this_engine["engine_name"] = engine_name

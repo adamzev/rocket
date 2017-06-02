@@ -1,6 +1,6 @@
 import logging
 from util import func
-from libs.spec_creator import *
+
 import generalEquations as equ
 import mode
 

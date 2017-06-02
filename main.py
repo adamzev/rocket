@@ -12,12 +12,15 @@ from generalEquations import *
 
 import util.title as title
 
-from libs.query import Query as q
+
 import libs.exceptions as exceptions
 import libs.edit_json as edit_json
-import libs.spec_creator as spec_creator
+from libs.spec_manager import Spec_manager
 from libs import fileManager as fileMan
 from libs.vehicleFactory import VehicleFactory
+
+sys.path.append('/home/tutordelphia/www/')
+from rocket.libs.query import Query as q
 
 today = datetime.date.today().strftime("%B-%d-%Y")
 logging.basicConfig(filename="log/"+today+".log", level=logging.DEBUG)
@@ -32,14 +35,14 @@ class Main_program(object):
 		self.COAST_SPEED = 16600
 		self.endTime = 10.0
 
-		self.specs = spec_creator.get_specs()
+		self.specs = Spec_manager.get_specs()
 		assert self.specs is not False
 
 		if mode.QUICKRUN:
 			self.HLV = VehicleFactory.create_vehicle(self.specs, True)
 		else:
 			self.HLV = VehicleFactory.create_vehicle(self.specs)
-		event_file = spec_creator.get_events(self.specs["file_name"], self.HLV)
+		event_file = Spec_manager.get_events(self.specs["file_name"], self.HLV)
 		self.events = event_file["events"]
 		try:
 			self.HLV.cur.alt = event_file["initial_alt"]
@@ -233,7 +236,7 @@ def restart_menu(last_spec_file):
 	if selection == "Restart":
 		main()
 	elif selection == "Edit the specs":
-		spec_creator.change_specs(fileMan.load_json(last_spec_file+".json"))
+		Spec_manager.change_specs(fileMan.load_json(last_spec_file+".json"))
 	elif selection == "Edit the events":
 		print("Edit events not implemented")
 	elif selection == "Quit":
@@ -246,7 +249,7 @@ def main():
 		try:
 			print(title.TITLE)
 			Rocketman = Main_program()
-			restart_menu(Rocketman.specs["file_name"])
+			#restart_menu(Rocketman.specs["file_name"])
 			Rocketman.start()
 
 		except exceptions.FuelValueError:

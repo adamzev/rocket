@@ -41,7 +41,7 @@ def getNextKey(my_dict):
 	return next(iter(my_dict))
 
 def pretty_json(parsed_json):
-	print json.dumps(parsed_json, indent=4, sort_keys=True)
+	print(json.dumps(parsed_json, indent=4, sort_keys=True))
 
 def current(myArray):
 	return myArray[-1]
@@ -105,7 +105,7 @@ def linear_estimate(current_time, times, values):
 	time_past_prior = current_time - closest_times[0]
 
 	progress = time_past_prior / time_range
-	print time_range, time_past_prior, progress
+	print(time_range, time_past_prior, progress)
 	weights = [1 - progress, progress]
 	return weighted_average(closest_values, weights)
 

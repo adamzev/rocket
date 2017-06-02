@@ -3,9 +3,10 @@ import copy
 
 from colorama import Fore, Style
 
-from physicalStatus import PhysicalStatus
+
 import generalEquations as equ
 
+from libs.physicalStatus import PhysicalStatus
 from libs import fileManager as fileMan
 
 import util.func as func

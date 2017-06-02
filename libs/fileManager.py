@@ -2,12 +2,16 @@
 	loads and saves json data
 	saves csv data
 '''
+import sys
 import glob
 import json
 import os
 import errno
-from libs.query import Query as q
-import util.func as func
+
+sys.path.append('/home/tutordelphia/www/')
+from rocket.libs.query import Query as q
+
+import rocket.util.func as func
 
 def save_file(this_file):
 	file_name = this_file['file_name']

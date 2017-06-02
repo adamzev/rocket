@@ -1,14 +1,20 @@
 import sys
-from util import func
+
+sys.path.append('/home/tutordelphia/www/')
+
+from rocket.util import func
 
 class Query(object):
 	''' query the user for multiple datatypes in a testable manner '''
-	input_func = raw_input
+	try:
+		input_func = raw_input
+	except NameError:
+		input_func = input
 	def __init__(self):
 		pass
 
 	@classmethod
-	def change_input_func(cls, input_func=raw_input):
+	def change_input_func(cls, input_func):
 		''' change the input method '''
 		cls.input_func = staticmethod(input_func)
 
@@ -34,7 +40,7 @@ class Query(object):
 				return ans
 			if ans == "" and default:
 				return default
-			print "Please enter a valid string."
+			print("Please enter a valid string.")
 
 	@classmethod
 	def query_yes_no(cls, question, default="yes"):

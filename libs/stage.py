@@ -71,8 +71,6 @@ class Stage(object):
 		print("\nEVENT: Jettisoned {}".format(self.name))
 		self.attached = False
 		for engine in self.attached_engines:
-			if engine.type == "Liquid":
-				assert engine.throt_cur <= engine.min_throt
 			# set the average throttle of attached engines to zero
 			engine.throt_cur = 0.0
 			engine.throt_prev = 0.0
