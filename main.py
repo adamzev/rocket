@@ -140,6 +140,9 @@ class Main_program(object):
 				decimal_precision = 2
 			else:
 				raise ValueError("Unsupported time inc")
+		if not pre:
+			rocket.auto_events()
+
 		for event in events:
 			preEvent = "pre" in event
 			assert round(event["start_time"], decimal_precision) <= round(event["end_time"], decimal_precision)

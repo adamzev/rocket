@@ -457,3 +457,8 @@ class Vehicle(object):
 				engine.setThrottleOverride(0.0)
 				print("\nEVENT: {} cut-off".format(engine.name))
 		assert event_handled
+
+	def auto_events(self):
+		''' handles automatic events like auto power up '''
+		for engine in self.engines:
+			engine.auto_events(self.get_time_inc())

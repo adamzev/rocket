@@ -12,6 +12,7 @@ class RocketEngine(object):
 		self.burn_rate = 0.0
 		self.messages = []
 		self.thrust_total = 0.0
+		self.reached_max = False
 
 		# The following are overwritten by engine stats
 		self.min_throt = 0.0
@@ -155,6 +156,13 @@ class RocketEngine(object):
 		patm = equ.percentOfAtmosphericPressure(alt)
 		pctVac = 1 - patm
 		return self.specImp_sl + (pctVac * (self.specImp_vac - self.specImp_sl))
+
+	def auto_events(self, time_inc):
+		if self.throt_avg > 0.0 and not self.reached_max:
+			self.setThrottle(self.max_throt, time_inc)
+			if self.throt_avg == self.max_throt:
+				self.reached_max = True
+
 
 
 class SolidRocketEngine(RocketEngine):

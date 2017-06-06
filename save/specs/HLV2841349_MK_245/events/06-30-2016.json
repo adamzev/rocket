@@ -56,31 +56,10 @@
     ],
     "events": [
         {
-            "start_time": 0,
-            "engine": "RS-68A",
-            "target": 1,
-            "name": "Set Throttle Target",
-            "end_time": 3
-        },
-        {
             "start_time": 215.8,
             "target": 1200,
             "name": "Giveback V Vert",
             "end_time": 215.8
-        },
-        {
-            "start_time": 0,
-            "engine": "RD-171M",
-            "target": 1,
-            "name": "Set Throttle Target",
-            "end_time": 3
-        },
-        {
-            "start_time": 0,
-            "engine": "SSME",
-            "target": 1,
-            "name": "Set Throttle Target",
-            "end_time": 3
         },
         {
             "rate": -20000,
