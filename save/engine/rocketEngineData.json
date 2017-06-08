@@ -13,8 +13,20 @@
 				"specImp_sl" : 242.00,
 				"specImp_vac" : 268.20,
 				"thrust_controlled" : "True",
-				"adc_K" : 0.28400,
-				"type" : "Solid"
+				"type" : "Solid",
+				"event" : {
+					"rate": -20000,
+					"start_time": 24,
+					"name": "Change Thrust",
+					"end_time": 45
+				},
+				"power_down_fuel_level" : 96600,
+				"power_down_burn_rates" : 
+					[
+						11200, 9800, 8400, 7900, 7500, 7100,
+						6700, 6100, 5500, 5100, 4800, 4500,
+						4200, 4000, 3800
+					]
 			},
 		"SRMU" :
 			{
@@ -29,7 +41,6 @@
 				"specImp_sl" : 257.70,
 				"specImp_vac" : 285.60,
 				"thrust_controlled" : "True",
-				"adc_K" : 0.28400,
 				"type" : "Solid"
 			},
 		"RD-171M" :

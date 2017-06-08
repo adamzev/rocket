@@ -1,16 +1,18 @@
 from math import sqrt
 import copy
-from rocketEngine import RocketEngine
-from physicalStatus import PhysicalStatus
-from stage import Stage
+
+from colorama import Fore, Style
+
+
 import generalEquations as equ
-from util.text_interface import *
-import util.func as func
-import libs.query as q
+
+from libs.physicalStatus import PhysicalStatus
 from libs import fileManager as fileMan
+
+import util.func as func
 import mode
 
-class Vehicle():
+class Vehicle(object):
 
 	def __init__(self, specs, stages, engines):
 		earth_rotation_mph = specs["earth_rotation_mph"]
@@ -20,8 +22,9 @@ class Vehicle():
 		)
 
 		self.specs = specs
-		self.time_incs = None
+		self.time_incs = {}
 		self.time_inc = 0.1
+		self.max_A_v = 0.75
 		self.stages = stages
 		self.engines = engines
 		self.load_time_incs = False
@@ -48,8 +51,6 @@ class Vehicle():
 		self.prev = copy.deepcopy(self.cur)
 		self.name = "{} MK {}".format(specs["name"], specs["MK"])
 
-		#self.A_hv_diff = specs["A_hv_diff"]
-
 
 	def __str__(self):
 		V_as = self.cur.V.air_speed_mph
@@ -61,16 +62,16 @@ class Vehicle():
 		big_G = self.cur.big_G
 		ADC_guess = self.cur.ADC_predicted
 		ADC_adj = self.cur.ADC_adjusted
-		sign_symb = "+" if self.cur.V.vert_inc > 0 else "-"
+		sign_symb = "+" if self.cur.V.vert_inc >= 0 else ""
 		row1 = "-"*140 + "\n"
-		row2 = "{:>46.6f}      {:>6.8f}     G={: <12.8f}\n".format(self.cur.A.total, self.cur.ADC_actual, big_G)
-		time_string = "{:<6.1f}".format(self.time)
+		row2 = "{:>48,.6f}      {:>6,.8f}     G={: <12,.8f}\n".format(self.cur.A.total, self.cur.ADC_actual, big_G)
+		time_string = "{:<6,.1f}".format(self.time)
 		time_string = Fore.RED + time_string + Style.RESET_ALL
-		row3 = "{}{:<12.2f} {:5} WT={:<11.2f}->{:>9.6f}      {:<12.8f}   Vh={:<12.6f} Vas={:<12.3f}     {:<12.6f} {:<10.8f}\n".format(
+		row3 = "{}{:<12,.2f} {:5} WT={:<13,.2f}->{:>9,.6f}      {:<12,.8f}   Vh={:<12,.6f} Vas={:<12,.3f}     {:<12,.6f} {:<10,.8f}\n".format(
 			sign_symb, self.cur.V.vert_inc, time_string, self.cur.weight, self.cur.A.raw, ADC_adj, self.cur.V.horiz_mph, V_as, A_v, A_h
 		)
-		alt_string = "ALT={:<.1f}\'".format(alt)
-		row4 = "{:<13.6f} {:<16} T={:<19.4f}  \"{:<.4f}\"\n".format(V_vert, alt_string, thrust, ADC_guess)
+		alt_string = "ALT={:<,.1f}\'".format(alt)
+		row4 = "{:<13,.6f} {:<16} T={:<19,.4f}  \"{:<,.4f}\"\n".format(V_vert, alt_string, thrust, ADC_guess)
 		return row1+row2+row3+row4
 
 	def save_current_row(self, first=False):
@@ -109,7 +110,7 @@ class Vehicle():
 		headers = "time, alt, thrust, weight, ADC_guess, ADC_actual, ADC_adj, ADC_error, A_raw, A_total, A_h, A_v, bigG, V_as, V_horiz_mph, V_vert_inc, V_vert \n"
 		if first:
 			fileMan.create_csv(headers, 'data/rows.csv')
-		fileMan.save_csv(row1+row2, 'data/rows.csv')
+		fileMan.update_csv(row1+row2, 'data/rows.csv')
 
 
 
@@ -121,6 +122,7 @@ class Vehicle():
 				break
 
 	def get_time_inc(self):
+		''' get the current time interval '''
 		if mode.GIVEN_INTERVALS:
 			for timeIncrements in self.time_incs:
 				if round(self.time, 4) < timeIncrements["until"]:
@@ -129,6 +131,7 @@ class Vehicle():
 			return self.time_inc
 
 	def get_A_vert_eff_avg(self):
+		''' get the Accel vert eff average '''
 		A_vert_eff = equ.average(self.cur.A.vert_eff, self.prev.A.vert_eff)
 		if self.prev.alt > self.ground_level:
 			return A_vert_eff
@@ -147,7 +150,7 @@ class Vehicle():
 		self.check_state()
 
 	def check_state(self):
-		for name, stage in self.stages.iteritems():
+		for stage in self.stages.values():
 			stage.check_state()
 
 	def updateAlt (self, time_inc):
@@ -158,11 +161,11 @@ class Vehicle():
 
 	def updateWeight(self, time_inc):
 		fuel_used = 0.0
-		fuel_burn = 0.0
-		for name, stage in self.stages.iteritems():
+		for stage in self.stages.values():
 			fuel_used += stage.fuel_used
 		self.cur.weight = self.lift_off_weight - fuel_used
-		assert self.cur.weight > 0
+		if self.cur.weight < 0:
+			raise ValueError("Weight of the vehicle must be greater than 0")
 
 	def update_V_inc(self, time_inc):
 		#self.update_V_horiz_mph()
@@ -182,8 +185,55 @@ class Vehicle():
 
 
 	def update_V_horiz_mph(self):
+		''' increment the Velocity horizontal '''
 		self.cur.V.horiz_mph = self.prev.V.horiz_mph + self.prev.V.horiz_mph_inc
 
+	def A_vert_formula_v2(self):
+		A_horiz = A_vert_eff = 0.0
+		A = self.cur.A.total
+		G = self.prev.big_G
+		X = ((sqrt(2.0*A**2.0 - G**2.0))-G)/2.0
+
+		Vv = self.prev.V.vert
+
+		if self.time <= 18.0:
+			if Vv >= 400.0:
+				self.max_A_v = 0.61035
+			else:
+				self.max_A_v = 0.65
+		elif self.time <= 48.0:
+			if Vv >= 1000.0:
+				self.max_A_v = 0.61035
+			else:
+				self.max_A_v = 0.70
+		elif self.time <= 75.0:
+			if Vv >= 1000.0:
+				self.max_A_v = 0.61035
+			else:
+				self.max_A_v = 0.75
+
+		if X < 0.4:
+			self.A_hv_diff = 0.001
+		elif X < 0.68:
+			self.A_hv_diff = 0.5 * X -0.2
+		elif X < 0.79:
+			self.A_hv_diff = X -0.54
+		elif X < 0.89:
+			self.A_hv_diff = 1.3 * X - 0.776
+		else:
+			return self.max_A_v
+
+		A_horiz_bump = 0.002
+		while A_horiz <= A_vert_eff + self.A_hv_diff:
+			A_horiz = X + A_horiz_bump
+			A_vert = equ.pythag(None, A_horiz, A)
+			A_vert_eff = A_vert - G
+			A_horiz_bump += 0.002
+
+		if A_vert_eff > self.max_A_v:
+			return self.max_A_v
+		else:
+			return A_vert_eff
 
 	def A_vert_formula(self, A_hv_diff):
 		A_horiz = A_vert_eff = 0.0
@@ -217,7 +267,7 @@ class Vehicle():
 		elif self.prev.V.vert > self.V_v_target - self.V_v_target * .05: # within 5 percent of the target
 			return self.A_ease_in
 		else:
-			return self.A_vert_formula(self.A_hv_diff)
+			return self.A_vert_formula_v2()
 
 	def select_A_vert_for_V_v_giveback(self):
 		''' In order to have the rocket reduce to and hit a vertical velocity giveback target,
@@ -247,6 +297,7 @@ class Vehicle():
 
 
 	def select_A_vert(self):
+		''' selects the A vert based on the current height and vert velocity '''
 		if self.prev.alt <= self.tower_height:
 			return "a"
 
@@ -297,21 +348,10 @@ class Vehicle():
 		return engine_names
 
 	def fuel_used_per_stage_report(self):
-		fuel_used = 0
+		''' prints a report of stage names and fuel used '''
 		for name, stage in self.stages.iteritems():
 			print name, stage, stage.fuel_used
 
-	'''
-	def act_on_engines(self, engineName, callback):
-		engines = self.find_engines(engineName)
-		for engine in engines:
-			callback(engine)
-
-	def act_on_engines_by_stage(self, engineName, callback):
-		engines = self.find_engines_by_stage(engineName, stage)
-		for engine in engines:
-			callback(engine)
-	'''
 	def setEngineThrottleOverride(self, engineName, throt):
 		engines = self.find_engines(engineName)
 		for engine in engines:
@@ -406,7 +446,9 @@ class Vehicle():
 			print("EVENT: Starting to giveback V vert to {}fps".format(event["target"]))
 			self.V_v_giveback_target = event["target"]
 			self.V_v_start_giveback = True
-		assert event_handled
+		if not event_handled:
+			message = "Event {} was not handled".format(event["name"])
+			raise ValueError(message)
 
 	def handle_stage_event(self, event):
 		''' Takes an event object (with name, stage and event specific keys) and calls functions relating to that '''
@@ -442,15 +484,6 @@ class Vehicle():
 		end_time = event["end_time"]
 		time_inc = self.get_time_inc()
 		for engine in engines:
-			if event["name"] == "Change Thrust":
-				event_handled = True
-				if self.time < event["end_time"]:
-					engine.changeThrust(event["rate"], time_inc)
-
-			if event["name"] == "Power Down Thrust":
-				event_handled = True
-				engine.power_down(start_time, end_time, self.time, time_inc, self.cur.alt)
-
 			if event["name"] == "Set Throttle Target":
 				event_handled = True
 				target = event["target"]
@@ -462,3 +495,22 @@ class Vehicle():
 				engine.setThrottleOverride(0.0)
 				print("\nEVENT: {} cut-off".format(engine.name))
 		assert event_handled
+
+	def auto_events(self):
+		''' handles automatic events like auto power up '''
+		for engine in self.engines:
+			engine.auto_events(self.time, self.get_time_inc())
+
+		try:
+			SRB = self.stages["SRB"]
+			if SRB.attached:
+				remaining = SRB.get_fuel_remaining()
+				for engine in SRB.attached_engines:
+					remaining_per_engine = remaining / engine.engine_count
+					if engine.attached and (remaining_per_engine - engine.burn_rate * self.get_time_inc() / engine.engine_count) <= engine.power_down_fuel_level:
+						if not engine.power_down_start_time:
+							print("EVENT: SRM Power down started at {} seconds with fuel level {} lbm per engine".format(self.time, remaining_per_engine))
+							engine.power_down_start_time = self.time
+						engine.power_down_by_burn_rates(self.time, self.cur.alt, SRB)
+		except KeyError:
+			pass # if no stage named SRB, don't handle it

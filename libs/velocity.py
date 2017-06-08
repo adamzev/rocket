@@ -1,7 +1,6 @@
 from generalEquations import *
 from util import *
 from twoD import TwoD
-import copy
 
 class Velocity(TwoD):
 	def __init__(self, horiz, vert, earth_rotation_mph = 912.67, vert_inc = 0.0, horiz_inc = 0.0):
@@ -12,7 +11,11 @@ class Velocity(TwoD):
 
 	@staticmethod
 	def get_orbital(alt):
-		return 17683.9567 * ( ( 1.0 / ( 1.0 + ( alt / 20902230.99 ) ) )** 0.5 )
+		''' Orbital Velocity (OV) is that horizontal velocity needed to counteract Earth's gravity at a given altitude
+		OV decreases as you increase your radial distance from the center of the Earth, i.e. increase altitude.
+		Alt in feet
+		'''
+		return orbitalVelocity(alt)
 
 	@property
 	def eff(self):

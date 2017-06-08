@@ -1,17 +1,28 @@
-import math
-import logging
-import copy
-import pprint
+''' Simulate a heavy lift vehicle '''
 import sys
-import mode
+import os
+import traceback
+import logging
+import datetime
+
+import copy
+import mode as mode
 
 from generalEquations import *
-from util.text_interface import *
+
+from libs.query import Query as q
 import util.title as title
-from libs import *
+import util.func as func
+
+
+import libs.exceptions as exceptions
+import libs.edit_json as edit_json
+from libs.spec_manager import Spec_manager
+from libs import fileManager as fileMan
 from libs.vehicleFactory import VehicleFactory
 
-import os
+
+
 import ctypes
 import msvcrt
 import subprocess
@@ -79,7 +90,12 @@ def maximize_console(lines=None):
 maximize_console(9999)
 logging.basicConfig(level=logging.INFO)
 
-class Main_program:
+today = datetime.date.today().strftime("%B-%d-%Y")
+logging.basicConfig(filename="log/"+today+".log", level=logging.DEBUG)
+logging.debug("Started log")
+class Main_program(object):
+	''' Stores and runs sims on a rocket '''
+	restart_menu = ["Restart", "Edit the specs", "Quit"]
 	def __init__(self):
 		''' initializes the main program '''
 		self.messages = []
@@ -87,14 +103,14 @@ class Main_program:
 		self.COAST_SPEED = 16600
 		self.endTime = 10.0
 
-		self.specs = get_specs()
+		self.specs = Spec_manager.get_specs()
 		assert self.specs is not False
 
 		if mode.QUICKRUN:
 			self.HLV = VehicleFactory.create_vehicle(self.specs, True)
 		else:
 			self.HLV = VehicleFactory.create_vehicle(self.specs)
-		event_file = get_events(self.specs["file_name"], self.HLV)
+		event_file = Spec_manager.get_events(self.specs["file_name"], self.HLV)
 		self.events = event_file["events"]
 		try:
 			self.HLV.cur.alt = event_file["initial_alt"]
@@ -112,6 +128,7 @@ class Main_program:
 
 
 	def compute_row(self, rocket, events, assigned_A_v, testRun=False):
+		''' sims the rocket over the course of one time increment '''
 		rocket.tick()
 
 		rocket.burn_fuel(rocket.time_inc)
@@ -168,21 +185,20 @@ class Main_program:
 			rocket_copy = copy.deepcopy(rocket)
 			rocket_copy.cur.ADC_predicted = ADC_prediction
 			self.compute_row(rocket_copy, events, assigned_V, False)
-			#try:
 
-			#except ValueError:
-			#	ADC_error = 100000.0
-			#	ADC_prediction = ADC_prediction / 2.0
 			ADC_error = rocket_copy.cur.ADC_error
-			ADC_actual = rocket_copy.cur.ADC_actual
-			#print ("Predicted ADC = {}\nerror={}\nadc_calc={}".format(ADC_prediction*10000.0, ADC_error*10000.0, ADC_actual*10000.0))
+
 			ADC_prediction -= ADC_error/2.0
-			#print ("New Prediction = {}".format(ADC_prediction*10000.0))
+
 			rocket_copy = None
 			tries += 1
 		return ADC_prediction
 
-	def check_for_event(self, events, rocket, pre=False):
+	@staticmethod
+	def check_for_event(events, rocket, pre=False):
+		''' takes in a event dict and a vehicle (and optionally whether this a pre or post computation event)
+		checks if the current time increment matches with an event and passes to the correct handler
+		'''
 		if mode.GIVEN_INTERVALS:
 			decimal_precision = 4
 		else:
@@ -192,11 +208,15 @@ class Main_program:
 				decimal_precision = 2
 			else:
 				raise ValueError("Unsupported time inc")
+		if not pre:
+			rocket.auto_events()
+
 		for event in events:
 			preEvent = "pre" in event
-			assert round(event["start_time"], decimal_precision) <= round(event["end_time"], decimal_precision)
+			if round(event["start_time"], decimal_precision) > round(event["end_time"], decimal_precision):
+				raise ValueError("End times for events can not be before start times. ")
 			if (preEvent and pre) or (not preEvent and not pre): #is this a pre or post calculation event
-				if round(event["start_time"], decimal_precision) <= round(rocket.time, decimal_precision) <= round(event["end_time"], decimal_precision):
+				if func.between_floats(rocket.time, event["start_time"], event["end_time"], decimal_precision):
 					if "stage" in event.keys():
 						rocket.handle_stage_event(event)
 					elif "engine" in event.keys():
@@ -210,6 +230,7 @@ class Main_program:
 			self.messages.append(message)
 
 	def initialize_rocket(self):
+		''' sims the first time inc '''
 		self.check_for_event(self.events, self.HLV, True)
 		self.HLV.cur.set_big_G()
 		self.HLV.prev = copy.deepcopy(self.HLV.cur)
@@ -244,7 +265,7 @@ class Main_program:
 		i = 0
 
 		while self.HLV.cur.V.horiz_mph < self.COAST_SPEED:
-			''' prints and clears the message queue '''
+			# prints and clears the message queue
 			for message in self.messages:
 				print(message)
 
@@ -273,9 +294,53 @@ class Main_program:
 				self.HLV.save_current_row()
 			# self.HLV.fuel_used_per_stage_report()
 
-print(title.TITLE)
-Rocketman = Main_program()
-Rocketman.set_initial_conditions()
-Rocketman.initialize_rocket()
-Rocketman.sim_rocket()
-raw_input("Sim complete. Hit enter to exit")
+
+	def start(self):
+		''' start the simulation '''
+		self.set_initial_conditions()
+		self.initialize_rocket()
+		self.sim_rocket()
+
+
+
+def restart_menu(last_spec_file):
+	selection = q.query_from_list("option", "Select an option:", Main_program.restart_menu, False)
+	if selection == "Restart":
+		main()
+	elif selection == "Edit the specs":
+		Spec_manager.change_specs(fileMan.load_json(last_spec_file+".json"))
+	elif selection == "Quit":
+		exit()
+	else:
+		print("Unknown selection")
+
+def main():
+	while True:
+		try:
+			print(title.TITLE)
+			Rocketman = Main_program()
+			#restart_menu(Rocketman.specs["file_name"])
+			Rocketman.start()
+
+		except exceptions.FuelValueError:
+			print("A stage ran out of fuel prior to jettisioning. Consider modifying the events.")
+			restart_menu(Rocketman.specs["file_name"])
+		# Catching all errors before exiting or allowing the user to try to fix the error
+		except Exception as e: #pylint: disable=W0703
+			if mode.PRETTY_ERRORS:
+				print "\nSorry, an error has occured. \n\nPlease email the following information to Adam (Adam@TutorDelphia.com) if modifying the spec or event file will not fix the error.\n"
+				print sys.exc_info()[0].__name__, os.path.basename(sys.exc_info()[2].tb_frame.f_code.co_filename), sys.exc_info()[2].tb_lineno
+				print e.__doc__
+				print e.message
+				print("An error has occured.")
+				if mode.RESTART_ON_ERROR:
+					restart_menu(Rocketman.specs["file_name"])
+				else:
+					raw_input("Press enter to quit")
+					exit()
+			else:
+				raise type(e), type(e)(e.message), sys.exc_info()[2]
+		else:
+			restart_menu(Rocketman.specs["file_name"])
+if __name__ == "__main__":
+	main()

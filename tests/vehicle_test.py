@@ -1,11 +1,9 @@
 import unittest
 
-from rocket import vehicle as V
-HLV = V.Vehicle("HLV * 4-8/6-9 MK: 3-36 Ver: 08-12-2016", 22191271.27, 1.832)
+import rocket.libs.vehicle as V
+from rocket.util.func import almost_equal
+#HLV = V.Vehicle("HLV * 4-8/6-9 MK: 3-36 Ver: 08-12-2016", 22191271.27, 1.832)
 # test cases adapted from `x-common//canonical-data.json` @ version: 1.0.0
-
-def almost_equal(x,y,threshold=0.0001):
-	return abs(x-y) < threshold
 
 
 class VehicleTests(unittest.TestCase):
@@ -14,7 +12,7 @@ class VehicleTests(unittest.TestCase):
 	'''def test_select_engines(self):
 
 		self.assertEqual(len(HLV.engines), 9)
-	
+
 	def test_thrust_RD_sea_level(self):
 		rdEng.setThrottleOverride(1)
 		rdEng.setThrottleOverride(1)

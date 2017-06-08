@@ -1,13 +1,7 @@
-from title import *
-from colorama import Fore, Back, Style
-from datetime import date
-import time
-import libs.rocketEngine
-from libs.vehicle import Vehicle
+''' Manage the creation of spec and event files '''
+import util.func as func
 from libs.vehicleFactory import VehicleFactory
-from libs.stage import Stage
-import libs.query as q
-import func
+from libs.query import Query as q
 import libs.fileManager as fileMan
 from libs.eventsManager import EventManager
 

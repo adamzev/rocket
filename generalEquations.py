@@ -1,5 +1,6 @@
+''' general math equations for rocket simulations '''
 import math
-import mode
+
 ACCEL_OF_GRAVITY = 32.17405
 
 def myround(x, base=50):
@@ -7,16 +8,10 @@ def myround(x, base=50):
 	return int(base * round(float(x)/base))
 
 def percentOfAtmosphericPressure(alt):
-	''' Takes the altitude and returns the percent of atmospheric pressure '''
-	if mode.ROUND:
-		if alt < 500:
-			alt = myround(alt, 50)
-		elif alt < 1000:
-			alt = myround(alt, 100)
-		elif alt < 3000:
-			alt = myround(alt, 200)
-		else:
-			alt = myround(alt, 500)
+	''' Take the altitude and returns the percent of atmospheric pressure
+		"alt" is altitude in feet from the surface of earth
+	'''
+
 	#where sea level PATM = 1.00 and vacuum PATM = 0.00; altitude given in feet
 	#1
 	if alt <= 36089:
@@ -33,7 +28,7 @@ def percentOfAtmosphericPressure(alt):
 		patm = (0.898309 + (alt / 181373.0)) ** (-12.20114)
 	#5
 	elif alt <= 167323: #(47 km to 51 km)
-		patm = 0.00109456 * math.exp((alt - 154200)/-25922.0)
+		patm = 0.00109456 * math.exp((alt - 154200)/-25992.0)
 	#6
 	elif alt <= 232940: #(51 km to 71 km)
 		patm = (0.838263 - (alt / 577922.0)) ** (12.20114)
@@ -43,27 +38,23 @@ def percentOfAtmosphericPressure(alt):
 	#8
 	else: #for alt> 84.852
 		return 0.00
-	if mode.ROUND:
-		return round(patm, 9)
 	return patm
 
 def percentOfVac(alt):
 	''' Takes the altitude and returns the percent of vacuum (1 - atmospheric pressure)'''
 	return 1.0 - percentOfAtmosphericPressure(alt)
-'''
-Orbital Velocity (OV) is that horizontal velocity needed to counteract Earth's gravity at a given altitude
 
-OV decreases as you increase your radial distance from the center of the Earth, i.e. increase altitude.
-
-Alt in feet
-
-'''
+def orbitalVelocity(alt):
+	return 17683.9567 * ((1.0 / (1.0 + (alt / 20902230.99)))** 0.5)
 
 def mphToFps(mph):
 	return 5280.0*mph/(60.0*60.0)
 
 def fpsToMph(fps):
 	return fps*(60.0*60.0)/5280.0
+
+def average_list(values):
+	return sum(values)/float(len(values))
 
 def average(*args):
 	args = [x for x in args if x is not None]

@@ -47,7 +47,7 @@ def simSRM():
 	alts = [50, 58.71, 86.54, 136.93, 431.09, 928.82, 1617.67, 3546.94]
 	times = [0, 1, 2, 3, 6, 9, 12, 15, 18]
 	# LOW ON FUEL NOT YET IMPLMENTED
-	for i in range(len(times)):
+	for i, time in enumerate(times):
 		time = times[i]
 		time_inc = times[i+1]-times[i]
 		alt = alts[i]

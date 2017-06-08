@@ -2,18 +2,21 @@ from math import sqrt
 import copy
 
 
-from vehicle import Vehicle
+
 from stage import Stage
 from rocketEngine import RocketEngine
 
 import generalEquations as equ
-from util.text_interface import *
+
 import util.func as func
-import libs.query as q
+
+from libs.vehicle import Vehicle
+
+from libs.query import Query as q
 from libs import fileManager as fileMan
 
 
-class VehicleFactory():
+class VehicleFactory(object):
 	''' Creates vehicles (heavy lift vehicles) '''
 	def __init__(self):
 		pass
@@ -21,12 +24,12 @@ class VehicleFactory():
 
 	@classmethod
 	def create_vehicle(cls, specs, load_time_incs=False):
-
+		''' create a heavy lift vehicle '''
 		stages = cls.init_stages(specs["stages"])
 		engines = cls.create_engines(specs["engines"])
 		cls.set_holding_engines(stages, engines)
 		cls.set_engine_initial_fuel_source(engines, stages)
-		for name, stage in stages.iteritems():
+		for stage in stages.values():
 			stage.attached_engine_report()
 
 		rocket = Vehicle(specs, stages, engines)
@@ -48,14 +51,17 @@ class VehicleFactory():
 	@classmethod
 	def set_holding_engines(cls, stages, engines):
 		''' adds the appropriate engines to each stage '''
-		for name, stage in stages.iteritems():
+		for stage in stages.values():
 			for engine in engines:
 				if engine.stage == stage.name:
 					stage.attach_engine(engine)
 	@classmethod
 	def get_total_adc_K(cls, stages):
+		''' totals the adc_Ks of the given stages
+			"stages" is a dict with Stage names as keys and stage specs as values
+		'''
 		adc_K = 0.0
-		for stage_name, stage_values in stages.iteritems():
+		for stage_values in stages.values():
 			adc_K += stage_values["adc_K"]
 		return adc_K
 
@@ -63,7 +69,7 @@ class VehicleFactory():
 	@classmethod
 	def select_engine_from_list(cls, stage_name=None, fuel_type=None):
 		''' select an engine from a list
-		Returns False if the user is done entering engines
+			Returns False if the user is done entering engines
 		'''
 		engines = cls.load_available_engines()
 		compatable_engines = []
@@ -71,7 +77,19 @@ class VehicleFactory():
 			if fuel_type is None or fuel_type == value['type']:
 				compatable_engines.append({key:value})
 
-		selected_engines = q.query_from_list("engine", "Select an engine number: ", compatable_engines, True, lambda x: cls.collect_engine_details(x, stage_name))
+		list_name = "engine"
+		intro = "Select an engine number: "
+		if stage_name:
+			list_name = "{} engine".format(stage_name)
+			intro = "Select an engine number to add to the {}: ".format(stage_name)
+
+		selected_engines = q.query_from_list(
+			list_name,
+			intro,
+			compatable_engines,
+			True,
+			lambda x: cls.collect_engine_details(x, stage_name)
+		)
 		return selected_engines
 
 	@staticmethod
@@ -83,7 +101,7 @@ class VehicleFactory():
 	@classmethod
 	def load_engine_data(cls, selected_engines):
 		''' Takes a json object with the engine_name and engine_count and loads the matching
-		engine data to a json object.
+			engine data to a json object.
 		'''
 		available_engines = cls.load_available_engines()
 		engine_data = []
@@ -150,7 +168,7 @@ class VehicleFactory():
 		func.pretty_json(engine_data)
 		engine_name = engine_data.keys()[0]
 		# only accept integer values but store as float for compatibility
-		count = float(q.query_int("How many {}s?".format(engine_name)))
+		count = float(q.query_int("How many {}s? ".format(engine_name)))
 		this_engine = {}
 		this_engine["engine_count"] = count
 		this_engine["engine_name"] = engine_name

@@ -1,11 +1,16 @@
+''' file manager handles loading and saving files
+	loads and saves json data
+	saves csv data
+'''
+import sys
 import glob
 import json
 import os
 import errno
-import query as q
-import util.func as func
 
-from query import *
+from libs.query import Query as q
+
+import util.func as func
 
 def save_file(this_file):
 	file_name = this_file['file_name']
@@ -40,14 +45,17 @@ def get_json_file_data(folder, name, creation_function):
 	return data
 
 def create_csv(data, fileName):
+	''' creates a csv file '''
 	with open(fileName, 'w') as outfile:
 		outfile.write(data)
 
-def save_csv(data, fileName):
+def update_csv(data, fileName):
+	''' appends data to a csv file '''
 	with open(fileName, 'a') as outfile:
 		outfile.write(data)
 
 def make_dir(fileName):
+	''' make a directory '''
 	if not os.path.exists(os.path.dirname(fileName)):
 		try:
 			os.makedirs(os.path.dirname(fileName))
@@ -55,11 +63,23 @@ def make_dir(fileName):
 			if exc.errno != errno.EEXIST:
 				raise
 
+def ask_to_save(data, question="Would you like to save? "):
+	''' queries if the user wants to save a file
+		"data" is a dictionary with the key "file_name" which is the name and location to save the data
+	'''
+	save_this_data = q.query_yes_no(question, "yes")
+	if save_this_data:
+		save_file(data)
+
+
+
 def save_json(data, fileName):
+	''' creates a json file (overwriting any prior files) '''
 	make_dir(fileName)
 	with open(fileName+".json", "w") as outfile:
 		json.dump(data, outfile)
 
 def load_json(fileName):
+	''' loads the file with the given file name and returns the json data '''
 	with open(fileName) as data_file:
 		return json.load(data_file)
