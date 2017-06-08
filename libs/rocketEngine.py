@@ -15,6 +15,7 @@ class RocketEngine(object):
 		self.reached_max = False
 
 		# The following are overwritten by engine stats
+		self.event = {}
 		self.min_throt = 0.0
 		self.max_throt = 1.0
 		self.engine_count = 0
@@ -157,7 +158,8 @@ class RocketEngine(object):
 		pctVac = 1 - patm
 		return self.specImp_sl + (pctVac * (self.specImp_vac - self.specImp_sl))
 
-	def auto_events(self, time_inc):
+	def auto_events(self, time, time_inc):
+		decimal_precision = 3
 		if self.throt_avg > 0.0 and not self.reached_max:
 			self.setThrottle(self.max_throt, time_inc)
 			if self.throt_avg == self.max_throt:
@@ -165,11 +167,14 @@ class RocketEngine(object):
 
 
 
+
 class SolidRocketEngine(RocketEngine):
 	engine_type = "Solid"
 	def __init__(self, engine_data):
 		RocketEngine.__init__(self, engine_data)
-		self.power_down_set = False
+		self.power_down_start_time = None
+		self.power_down_fuel_level = engine_data["power_down_fuel_level"]
+		self.power_down_burn_rates = engine_data["power_down_burn_rates"]
 
 	def set_assigned_thrust_per_engine(self, thrust):
 		self.thrust_total = thrust * self.engine_count
@@ -181,13 +186,12 @@ class SolidRocketEngine(RocketEngine):
 			self.fuel_source.fuel_used += self.get_burn_rate() * time_inc * self.get_throt()
 		# print "solid rocket {} at alt {}".format(self.get_burn_rate(), alt)
 	def adjust_thrust_to_burn_at_rate_per_engine(self, rate, alt):
-		self.burn_rate = rate
 		thrust = rate * self.specific_impulse_at_alt(alt)
-
+		message = "EVENT: Set burn rate of {} (thrust = {})".format(rate, thrust)
+		self.messages.append(message)
 		self.set_assigned_thrust_per_engine(thrust)
-		self.set_assigned_thrust_per_engine(thrust)
 
-	def changeThrust(self, rate, time_inc):
+	def change_thrust(self, rate, time_inc):
 		currentThrust = self.get_thrust_per_engine()
 		newThrust = currentThrust + rate * time_inc
 		self.set_assigned_thrust_per_engine(newThrust)
@@ -199,39 +203,26 @@ class SolidRocketEngine(RocketEngine):
 		if message:
 			self.messages.append(message)
 
-	def power_down(self, start_time, end_time, time, time_inc, alt, thrusts):
-		eventTime = end_time - start_time
-		fuelRemaining = self.fuel_source.get_fuel_remaining()
-		srm_entry_mode = "array_thrust"
-		self.messages.append("\nEVENT: power down {}".format(self.name))
-		if srm_entry_mode == "manual":
-			thrust = raw_input("Enter the assigned SRM thrust per engine:")
-			self.set_assigned_thrust_per_engine(thrust)
-		if srm_entry_mode == "array" and self.assigned_burn_rates_for_SRM_power_down: # [] is False
-			burn_rate = self.assigned_burn_rates_for_SRM_power_down.pop(0)
-			self.adjust_thrust_to_burn_at_rate_per_engine(burn_rate, alt)
-		if srm_entry_mode == "array_thrust":
-			if not self.power_down_set:
-				self.assigned_thrust_per_engine_for_SRM_power_down = thrusts
-				self.power_down_set = True
-
-			if self.assigned_thrust_per_engine_for_SRM_power_down:
-				thrust = func.linear_estimate(time, [i for i in range(int(start_time), int(end_time) + 3, 3)], thrusts)
-				print "EVENT: Set thrust per engine to {}".format(thrust)
-				self.set_assigned_thrust_per_engine(thrust)
-
-				# check how far through the event we are
-				# find the two closest thrusts
-				# check how far between those two times we are
-				# assigned the thrust
-		if srm_entry_mode == "linear":
-			pass
-		if srm_entry_mode == "cube root":
-			pass
 	def thrustAtAlt(self, alt):
 		return self.get_thrust_total() * self.get_throt()
 
 
+	def auto_events(self, time, time_inc):
+		super(SolidRocketEngine, self).auto_events(time, time_inc)
+		if self.event:
+			if func.between_floats(time, self.event["start_time"], self.event["end_time"]):
+				if self.event["name"] == "Change Thrust" and time < self.event["end_time"]:
+					self.change_thrust(self.event["rate"], time_inc)
+
+	def power_down_by_burn_rates(self, time, alt, stage):
+		time_since_start = time - self.power_down_start_time
+		if func.almost_equal(time_since_start, round(time_since_start)):
+			try:
+				self.burn_rate_per_engine = self.power_down_burn_rates.pop(0)
+			except IndexError:
+				stage.jettison()
+		if stage.attached:
+			self.adjust_thrust_to_burn_at_rate_per_engine(self.burn_rate_per_engine, alt)
 
 class LiquidRocketEngine(RocketEngine):
 	''' Liquid Rocket Engine class '''

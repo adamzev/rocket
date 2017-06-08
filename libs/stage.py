@@ -36,7 +36,9 @@ class Stage(object):
 		''' Check if FuelValueError should be raised '''
 		fuel_remaining = fuel - fuel_used
 		if attached and fuel_remaining < 0:
-			raise exceptions.FuelValueError("More fuel was used than available")
+			pass
+			print("ERROR: Fuel used is {} of {}".format(fuel_used, fuel))
+			#raise exceptions.FuelValueError("More fuel was used than available")
 
 	def check_state(self):
 		''' check if the stage is in a valid state:

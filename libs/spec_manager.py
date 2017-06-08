@@ -28,8 +28,8 @@ class Spec_manager(object):
 		stage_specs = {}
 		stage_specs['attached'] = True
 		stage_specs['adc_K'] = q.query_float("What is the ADC K of the {}? ". format(stage_type))
-		stage_specs['initial_weight'] = q.query_float("What is the weight of the {}? ".format(stage_type))
-		stage_specs['preburned'] = q.query_float("How much weight was used during preburn from the {}? ".format(stage_type))
+		stage_specs['initial_weight'] = q.query_float("What is the total weight of the {}? ".format(stage_type))
+		stage_specs['preburned'] = q.query_float("Weight of fuel burned by {} only, prior to lift-off? ".format(stage_type))
 		stage_specs['lift_off_weight'] = stage_specs['initial_weight'] - stage_specs['preburned']
 
 		print("The lift off weight is {}".format(stage_specs['lift_off_weight']))
@@ -157,7 +157,9 @@ class Spec_manager(object):
 				[engine["engine_name"] for engine in specs["engines"] if engine["stage"] == chosen_stage],
 				False
 			)
-			del specs["engines"][selected_engine]
+			for i, engine in enumerate(specs["engines"]):
+				if engine["engine_name"] == selected_engine:
+					del specs["engines"][i]
 		return specs["engines"]
 
 	@classmethod

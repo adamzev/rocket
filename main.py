@@ -10,7 +10,6 @@ import mode as mode
 
 from generalEquations import *
 
-import util.title as title
 
 
 import libs.exceptions as exceptions
@@ -21,13 +20,16 @@ from libs.vehicleFactory import VehicleFactory
 
 sys.path.append('/home/tutordelphia/www/')
 from rocket.libs.query import Query as q
+import rocket.util.title as title
+import rocket.util.func as func
+
 
 today = datetime.date.today().strftime("%B-%d-%Y")
 logging.basicConfig(filename="log/"+today+".log", level=logging.DEBUG)
 logging.debug("Started log")
 class Main_program(object):
 	''' Stores and runs sims on a rocket '''
-	restart_menu = ["Restart", "Edit the specs", "Edit the events", "Quit"]
+	restart_menu = ["Restart", "Edit the specs", "Quit"]
 	def __init__(self):
 		''' initializes the main program '''
 		self.messages = []
@@ -145,9 +147,10 @@ class Main_program(object):
 
 		for event in events:
 			preEvent = "pre" in event
-			assert round(event["start_time"], decimal_precision) <= round(event["end_time"], decimal_precision)
+			if round(event["start_time"], decimal_precision) > round(event["end_time"], decimal_precision):
+				raise ValueError("End times for events can not be before start times. ")
 			if (preEvent and pre) or (not preEvent and not pre): #is this a pre or post calculation event
-				if round(event["start_time"], decimal_precision) <= round(rocket.time, decimal_precision) <= round(event["end_time"], decimal_precision):
+				if func.between_floats(rocket.time, event["start_time"], event["end_time"], decimal_precision):
 					if "stage" in event.keys():
 						rocket.handle_stage_event(event)
 					elif "engine" in event.keys():
@@ -240,8 +243,6 @@ def restart_menu(last_spec_file):
 		main()
 	elif selection == "Edit the specs":
 		Spec_manager.change_specs(fileMan.load_json(last_spec_file+".json"))
-	elif selection == "Edit the events":
-		print("Edit events not implemented")
 	elif selection == "Quit":
 		exit()
 	else:

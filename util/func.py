@@ -20,6 +20,17 @@ def is_int(the_string):
 	except ValueError:
 		return False
 
+def between_floats(target, lower_bound, upper_bound, precision=3):
+	''' checks if a float is equal to or between two floats
+		using rounding to avoid floating point errors
+		for example, 8.00000000005 is considered to be between 8.0 and 8.0
+		"precision" is how many digits to round all numbers to
+	'''
+	if round(lower_bound, precision) <= round(target, precision) <= round(upper_bound, precision):
+		return True
+	return False
+
+
 def remove_non_alphanumeric(your_string):
 	return re.sub(r'\W+', '', your_string)
 

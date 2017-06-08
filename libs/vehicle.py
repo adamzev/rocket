@@ -24,6 +24,7 @@ class Vehicle(object):
 		self.specs = specs
 		self.time_incs = {}
 		self.time_inc = 0.1
+		self.max_A_v = 0.75
 		self.stages = stages
 		self.engines = engines
 		self.load_time_incs = False
@@ -61,7 +62,7 @@ class Vehicle(object):
 		big_G = self.cur.big_G
 		ADC_guess = self.cur.ADC_predicted
 		ADC_adj = self.cur.ADC_adjusted
-		sign_symb = "+" if self.cur.V.vert_inc > 0 else "-"
+		sign_symb = "+" if self.cur.V.vert_inc >= 0 else ""
 		row1 = "-"*140 + "\n"
 		row2 = "{:>48,.6f}      {:>6,.8f}     G={: <12,.8f}\n".format(self.cur.A.total, self.cur.ADC_actual, big_G)
 		time_string = "{:<6,.1f}".format(self.time)
@@ -187,6 +188,52 @@ class Vehicle(object):
 		''' increment the Velocity horizontal '''
 		self.cur.V.horiz_mph = self.prev.V.horiz_mph + self.prev.V.horiz_mph_inc
 
+	def A_vert_formula_v2(self):
+		A_horiz = A_vert_eff = 0.0
+		A = self.cur.A.total
+		G = self.prev.big_G
+		X = ((sqrt(2.0*A**2.0 - G**2.0))-G)/2.0
+
+		Vv = self.prev.V.vert
+
+		if self.time <= 18.0:
+			if Vv >= 400.0:
+				self.max_A_v = 0.61035
+			else:
+				self.max_A_v = 0.65
+		elif self.time <= 48.0:
+			if Vv >= 1000.0:
+				self.max_A_v = 0.61035
+			else:
+				self.max_A_v = 0.70
+		elif self.time <= 75.0:
+			if Vv >= 1000.0:
+				self.max_A_v = 0.61035
+			else:
+				self.max_A_v = 0.75
+
+		if X < 0.4:
+			self.A_hv_diff = 0.001
+		elif X < 0.68:
+			self.A_hv_diff = 0.5 * X -0.2
+		elif X < 0.79:
+			self.A_hv_diff = X -0.54
+		elif X < 0.89:
+			self.A_hv_diff = 1.3 * X - 0.776
+		else:
+			return self.max_A_v
+
+		A_horiz_bump = 0.002
+		while A_horiz <= A_vert_eff + self.A_hv_diff:
+			A_horiz = X + A_horiz_bump
+			A_vert = equ.pythag(None, A_horiz, A)
+			A_vert_eff = A_vert - G
+			A_horiz_bump += 0.002
+
+		if A_vert_eff > self.max_A_v:
+			return self.max_A_v
+		else:
+			return A_vert_eff
 
 	def A_vert_formula(self, A_hv_diff):
 		A_horiz = A_vert_eff = 0.0
@@ -220,7 +267,7 @@ class Vehicle(object):
 		elif self.prev.V.vert > self.V_v_target - self.V_v_target * .05: # within 5 percent of the target
 			return self.A_ease_in
 		else:
-			return self.A_vert_formula(self.A_hv_diff)
+			return self.A_vert_formula_v2()
 
 	def select_A_vert_for_V_v_giveback(self):
 		''' In order to have the rocket reduce to and hit a vertical velocity giveback target,
@@ -437,15 +484,6 @@ class Vehicle(object):
 		end_time = event["end_time"]
 		time_inc = self.get_time_inc()
 		for engine in engines:
-			if event["name"] == "Change Thrust":
-				event_handled = True
-				if self.time < event["end_time"]:
-					engine.changeThrust(event["rate"], time_inc)
-
-			if event["name"] == "Power Down Thrust":
-				event_handled = True
-				engine.power_down(start_time, end_time, self.time, time_inc, self.cur.alt, event["thrusts"])
-
 			if event["name"] == "Set Throttle Target":
 				event_handled = True
 				target = event["target"]
@@ -461,4 +499,18 @@ class Vehicle(object):
 	def auto_events(self):
 		''' handles automatic events like auto power up '''
 		for engine in self.engines:
-			engine.auto_events(self.get_time_inc())
+			engine.auto_events(self.time, self.get_time_inc())
+
+		try:
+			SRB = self.stages["SRB"]
+			if SRB.attached:
+				remaining = SRB.get_fuel_remaining()
+				for engine in SRB.attached_engines:
+					remaining_per_engine = remaining / engine.engine_count
+					if engine.attached and (remaining_per_engine - engine.burn_rate * self.get_time_inc() / engine.engine_count) <= engine.power_down_fuel_level:
+						if not engine.power_down_start_time:
+							print("EVENT: SRM Power down started at {} seconds with fuel level {} lbm per engine".format(self.time, remaining_per_engine))
+							engine.power_down_start_time = self.time
+						engine.power_down_by_burn_rates(self.time, self.cur.alt, SRB)
+		except KeyError:
+			pass # if no stage named SRB, don't handle it

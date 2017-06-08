@@ -12,7 +12,7 @@
 				{
 					"field" : "target",
 					"type" : "min_max_float",
-					"prompt" : "Enter the target throttle: "
+					"prompt" : "Enter the selected engine type’s throttle setting at Event end time: "
 				}
 			]
 		},
@@ -34,75 +34,7 @@
 				{
 					"field" : "target",
 					"type" : "min_max_float",
-					"prompt" : "Enter the target throttle: "
-				}
-			]
-		},
-		{
-			"name" :"Change Thrust",
-			"description": "Change the lbf of thrust of a SRM by a given rate of change ",
-			"duration_type" : "interval",
-			"data_needed": [
-				{
-					"field" : "engine",
-					"type" : "string_from_list",
-					"prompt" : "Select an engine from the list: "
-				},
-				{
-					"field" : "rate",
-					"type" : "float",
-					"prompt" : "Enter the change in lbf of thrust per second (use a negative number for a decrease)\n Thrust: "
-				}
-			]
-		},
-		{
-			"name" :"Adjust Weight",
-			"description": "This can be used to correct errors or to jettison parts other than the listed stages",
-			"duration_type" : "instant",
-			"data_needed": [
-				{
-					"field" : "amount",
-					"type" : "float",
-					"prompt" : "Enter the change in weight (use a negative number for a decrease) \n Weight: "
-				},
-				{
-					"field" : "pre",
-					"type" : "yes_no",
-					"prompt" : "Enter the change to this row (rather than the next)?: "
-				}
-			]
-		},
-		{
-			"name" : "Adjust Acceleration",
-			"description": "This can be used to correct acceleration errors",
-			"duration_type" : "instant",
-			"data_needed": [
-				{
-					"field" : "amount",
-					"type" : "float",
-					"prompt" : "Enter the change in acceleration (use a negative number for a decrease)\nAcceleration: "
-				},
-				{
-					"field" : "pre",
-					"type" : "yes_no",
-					"prompt" : "Enter the change to this row (rather than the next)?: "
-				}
-			]
-		},
-		{
-			"name" :"Power Down Thrust",
-			"description": "Power down a rocket engine based on thrust. This is only used for solid fueled boosters.",
-			"duration_type" : "interval",
-			"data_needed": [
-				{
-					"field" : "engine",
-					"type" : "string_from_list",
-					"prompt" : "Select an engine from the list: "
-				},
-				{
-					"field" : "thrusts",
-					"type" : "array",
-					"prompt" : "Enter the lbf of thrusts in three second time intervals: "
+					"prompt" : "Enter the selected engine type’s throttle setting at Event end time: "
 				}
 			]
 		},

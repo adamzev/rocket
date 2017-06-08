@@ -75,11 +75,6 @@ class EventManager(object):
 				if field_name == "stage":
 					result[field_name] = q.query_from_list("stage", "Select a stage: ", self.rocket.stages.keys(), False)
 
-			if field["type"] == "array":
-				values = []
-				for i in range(int(result["start_time"]), int(result["end_time"]) + 3, 3):
-					values.append(q.query_float(field["prompt"]+str(i)+": "))
-				result[field_name] = values
 
 			if field["type"] == "min_max_float":
 				result[field_name] = q.query_min_max(field["prompt"])
@@ -98,7 +93,7 @@ class EventManager(object):
 	def collect_version(self):
 		''' get the version (used for the file name) '''
 		today = date.fromtimestamp(time.time())
-		self.events["friendly_name"] = q.query_string("What is the version date (hit enter for today's date)? ", today.strftime("%d-%m-%Y"))
+		self.events["friendly_name"] = q.query_string("What is the version date (hit enter for today's date)? ", today.strftime("%m-%d-%Y"))
 		self.events["file_name"] = self.rocket.specs["file_name"] + "/events/" + self.events["friendly_name"]
 
 	def collect_starting_engine_settings(self):
@@ -107,11 +102,16 @@ class EventManager(object):
 		starting_thrusts = []
 
 		for engine in self.rocket.engines:
-			answer = q.query_min_max("What is the starting throttle for {} attached to the {}".format(engine.name, engine.stage))
-			starting_thottles.append({"engine" : engine.name, "stage":engine.stage, "throt" : answer})
 			if engine.type == "Solid":
-				answer = q.query_min_max("What is the starting " + Fore.RED + "lbf of thrust per engine for {}".format(engine.name) + Style.RESET_ALL, 0, float('inf'))
-				starting_thrusts.append({"engine" : engine.name, "stage":engine.stage, "thrust" : answer})
+				if engine.name == "SRM":
+					# SRMs always go on at liftoff and use their given max thrust
+					starting_thottles.append({"engine" : engine.name, "stage":engine.stage, "throt" : engine.max_throt})
+					starting_thrusts.append({"engine" : engine.name, "stage":engine.stage, "thrust" : engine.thrust_sl})
+				else:
+					raise ValueError("SRM is currently the only supported Solid Engine")
+			else:
+				answer = q.query_min_max("What is the starting throttle for {} attached to the {}".format(engine.name, engine.stage))
+				starting_thottles.append({"engine" : engine.name, "stage":engine.stage, "throt" : answer})
 
 		self.events["starting_throt"] = starting_thottles
 		self.events["starting_thrust"] = starting_thrusts

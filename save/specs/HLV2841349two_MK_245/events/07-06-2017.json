@@ -1,6 +1,6 @@
 {
     "tower_height": 300,
-    "file_name": "save/specs/HLV2841349_MK_245/events/11-05-2017",
+    "file_name": "save/specs/HLV2841349two_MK_245/events/07-06-2017",
     "starting_thrust": [
         {
             "engine": "SRM",
@@ -9,8 +9,7 @@
         }
     ],
     "initial_alt": 0,
-    "friendly_name": "11-05-2017",
-    "A_hv_diff": 0.11,
+    "friendly_name": "07-06-2017",
     "V_v_target": 2000,
     "starting_throt": [
         {
@@ -56,14 +55,14 @@
     ],
     "events": [
         {
-            "start_time": 215.8,
+            "start_time": 215,
             "target": 1200,
             "name": "Giveback V Vert",
-            "end_time": 215.8
+            "end_time": 215
         },
         {
-            "start_time": 135.83,
             "engine": "RD-171M",
+            "start_time": 135.83,
             "target": 0,
             "name": "Set Throttle Target",
             "end_time": 138.83
@@ -75,12 +74,11 @@
             "end_time": 138.83
         },
         {
-            "target": 0,
             "engine": "RS-68A",
             "start_time": 214.8078,
-            "end_time": 218.1418,
-            "stage": "RLV",
-            "name": "Set Target Throttle By Stage"
+            "target": 0,
+            "name": "Set Throttle Target",
+            "end_time": 218.1418
         },
         {
             "target": 0,
@@ -97,25 +95,11 @@
             "end_time": 218.1418
         },
         {
-            "start_time": 218.1,
             "engine": "RL-10A4-2",
+            "start_time": 218.1,
             "target": 1,
             "name": "Set Throttle Target",
-            "end_time": 219.1
-        },
-        {
-            "start_time": 3,
-			"pre" : "True",
-            "amount": 0.002576,
-            "name": "Adjust Acceleration",
-            "end_time": 3
-        },
-        {
-            "start_time": 0,
-			"pre" : "True",
-            "amount": -152.6415,
-            "name": "Adjust Weight",
-            "end_time": 0
+            "end_time": 218.1
         }
     ]
 }
