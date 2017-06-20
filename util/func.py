@@ -30,6 +30,37 @@ def between_floats(target, lower_bound, upper_bound, precision=3):
 		return True
 	return False
 
+def convert_to_numeric_dict(dict_,
+	use_float=True,
+	non_numeric_zeroes=[""],
+	remove=["zipcode", "id"]):
+	''' Changes dict so that all values are floats or ints
+		removes text fields from data and converts numeric strings to numbers
+		"dict_" is a dict with a mix of numeric and text values
+			or numbers listed as strings
+		"use_float" is a bool. Uses int if false
+		"zero_values" a list of non-numeric zeros. For example, by default, an
+			empty string is treated as 0. Something like "-.--" could also be set
+			to count as 0
+		"remove" are fields to remove (even if they are numeric).
+			Typically used to remove labels like ids because it does
+			not make sense to do math on labels
+	'''
+	results = {}
+	for key, value in dict_.items():
+		# ignore numeric values that are used as labels, not values
+		if key in remove:
+			continue
+		elif use_float and is_float(value):
+			results[key] = float(value)
+		elif not use_float and is_int(value):
+			results[key] = int(value)
+		elif value in non_numeric_zeroes:
+			if use_float:
+				results[key] = 0.0
+			else:
+				results[key] = 0
+	return results
 
 def remove_non_alphanumeric(your_string):
 	return re.sub(r'\W+', '', your_string)
