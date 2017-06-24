@@ -4,7 +4,6 @@ import util.func as func
 from libs.vehicleFactory import VehicleFactory
 from libs.query import Query as q
 import libs.fileManager as fileMan
-from libs.eventsManager import EventManager
 
 
 class Spec_manager(object):
@@ -34,23 +33,21 @@ class Spec_manager(object):
 
 		print("The lift off weight is {}".format(stage_specs['lift_off_weight']))
 
-		if(stage_type != "orbiter"):
+		if stage_type != "orbiter":
 			stage_specs['jettison_weight'] = q.query_float("What is the jettison weight of the {}? ".format(stage_type))
+			if stage_type != "SRB":
+				stage_specs['jettison_time'] = q.query_float("What is the jettison time of the {}? ".format(stage_type))
+			else:
+				stage_specs['jettison_time'] = None
 		else:
 			stage_specs['jettison_weight'] = 0
+			stage_specs['jettison_time'] = None
 		stage_specs['fuel'] = stage_specs['lift_off_weight'] - stage_specs['jettison_weight']
 		stage_specs['name'] = stage_type
 		stage_specs['fuel_type'] = fuel_type
 		print("Fuel to be burned in {} is {}".format(stage_type, stage_specs['fuel']))
 		return stage_specs
 
-	@staticmethod
-	def create_events(rocket):
-		''' create and save an event file '''
-		event_man = EventManager(rocket) # queries for the events for rocket
-
-		fileMan.ask_to_save(event_man.events, "Do you want to save these events? ")
-		return event_man.events
 
 	@classmethod
 	def create_stages_specs(cls):
@@ -117,19 +114,18 @@ class Spec_manager(object):
 
 		selected_engines = []
 		for stage_name, stage_data in specs["stages"].iteritems():
-			print(stage_name)
-			selected_engines += VehicleFactory.select_engines(stage_name, stage_data["fuel_type"])
+			print('\n     ' + stage_name + '\n')
+			selected_engines += VehicleFactory.select_engines(stage_name, stage_data["jettison_time"], stage_data["fuel_type"])
 
 			specs.update({
 				"engines" : selected_engines,
 			})
 
-		change_eng = q.query_yes_no("Do you want to make more changes to your engine selections?", "no")
-		while change_eng:
-			func.pretty_json(specs["engines"])
-			if change_eng:
-				specs["engines"] = cls.change_engines(specs)
-				change_eng = q.query_yes_no("Do you want to make more changes to your engine selections?", "no")
+		specs.update(VehicleFactory.collect_version())
+		specs['friendly_name'] += " " + specs['version_name']
+		specs.update(VehicleFactory.collect_launch_pad())
+		specs.update(VehicleFactory.collect_goals())
+
 		fileMan.ask_to_save(specs, "Do you want to save these specs? ")
 
 		return specs
@@ -224,12 +220,6 @@ class Spec_manager(object):
 
 
 
-
-	@classmethod
-	def get_events(cls, spec_name, rocket):
-		''' load or create an event file '''
-		folder = spec_name + "/events"
-		return fileMan.get_json_file_data(folder, "events", lambda: cls.create_events(rocket))
 
 	@classmethod
 	def get_specs(cls):

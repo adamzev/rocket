@@ -1,0 +1,129 @@
+{
+	"stages": {
+		"SRB": 
+			{
+				"name": "SRB", 
+				"fuel_type": "Solid", 
+				"attached": true, 
+				"jettison_time": null,
+				"jettison_weight": 400000.0,
+				"preburned": 0.0,
+				"initial_weight": 2225000.0,
+				"fuel": 1825000.0,
+				"adc_K": 0.142,
+				"lift_off_weight": 2225000.0
+			}, 
+		"orbiter": 
+			{
+				"name": "orbiter",
+				"fuel_type": "Liquid",
+				"attached": true,
+				"jettison_time": null,
+				"jettison_weight": 0,
+				"preburned": 0.0,
+				"initial_weight": 3000000.0,
+				"fuel": 3000000.0,
+				"adc_K": 0.475,
+				"lift_off_weight": 3000000.0
+			}, 
+		"RLV": 
+			{
+				"name": "RLV",
+				"fuel_type": "Liquid",
+				"attached": true,
+				"jettison_time": 218.1418,
+				"jettison_weight": 2256890.0,
+				"preburned": 51966.7,
+				"initial_weight": 13681275.0,
+				"fuel": 11372418.3,
+				"adc_K": 1.419,
+				"lift_off_weight": 13629308.3
+			},
+		"LFB":
+			{
+				"name": "LFB",
+				"fuel_type": "Liquid",
+				"attached": true,
+				"jettison_time": 138.83,
+				"jettison_weight": 749168.0,
+				"preburned": 30204.71,
+				"initial_weight": 6593725.0,
+				"fuel": 5814352.29,
+				"adc_K": 0.35,
+				"lift_off_weight": 6563520.29
+			}
+	}, 
+	"name": "HLV * 2-8-4/13/4-9 v3",
+	"engines": 
+		[
+			{
+				"stage": "SRB",
+				"engine_count": 2.0,
+				"starting_throttle": 1.0,
+				"engine_name": "SRM"
+			},
+			{
+				"stage": "orbiter",
+				"engine_count": 2.0,
+				"engine_name": "OME"
+			}, 
+			{
+				"ignition_time": null,
+				"engine_name": "SSME",
+				"starting_throttle": 0.7316,
+				"engine_count": 9.0,
+				"power_down_start_time": Infinity,
+				"stage": "orbiter"
+			},
+			{
+				"ignition_time": 218.1,
+				"engine_name": "RL-10A4-2",
+				"starting_throttle": 0.0,
+				"engine_count": 2.0,
+				"power_down_start_time": Infinity,
+				"stage": "orbiter"
+			},
+			{
+				"ignition_time": null,
+				"engine_name": "RD-171M",
+				"starting_throttle": 0.727,
+				"engine_count": 4.0,
+				"power_down_start_time": 135.83,
+				"stage": "RLV"
+			},
+			{
+				"ignition_time": null,
+				"engine_name": "SSME",
+				"starting_throttle": 0.7316,
+				"engine_count": 4.0,
+				"power_down_start_time": 214.663,
+				"stage": "RLV"
+			},
+			{
+				"ignition_time": null,
+				"engine_name": "RS-68A",
+				"starting_throttle": 0.7816,
+				"engine_count": 13.0,
+				"power_down_start_time": 214.663,
+				"stage": "RLV"
+			},
+			{
+				"ignition_time": null,
+				"engine_name": "RD-171M",
+				"starting_throttle": 0.727,
+				"engine_count": 8.0,
+				"power_down_start_time": 135.83,
+				"stage": "LFB"
+			}
+		],
+	"file_name": "save/specs/HLV2841349v3_MK_245",
+	"initial_alt": 0.0,
+	"friendly_name": "06-21-2017",
+	"earth_rotation_mph": 912.67,
+	"MK": "2-45",
+	"tower_height": 300.0,
+	"V_v_target": 2000.0,
+	"V_v_giveback_target" : 1200,
+	"V_v_giveback_time" : 218.1418,
+	"lift_off_weight": 25417828.59
+}

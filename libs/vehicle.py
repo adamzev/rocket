@@ -34,6 +34,7 @@ class Vehicle(object):
 		self.A_v_giveback = -0.4
 		self.V_v_target = 0.0
 		self.V_v_giveback_target = 0.0
+		self.V_v_giveback_time = None
 		self.time = 0
 		self.cur.V.horiz_mph = earth_rotation_mph
 		self.A_ease_in = 0.1 # used to adjust the acceleration to ease in to the target V_v
@@ -476,30 +477,16 @@ class Vehicle(object):
 
 		assert event_handled
 
-	def handle_engine_event(self, event):
-		''' Takes an event object (with name, engine and event specific keys) and calls functions relating to that '''
-		event_handled = False
-		engines = self.find_engines(event["engine"])
-		start_time = event["start_time"]
-		end_time = event["end_time"]
-		time_inc = self.get_time_inc()
-		for engine in engines:
-			if event["name"] == "Set Throttle Target":
-				event_handled = True
-				target = event["target"]
-				engine.setThrottle(target, time_inc)
-
-			if event["name"] == "Engine Cut-off":
-				event_handled = True
-				engine.setThrottleOverride(0.0)
-				engine.setThrottleOverride(0.0)
-				print("\nEVENT: {} cut-off".format(engine.name))
-		assert event_handled
-
-	def auto_events(self):
+	def events(self):
 		''' handles automatic events like auto power up '''
 		for engine in self.engines:
-			engine.auto_events(self.time, self.get_time_inc())
+			engine.events(self.time, self.get_time_inc())
+
+		for stage_name, stage in self.stages.items():
+			stage.events(self.time, self.get_time_inc())
+
+		if func.almost_equal(self.time, self.V_v_giveback_time, 0.001):
+			self.V_v_start_giveback = True
 
 		try:
 			SRB = self.stages["SRB"]

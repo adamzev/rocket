@@ -7,17 +7,26 @@ sys.path.insert(0, myPath + '/../')
 from rocket.libs import rocketEngine as eng
 
 rdData = {
-	"name": "RD-171",
+	"ignition_time": None,
+	"starting_throttle": 0.7,
+	"power_down_start_time": 135.9,
+	"stage": "RLV",
+	"name": "RD171",
 	"thrust_sl"  : 1632000.0,
 	"thrust_vac" : 1777000.0,
-	"min_throt" : 0.6, #check value
+	"lbm_dry" : 20503,
+	"fuel" : 5932224.827,
+	"min_throt" : 0.56,
+	"typical_throt_at_0" : 0.7,
 	"max_throt" : 1.0,
-	"residual" : 0.015,
 	"engine_count" : 1.0,
-	"throt_rate_of_change_limit" : 0.15, #check value
-	"fuel" : 0.0,
-	"specImp_sl" : 309.68,
-	"specImp_vac" : 337.19
+	"throt_rate_of_change_limit" : 0.15,
+	"burn_rate" : 5270.0,
+	"stages" : {
+		"LFB" : "default",
+		"RLV" : "default"
+	},
+	"type" : "Liquid"
 }
 
 ssData = {
@@ -87,6 +96,18 @@ class EngineTests(unittest.TestCase):
 		alt = 2491.84
 		expected_result = 244.205664
 		assert almost_equal(SRM.specific_impulse_at_alt(alt), expected_result, 0.1)
+
+	def test_engine_stats(self):
+		stats = {
+			"max_reached_time": 2.0,
+			"min_reached_time": 138.8,
+			"engine_cutoff_time": 138.9,
+			"throttle_at_end_time": 0.0
+		}
+		liq_eng = eng.LiquidRocketEngine(rdData)
+		results = liq_eng.engine_stats(0.7, 135.9, None, 139.1)
+		for key in stats:
+			assert almost_equal(stats[key], results[key])
 
 
 

@@ -4,6 +4,7 @@
 	jettison
 '''
 import libs.exceptions as exceptions
+from util import func
 
 class Stage(object):
 	''' actions and info regarding a stage of a heavy lift vehicle '''
@@ -15,8 +16,12 @@ class Stage(object):
 		self.fueling_engines = []
 		self.attached_engines = []
 		self.attached = True
+		self.jettison_time = None
 		for key, value in stage_specs.iteritems():
 			setattr(self, key, value)
+
+		if self.jettison_time:
+			self.jettison_time = round(self.jettison_time, 1)
 
 	def __str__(self):
 		return "Stage Name = {} Fuel Remaining = {} Burn Rate = {}".format(self.name, self.get_fuel_remaining(), self.get_fuel_burn_rate())
@@ -36,7 +41,6 @@ class Stage(object):
 		''' Check if FuelValueError should be raised '''
 		fuel_remaining = fuel - fuel_used
 		if attached and fuel_remaining < 0:
-			pass
 			print("ERROR: Fuel used is {} of {}".format(fuel_used, fuel))
 			#raise exceptions.FuelValueError("More fuel was used than available")
 
@@ -79,3 +83,8 @@ class Stage(object):
 		# if rocket total weight is calculated on total values change to be fueled_weight:
 		# if rocket total weight is calculated on lift-off values use this:
 		self.fuel_used = self.lift_off_weight
+
+	def events(self, time, time_inc):
+		# check for jettison time and then jettison
+		if self.jettison_time and func.almost_equal(self.jettison_time, time, 0.01):
+			self.jettison()

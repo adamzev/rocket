@@ -38,6 +38,7 @@
             "fuel_type": "Liquid",
             "attached": true,
             "jettison_weight": 749168,
+            "jettison_time": 138.83,
             "preburned": 30204.71,
             "initial_weight": 6593725,
             "fuel": 5814352.29,
