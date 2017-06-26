@@ -15,7 +15,7 @@ def prompt_thrust_at_alt():
 	engines = libs.vehicleFactory.VehicleFactory.load_available_engines()
 	engine_list = []
 	n = 1
-	for key, value in engines.iteritems():
+	for key, value in engines.items():
 		engine_list.append(value)
 		print("{}) {}".format(n, key))
 		n += 1

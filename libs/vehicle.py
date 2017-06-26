@@ -20,7 +20,10 @@ class Vehicle(object):
 			alt=0,
 			earth_rotation_mph=earth_rotation_mph
 		)
-
+		self.prev = PhysicalStatus(
+			alt=0,
+			earth_rotation_mph=earth_rotation_mph
+		)
 		self.specs = specs
 		self.time_incs = {}
 		self.time_inc = 0.1
@@ -34,6 +37,7 @@ class Vehicle(object):
 		self.A_v_giveback = -0.4
 		self.V_v_target = 0.0
 		self.V_v_giveback_target = 0.0
+		self.V_v_giveback_time = None
 		self.time = 0
 		self.cur.V.horiz_mph = earth_rotation_mph
 		self.A_ease_in = 0.1 # used to adjust the acceleration to ease in to the target V_v
@@ -48,7 +52,7 @@ class Vehicle(object):
 		self.A_hv_diff = 0.0
 		self.lift_off_weight = specs["lift_off_weight"]
 		self.cur.weight = self.lift_off_weight
-		self.prev = copy.deepcopy(self.cur)
+		self.copy_status()
 		self.name = "{} MK {}".format(specs["name"], specs["MK"])
 
 
@@ -141,11 +145,35 @@ class Vehicle(object):
 			else:
 				return A_vert_eff #enough force to lift off
 
+
+	def copy_status(self):
+		self.prev._alt = self.cur._alt
+		try:
+			self.prev._big_G = self.cur._big_G
+		except AttributeError:
+			pass
+		self.prev._weight = self.cur._weight
+		self.prev._ADC_predicted = self.cur._ADC_predicted
+		self.prev._ADC_actual = self.cur._ADC_actual
+		self.prev._ADC_error = self.cur._ADC_error
+		self.prev.force = self.cur.force
+		self.prev.A._horiz = self.cur.A._horiz
+		self.prev.A._vert = self.cur.A._vert
+		self.prev.A._total = self.cur.A._total
+		self.prev.A._vert_eff = self.cur.A._vert_eff
+		self.prev.V._vert = self.cur.V._vert
+		self.prev.V._vert_inc = self.cur.V._vert_inc
+		self.prev.V._horiz = self.cur.V._horiz
+		self.prev.V._horiz_inc = self.cur.V._horiz_inc
+		self.prev.V._total = self.cur.V._total
+
 	def tick(self):
 		if self.load_time_incs:
 			self.set_time_inc()
 		self.time += self.time_inc
-		self.prev = copy.deepcopy(self.cur)
+
+		self.copy_status()
+
 		self.cur = PhysicalStatus()
 		self.check_state()
 
@@ -349,8 +377,8 @@ class Vehicle(object):
 
 	def fuel_used_per_stage_report(self):
 		''' prints a report of stage names and fuel used '''
-		for name, stage in self.stages.iteritems():
-			print name, stage, stage.fuel_used
+		for name, stage in self.stages.items():
+			print(name, stage, stage.fuel_used)
 
 	def setEngineThrottleOverride(self, engineName, throt):
 		engines = self.find_engines(engineName)
@@ -391,7 +419,7 @@ class Vehicle(object):
 	def print_engines(self):
 		''' Prints the name, count and stage of the vehicles engines '''
 		for engine in self.engines:
-			print engine.name, engine.engine_count, engine.stage
+			print(engine.name, engine.engine_count, engine.stage)
 
 	def display_engine_messages(self):
 		''' Prints and empties the queue of engine messages '''
@@ -433,14 +461,6 @@ class Vehicle(object):
 	def handle_event(self, event):
 		''' Takes an event object (with name and event specific keys) and calls functions relating to that '''
 		event_handled = False
-		if event["name"] == "Adjust Weight":
-			event_handled = True
-			print "Adjusting weight"
-			self.lift_off_weight += event["amount"]
-		if event["name"] == "Adjust Acceleration":
-			event_handled = True
-			print "Adjusting weight"
-			self.cur.A.total += event["amount"]
 		if event["name"] == "Giveback V Vert":
 			event_handled = True
 			print("EVENT: Starting to giveback V vert to {}fps".format(event["target"]))
@@ -476,30 +496,16 @@ class Vehicle(object):
 
 		assert event_handled
 
-	def handle_engine_event(self, event):
-		''' Takes an event object (with name, engine and event specific keys) and calls functions relating to that '''
-		event_handled = False
-		engines = self.find_engines(event["engine"])
-		start_time = event["start_time"]
-		end_time = event["end_time"]
-		time_inc = self.get_time_inc()
-		for engine in engines:
-			if event["name"] == "Set Throttle Target":
-				event_handled = True
-				target = event["target"]
-				engine.setThrottle(target, time_inc)
-
-			if event["name"] == "Engine Cut-off":
-				event_handled = True
-				engine.setThrottleOverride(0.0)
-				engine.setThrottleOverride(0.0)
-				print("\nEVENT: {} cut-off".format(engine.name))
-		assert event_handled
-
-	def auto_events(self):
+	def events(self):
 		''' handles automatic events like auto power up '''
 		for engine in self.engines:
-			engine.auto_events(self.time, self.get_time_inc())
+			engine.events(self.time, self.get_time_inc())
+
+		for stage_name, stage in self.stages.items():
+			stage.events(self.time, self.get_time_inc())
+
+		if func.almost_equal(self.time, self.V_v_giveback_time, 0.001):
+			self.V_v_start_giveback = True
 
 		try:
 			SRB = self.stages["SRB"]

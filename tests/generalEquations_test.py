@@ -121,7 +121,7 @@ class GeneralEquationTests(unittest.TestCase):
 		airSpeed = 2183.4086
 		alt = 89335
 		K = 2.244
-		result = 0.1888547
+		result = 0.188340657
 		assert almost_equal(ge.ADC(airSpeed, alt, K), result, 0.001)
 		assert accurateToPercent(ge.ADC(airSpeed, alt, K), result, 0.9999999)
 

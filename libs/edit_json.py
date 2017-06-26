@@ -1,7 +1,10 @@
 ''' edit an existing json file '''
 
 import json
-import fileManager as fileMan
+import sys
+sys.path.append('/home/tutordelphia/www/rocket/')
+
+import libs.fileManager as fileMan
 from libs.query import Query as q
 import util.func as func
 
@@ -11,7 +14,7 @@ import util.func as func
 def edit_list(list_to_edit):
 	new_list = []
 	for value in list_to_edit:
-		print value
+		print(value)
 		edit_it = q.query_yes_no("Modify the value? ", "no")
 		if edit_it:
 			new_list.append(edit_by_type(value))
@@ -36,7 +39,7 @@ def edit_by_type(value):
 
 def edit_dict_values(json_data):
 	''' edit the value of json_data '''
-	for key, value in json_data.iteritems():
+	for key, value in json_data.items():
 		print (key + " : " + str(value))
 		edit_it = q.query_yes_no("Modify the value? ", "no")
 		if edit_it:

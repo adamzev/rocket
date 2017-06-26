@@ -1,6 +1,9 @@
+import sys
+sys.path.append('/home/tutordelphia/www/rocket/')
+
 from util import *
-from acceleration import Acceleration
-from velocity import Velocity
+from libs.acceleration import Acceleration
+from libs.velocity import Velocity
 import generalEquations as equ
 
 class PhysicalStatus(object):

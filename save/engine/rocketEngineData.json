@@ -9,10 +9,14 @@
 				"weight_fueled" : 6320000,
 				"weight_dry" : 210000,
 				"throt_rate_of_change_limit" : 1.0,
+				"typical_throt_at_0" : 1.0,
 				"burn_rate" : 14876.0325,
 				"specImp_sl" : 242.00,
 				"specImp_vac" : 268.20,
 				"thrust_controlled" : "True",
+				"stages" : {
+					"SRB" : "always"
+				},
 				"type" : "Solid",
 				"event" : {
 					"rate": -20000,
@@ -28,21 +32,6 @@
 						4200, 4000, 3800
 					]
 			},
-		"SRMU" :
-			{
-				"thrust_sl"  : 1800000.0,
-				"thrust_vac" : 1800000.0,
-				"min_throt" : 0.0,
-				"max_throt" : 1.0,
-				"weight_fueled" : 0,
-				"weight_dry" : 85573,
-				"throt_rate_of_change_limit" : 1.0,
-				"burn_rate" : 0.0,
-				"specImp_sl" : 257.70,
-				"specImp_vac" : 285.60,
-				"thrust_controlled" : "True",
-				"type" : "Solid"
-			},
 		"RD-171M" :
 			{
 				"thrust_sl"  : 1632000.0,
@@ -50,9 +39,14 @@
 				"lbm_dry" : 20503,
 				"fuel" : 5932224.827,
 				"min_throt" : 0.56,
+				"typical_throt_at_0" : 0.7,
 				"max_throt" : 1.0,
 				"throt_rate_of_change_limit" : 0.15,
 				"burn_rate" : 5270.0,
+				"stages" : {
+					"LFB" : "default",
+					"RLV" : "default"
+				},
 				"type" : "Liquid"
 			},
 		"RD-180" :
@@ -63,8 +57,13 @@
 				"fuel" : 5932224.827,
 				"min_throt" : 0.47,
 				"max_throt" : 0.95,
+				"typical_throt_at_0" : 0.65,
 				"burn_rate" : 2770.0,
 				"throt_rate_of_change_limit" : 0.15,
+				"stages" : {
+					"LFB" : "default",
+					"RLV" : ""
+				},
 				"type" : "Liquid"
 			},
 		"SSME" :
@@ -75,9 +74,14 @@
 				"fuel" : 5932224.827,
 				"min_throt" : 0.60,
 				"max_throt" : 0.95,
+				"typical_throt_at_0" : 0.71,
 				"residual" : 0.015,
 				"throt_rate_of_change_limit" : 0.12,
 				"burn_rate" : 1129.0,
+				"stages" : {
+					"RLV" : "",
+					"orbiter" : "always"
+				},
 				"type" : "Liquid"
 			},
 		"RL-10A4-2" :
@@ -88,8 +92,12 @@
 				"fuel" : 5932224.827,
 				"min_throt" : 1.00,
 				"max_throt" : 1.00,
+				"typical_throt_at_0" : 0.0,
 				"throt_rate_of_change_limit" : 1.0,
 				"burn_rate" : 49.4457,
+				"stages" : {
+					"orbiter" : "always"
+				},
 				"type" : "Liquid"
 			},
 		"OME" :
@@ -100,9 +108,13 @@
 				"fuel" : 5932224.827,
 				"min_throt" : 1.0,
 				"max_throt" : 1.0,
+				"typical_throt_at_0" : 0.0,
 				"residual" : 0.015,
 				"throt_rate_of_change_limit" : 1.0,
 				"burn_rate" : 18.993671,
+				"stages" : {
+					"orbiter" : "always"
+				},
 				"type" : "Liquid"
 			},
 		"RS-68A" :
@@ -111,8 +123,12 @@
 				"thrust_vac" : 797000.0,
 				"min_throt" : 0.60,
 				"max_throt" : 1.0,
+				"typical_throt_at_0" : 0.76,
 				"throt_rate_of_change_limit" : 0.12,
 				"burn_rate" : 1924.0,
+				"stages" : {
+					"RLV" : "default"
+				},
 				"type" : "Liquid"
 			}
 	}

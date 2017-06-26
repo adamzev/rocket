@@ -171,7 +171,7 @@ class Query(object):
 				except TypeError:
 					item_name = option
 				except KeyError:
-					item_name = option.keys()[0]
+					item_name = list(option)[0]
 				print("{}) {}".format(n, item_name))
 				n += 1
 

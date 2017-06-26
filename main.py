@@ -22,7 +22,6 @@ from libs import fileManager as fileMan
 from libs.vehicleFactory import VehicleFactory
 
 
-
 import ctypes
 import msvcrt
 import subprocess
@@ -95,12 +94,11 @@ logging.basicConfig(filename="log/"+today+".log", level=logging.DEBUG)
 logging.debug("Started log")
 class Main_program(object):
 	''' Stores and runs sims on a rocket '''
-	restart_menu = ["Restart", "Edit the specs", "Quit"]
 	def __init__(self):
 		''' initializes the main program '''
 		self.messages = []
 		self.alt = 30.0
-		self.COAST_SPEED = 16600
+		self.COAST_SPEED = 16850
 		self.endTime = 10.0
 
 		self.specs = Spec_manager.get_specs()
@@ -110,31 +108,28 @@ class Main_program(object):
 			self.HLV = VehicleFactory.create_vehicle(self.specs, True)
 		else:
 			self.HLV = VehicleFactory.create_vehicle(self.specs)
-		event_file = Spec_manager.get_events(self.specs["file_name"], self.HLV)
-		self.events = event_file["events"]
 		try:
-			self.HLV.cur.alt = event_file["initial_alt"]
-			self.HLV.V_v_target = event_file["V_v_target"]
+			self.HLV.cur.alt = self.specs["initial_alt"]
+			self.HLV.V_v_target = self.specs["V_v_target"]
+			self.HLV.V_v_giveback_target = self.specs["V_v_giveback_target"]
+			self.HLV.V_v_giveback_time = round(self.specs["V_v_giveback_time"], 1)
 
 			self.HLV.ground_level = self.HLV.cur.alt
-			self.HLV.tower_height = event_file["tower_height"]
+			self.HLV.tower_height = self.specs["tower_height"]
 		except IndexError:
-			print("Initial alt, V_vert_target and giveback_target required in event file.")
+			print("Initial alt, V_vert_target and giveback_target required in spec file.")
 			raise
-		self.starting_thrust = event_file["starting_thrust"]
-		self.starting_throt = event_file["starting_throt"]
 
 
 
 
-	def compute_row(self, rocket, events, assigned_A_v, testRun=False):
+	def compute_row(self, rocket, assigned_A_v, testRun=False):
 		''' sims the rocket over the course of one time increment '''
 		rocket.tick()
 
 		rocket.burn_fuel(rocket.time_inc)
 		rocket.updateWeight(rocket.time_inc)
 		rocket.updateA()
-		self.check_for_event(events, rocket, True)
 		if not mode.GIVEN_AVS:
 			assigned_A_v = rocket.cur.A_vert_eff = rocket.select_A_vert()
 		if assigned_A_v == "a" or assigned_A_v == "all":
@@ -154,11 +149,11 @@ class Main_program(object):
 		rocket.cur.V.vert = rocket.prev.V.vert + rocket.cur.V.vert_inc
 		rocket.updateAlt(rocket.time_inc)
 
-		self.check_for_event(events, rocket)
+		rocket.events()
 
 		rocket.cur.force = rocket.get_total_thrust()
 		rocket.cur.set_big_G()
-		#self.HLV.engine_status()
+
 		#assigned_V = raw_input("Enter the assigned A_vert:")
 
 		rocket.update_ADC_actual(rocket.time_inc)
@@ -166,63 +161,53 @@ class Main_program(object):
 
 	def set_initial_conditions(self):
 		''' sets the initial thrusts and throttles of the engines '''
-		for eng_start in self.starting_throt:
-			self.HLV.setEngineThrottleOverride(eng_start["engine"], eng_start["throt"])
-			self.HLV.setEngineThrottleOverride(eng_start["engine"], eng_start["throt"])
+		engines = self.specs["engines"]
+		for engine in engines:
+			if "starting_throttle" in engine:
+				self.HLV.setEngineThrottleOverride(
+					engine["engine_name"], engine["starting_throttle"]
+				)
+				self.HLV.setEngineThrottleOverride(
+					engine["engine_name"], engine["starting_throttle"]
+				)
 
-		for eng_start in self.starting_thrust:
-			self.HLV.setEngineAssignedThrustPerEngine(eng_start["engine"], eng_start["thrust"])
-			self.HLV.setEngineAssignedThrustPerEngine(eng_start["engine"], eng_start["thrust"])
+			if engine["engine_name"] == "SRM":
+				self.HLV.setEngineAssignedThrustPerEngine("SRM", 3600000)
+				self.HLV.setEngineAssignedThrustPerEngine("SRM", 3600000)
 
 
-	def predict_ADC(self, rocket, events, assigned_V):
+	def predict_ADC(self, rocket, assigned_V):
 		''' returns a ADC prediction based on test runs of different ADC values '''
 		threshold = 0.000001
 		ADC_error = 100000.0
 		ADC_prediction = rocket.cur.ADC_actual
 		tries = 0
+		min_ADC = 0
+		max_ADC = rocket.cur.ADC_actual * 5.0
+
 		while abs(ADC_error) > threshold:
-			rocket_copy = copy.deepcopy(rocket)
+			rocket_copy = VehicleFactory.create_vehicle_copy(rocket)
 			rocket_copy.cur.ADC_predicted = ADC_prediction
-			self.compute_row(rocket_copy, events, assigned_V, False)
-
-			ADC_error = rocket_copy.cur.ADC_error
-
-			ADC_prediction -= ADC_error/2.0
+			try:
+				self.compute_row(rocket_copy, assigned_V, False)
+			except ValueError:
+				# value error occurs when the ADC is too big (causing sqrt of neg)
+				max_ADC = ADC_prediction
+				ADC_prediction = (min_ADC + max_ADC) / 2.0
+			else:
+				if ADC_error < 0:
+					min_ADC = ADC_prediction
+				ADC_error = rocket_copy.cur.ADC_error
+				ADC_prediction -= ADC_error
 
 			rocket_copy = None
 			tries += 1
+			if tries > 20:
+				threshold *= 10
+				if threshold > 0.001:
+					raise ValueError("An error occured while predicting ADC")
 		return ADC_prediction
 
-	@staticmethod
-	def check_for_event(events, rocket, pre=False):
-		''' takes in a event dict and a vehicle (and optionally whether this a pre or post computation event)
-		checks if the current time increment matches with an event and passes to the correct handler
-		'''
-		if mode.GIVEN_INTERVALS:
-			decimal_precision = 4
-		else:
-			if rocket.get_time_inc() == 0.1:
-				decimal_precision = 1
-			elif rocket.get_time_inc() == 0.01:
-				decimal_precision = 2
-			else:
-				raise ValueError("Unsupported time inc")
-		if not pre:
-			rocket.auto_events()
-
-		for event in events:
-			preEvent = "pre" in event
-			if round(event["start_time"], decimal_precision) > round(event["end_time"], decimal_precision):
-				raise ValueError("End times for events can not be before start times. ")
-			if (preEvent and pre) or (not preEvent and not pre): #is this a pre or post calculation event
-				if func.between_floats(rocket.time, event["start_time"], event["end_time"], decimal_precision):
-					if "stage" in event.keys():
-						rocket.handle_stage_event(event)
-					elif "engine" in event.keys():
-						rocket.handle_engine_event(event)
-					else:
-						rocket.handle_event(event)
 
 	def add_unique_message(self, message):
 		''' adds a message if it does not match the previous message '''
@@ -231,7 +216,6 @@ class Main_program(object):
 
 	def initialize_rocket(self):
 		''' sims the first time inc '''
-		self.check_for_event(self.events, self.HLV, True)
 		self.HLV.cur.set_big_G()
 		self.HLV.prev = copy.deepcopy(self.HLV.cur)
 		self.HLV.cur.set_big_G()
@@ -244,15 +228,12 @@ class Main_program(object):
 		self.HLV.update_V_vert()
 		self.HLV.update_ADC_actual(self.HLV.time_inc)
 
-		self.check_for_event(self.events, self.HLV)
+		self.HLV.events()
 
 		self.HLV.cur.force = self.HLV.get_total_thrust()
-		if mode.QUICKRUN:
-			self.HLV.cur.ADC_predicted = 0.00023
-		else:
-			self.HLV.cur.ADC_predicted = self.predict_ADC(self.HLV, self.events, "a")
+		self.HLV.cur.ADC_predicted = self.predict_ADC(self.HLV, "a")
 		print(self.HLV)
-		self.HLV.display_engine_messages()
+		#self.HLV.display_engine_messages()
 		self.HLV.save_current_row(True)
 
 
@@ -274,22 +255,22 @@ class Main_program(object):
 				try:
 					assigned_A_v = asssigned_vs[i]
 				except IndexError:
-					print "Sim complete"
+					print("Sim complete")
 					break
 			else:
 				assigned_A_v = None
 			i += 1
 
-			self.compute_row(self.HLV, self.events, assigned_A_v)
+			self.compute_row(self.HLV, assigned_A_v)
 			if mode.GIVEN_GUESSES:
 				try:
 					self.HLV.cur.ADC_predicted = predictedADCs.pop(0)
 				except IndexError:
 					self.HLV.cur.ADC_predicted = 0.0
 			else:
-				self.HLV.cur.ADC_predicted = self.predict_ADC(self.HLV, self.events, assigned_A_v)
+				self.HLV.cur.ADC_predicted = self.predict_ADC(self.HLV, assigned_A_v)
 			if mode.GIVEN_INTERVALS or round(self.HLV.time, 1).is_integer():
-				self.HLV.display_engine_messages()
+				#self.HLV.display_engine_messages()
 				print(self.HLV)
 				self.HLV.save_current_row()
 			# self.HLV.fuel_used_per_stage_report()
@@ -303,8 +284,12 @@ class Main_program(object):
 
 
 
-def restart_menu(last_spec_file):
-	selection = q.query_from_list("option", "Select an option:", Main_program.restart_menu, False)
+def restart_menu(last_spec_file=None):
+	if last_spec_file:
+		restart_menu_options = ["Restart", "Edit the specs", "Quit"]
+	else:
+		restart_menu_options = ["Restart", "Quit"]
+	selection = q.query_from_list("option", "Select an option:", restart_menu_options, False)
 	if selection == "Restart":
 		main()
 	elif selection == "Edit the specs":
@@ -328,19 +313,25 @@ def main():
 		# Catching all errors before exiting or allowing the user to try to fix the error
 		except Exception as e: #pylint: disable=W0703
 			if mode.PRETTY_ERRORS:
-				print "\nSorry, an error has occured. \n\nPlease email the following information to Adam (Adam@TutorDelphia.com) if modifying the spec or event file will not fix the error.\n"
-				print sys.exc_info()[0].__name__, os.path.basename(sys.exc_info()[2].tb_frame.f_code.co_filename), sys.exc_info()[2].tb_lineno
-				print e.__doc__
-				print e.message
+				print("\nSorry, an error has occured. \n\nPlease email the following information to Adam (Adam@TutorDelphia.com) if modifying the spec or event file will not fix the error.\n")
+				print(sys.exc_info()[0].__name__, os.path.basename(sys.exc_info()[2].tb_frame.f_code.co_filename), sys.exc_info()[2].tb_lineno)
+				print(e.__doc__)
+				print(e.message)
 				print("An error has occured.")
 				if mode.RESTART_ON_ERROR:
-					restart_menu(Rocketman.specs["file_name"])
+					if Rocketman:
+						restart_menu(Rocketman.specs["file_name"])
+					else:
+						restart_menu()
 				else:
 					raw_input("Press enter to quit")
 					exit()
 			else:
 				raise
 		else:
-			restart_menu(Rocketman.specs["file_name"])
+			if Rocketman:
+				restart_menu(Rocketman.specs["file_name"])
+			else:
+				restart_menu()
 if __name__ == "__main__":
 	main()

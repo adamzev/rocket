@@ -16,6 +16,9 @@ class RocketEngine(object):
 
 		# The following are overwritten by engine stats
 		self.event = {}
+		self.power_down_start_time = None
+		self.ignition_time = None
+		self.jettison_time = None
 		self.min_throt = 0.0
 		self.max_throt = 1.0
 		self.engine_count = 0
@@ -27,9 +30,15 @@ class RocketEngine(object):
 		self.specImp_sl = 0.0
 		self.specImp_vac = 0.0
 
-		for key, value in engineStats.iteritems():
+		for key, value in engineStats.items():
 			setattr(self, key, value)
 
+		if self.power_down_start_time:
+			self.power_down_start_time = round(self.power_down_start_time, 1)
+		if self.ignition_time:
+			self.ignition_time = round(self.ignition_time, 1)
+		if self.jettison_time:
+			self.jettison_time = round(self.jettison_time, 1)
 	def __str__(self):
 		return "Name={} Throt={} Eff Burn Rate={} Thrust={} Count={} Stage={}".format(self.name, self.throt_avg, self.get_eff_fuel_burn_rate(), self.get_thrust_total(), self.engine_count, self.stage)
 
@@ -46,6 +55,58 @@ class RocketEngine(object):
 
 	def set_fuel_source(self, source):
 		self.fuel_source = source
+
+
+	def engine_stats(self, starting_throttle, power_down_start_time, ignition_time=None, jettison_time=None):
+
+		stat_time = 0.0
+		if ignition_time:
+			stat_time = ignition_time
+
+		if power_down_start_time == float('inf'):
+			sim_end = stat_time + 6
+			# 6 seconds is more than enough time for any engine to hit max
+		else:
+			sim_end = power_down_start_time + 5.0
+		time_inc = 0.1
+		stats = {
+			"max_reached_time": None,
+			"engine_cutoff_time": None,
+			"min_reached_time" : None,
+			"throttle_at_end_time": None
+		}
+		if starting_throttle == 0 and not ignition_time:
+			# if the engine is never turned on, get out of here
+			return stats
+		max_reached = False
+		min_reached = False
+		self.setThrottleOverride(starting_throttle)
+		self.setThrottleOverride(starting_throttle)
+		while stat_time < sim_end:
+			#print(stat_time, self.throt_cur)
+			if stat_time != 0:
+				self.events(stat_time, time_inc)
+			if not max_reached:
+				if self.throt_cur == self.max_throt:
+					max_reached = True
+					stats['max_reached_time'] = stat_time
+
+			if stat_time == jettison_time:
+				stats['engine_cutoff_time'] = stat_time
+
+				return stats
+			if max_reached and not min_reached and func.less_than_or_almost_equals(self.throt_avg, self.min_throt):
+				min_reached = True
+				stats['min_reached_time'] = stat_time
+
+			if max_reached and self.throt_avg == 0.0:
+				stats['engine_cutoff_time'] = stat_time
+				return stats
+			stats['throttle_at_end_time'] = self.throt_cur # keep updating the throttle at end, until the end
+			stat_time += time_inc
+		return stats
+
+
 
 	def requested_throt_to_float(self, requested_throt):
 		''' Converts the requested throttle to a floating point number between 0.0 and 1.0 '''
@@ -158,7 +219,7 @@ class RocketEngine(object):
 		pctVac = 1 - patm
 		return self.specImp_sl + (pctVac * (self.specImp_vac - self.specImp_sl))
 
-	def auto_events(self, time, time_inc):
+	def events(self, time, time_inc):
 		decimal_precision = 3
 		if self.throt_avg > 0.0 and not self.reached_max:
 			self.setThrottle(self.max_throt, time_inc)
@@ -207,8 +268,8 @@ class SolidRocketEngine(RocketEngine):
 		return self.get_thrust_total() * self.get_throt()
 
 
-	def auto_events(self, time, time_inc):
-		super(SolidRocketEngine, self).auto_events(time, time_inc)
+	def events(self, time, time_inc):
+		super(SolidRocketEngine, self).events(time, time_inc)
 		if self.event:
 			if func.between_floats(time, self.event["start_time"], self.event["end_time"]):
 				if self.event["name"] == "Change Thrust" and time < self.event["end_time"]:
@@ -226,4 +287,15 @@ class SolidRocketEngine(RocketEngine):
 
 class LiquidRocketEngine(RocketEngine):
 	''' Liquid Rocket Engine class '''
+	power_down_in_progress = False
 	engine_type = "Liquid"
+	def events(self, time, time_inc):
+		super(LiquidRocketEngine, self).events(time, time_inc)
+		if self.ignition_time and func.almost_equal(time, self.ignition_time, 0.1):
+			self.setThrottle(self.min_throt, time_inc)
+
+		if self.power_down_in_progress or self.power_down_start_time and func.almost_equal(time, self.power_down_start_time, 0.1):
+			self.setThrottle(0, time_inc)
+			self.power_down_in_progress = True
+			if self.throt_avg == 0:
+				self.power_down_in_progress = False
