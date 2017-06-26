@@ -12,7 +12,7 @@
 				{
 					"field" : "target",
 					"type" : "min_max_float",
-					"prompt" : "Enter the selected engine type's throttle setting at Event end time: "
+					"prompt" : "Enter the selected engine type’s throttle setting at Event end time: "
 				}
 			]
 		},
@@ -34,7 +34,7 @@
 				{
 					"field" : "target",
 					"type" : "min_max_float",
-					"prompt" : "Enter the selected engine type's throttle setting at Event end time: "
+					"prompt" : "Enter the selected engine type’s throttle setting at Event end time: "
 				}
 			]
 		},

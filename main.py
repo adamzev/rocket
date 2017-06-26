@@ -339,7 +339,7 @@ def main():
 					raw_input("Press enter to quit")
 					exit()
 			else:
-				raise type(e), type(e)(e.message), sys.exc_info()[2]
+				raise
 		else:
 			restart_menu(Rocketman.specs["file_name"])
 if __name__ == "__main__":

@@ -1,0 +1,119 @@
+{
+	"rocketEngines" : {
+		"SRM" :
+			{
+				"thrust_sl"  : 3600000.0,
+				"thrust_vac" : 3600000.0,
+				"min_throt" : 0.0,
+				"max_throt" : 1.0,
+				"weight_fueled" : 6320000,
+				"weight_dry" : 210000,
+				"throt_rate_of_change_limit" : 1.0,
+				"burn_rate" : 14876.0325,
+				"specImp_sl" : 242.00,
+				"specImp_vac" : 268.20,
+				"thrust_controlled" : "True",
+				"type" : "Solid",
+				"event" : {
+					"rate": -20000,
+					"start_time": 24,
+					"name": "Change Thrust",
+					"end_time": 45
+				},
+				"power_down_fuel_level" : 96600,
+				"power_down_burn_rates" : 
+					[
+						11200, 9800, 8400, 7900, 7500, 7100,
+						6700, 6100, 5500, 5100, 4800, 4500,
+						4200, 4000, 3800
+					]
+			},
+		"SRMU" :
+			{
+				"thrust_sl"  : 1800000.0,
+				"thrust_vac" : 1800000.0,
+				"min_throt" : 0.0,
+				"max_throt" : 1.0,
+				"weight_fueled" : 0,
+				"weight_dry" : 85573,
+				"throt_rate_of_change_limit" : 1.0,
+				"burn_rate" : 0.0,
+				"specImp_sl" : 257.70,
+				"specImp_vac" : 285.60,
+				"thrust_controlled" : "True",
+				"type" : "Solid"
+			},
+		"RD-171M" :
+			{
+				"thrust_sl"  : 1632000.0,
+				"thrust_vac" : 1777000.0,
+				"lbm_dry" : 20503,
+				"fuel" : 5932224.827,
+				"min_throt" : 0.56,
+				"max_throt" : 1.0,
+				"throt_rate_of_change_limit" : 0.15,
+				"burn_rate" : 5270.0,
+				"type" : "Liquid"
+			},
+		"RD-180" :
+			{
+				"thrust_sl"  : 861270.0,
+				"thrust_vac" : 934245.0,
+				"lbm_dry" : 20503,
+				"fuel" : 5932224.827,
+				"min_throt" : 0.47,
+				"max_throt" : 0.95,
+				"burn_rate" : 2770.0,
+				"throt_rate_of_change_limit" : 0.15,
+				"type" : "Liquid"
+			},
+		"SSME" :
+			{
+				"thrust_sl"  : 418130.0,
+				"thrust_vac" : 512410.0,
+				"lbm_dry" : 20503,
+				"fuel" : 5932224.827,
+				"min_throt" : 0.60,
+				"max_throt" : 0.95,
+				"residual" : 0.015,
+				"throt_rate_of_change_limit" : 0.12,
+				"burn_rate" : 1129.0,
+				"type" : "Liquid"
+			},
+		"RL-10A4-2" :
+			{
+				"thrust_sl"  : 22300.0,
+				"thrust_vac" : 22300.0,
+				"lbm_dry" : 20503,
+				"fuel" : 5932224.827,
+				"min_throt" : 1.00,
+				"max_throt" : 1.00,
+				"throt_rate_of_change_limit" : 1.0,
+				"burn_rate" : 49.4457,
+				"type" : "Liquid"
+			},
+		"OME" :
+			{
+				"thrust_sl"  : 6002.0,
+				"thrust_vac" : 6002.0,
+				"lbm_dry" : 20503,
+				"fuel" : 5932224.827,
+				"min_throt" : 1.0,
+				"max_throt" : 1.0,
+				"residual" : 0.015,
+				"throt_rate_of_change_limit" : 1.0,
+				"burn_rate" : 18.993671,
+				"type" : "Liquid"
+			},
+		"RS-68A" :
+			{
+				"thrust_sl"  : 702000.0,
+				"thrust_vac" : 797000.0,
+				"min_throt" : 0.60,
+				"max_throt" : 1.0,
+				"throt_rate_of_change_limit" : 0.12,
+				"burn_rate" : 1924.0,
+				"type" : "Liquid"
+			}
+	}
+}
