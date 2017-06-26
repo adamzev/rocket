@@ -3,11 +3,14 @@ from datetime import date
 import time
 from math import sqrt
 import copy
+import sys
 
 from colorama import Fore, Back, Style
 
-from stage import Stage
-from rocketEngine import RocketEngine, LiquidRocketEngine
+sys.path.append('/home/tutordelphia/www/rocket/')
+
+from libs.stage import Stage
+from libs.rocketEngine import RocketEngine, LiquidRocketEngine
 
 import util.func as func
 
@@ -160,7 +163,7 @@ class VehicleFactory(object):
 	@classmethod
 	def init_stages(cls, stage_data):
 		stages = {}
-		for stage_type, stage_datum in stage_data.iteritems():
+		for stage_type, stage_datum in stage_data.items():
 			stages[stage_type] = Stage(stage_datum)
 		return stages
 
@@ -199,12 +202,12 @@ class VehicleFactory(object):
 		engines = cls.load_available_engines()
 		compatable_engines = []
 		selected_engines = []
-		for engine_name, engine_data in engines.iteritems():
+		for engine_name, engine_data in engines.items():
 			if fuel_type is None or fuel_type == engine_data['type'] and stage_name in engine_data['stages']:
 				compatable_engines.append({engine_name:engine_data})
 
 		for engine in compatable_engines:
-			engine_name = engine.keys()[0]
+			engine_name = list(engine)[0]
 			count = float(q.query_int("How many {} {}s? ".format(stage_name, engine_name)))
 			if count > 0:
 				this_engine = cls.collect_engine_details(engine, stage_name, stage_jettison_time)
@@ -216,7 +219,7 @@ class VehicleFactory(object):
 
 	@staticmethod
 	def collect_engine_details(engine_data, stage_name, stage_jettison_time):
-		engine_name = engine_data.keys()[0]
+		engine_name = list(engine_data)[0]
 		this_engine = {}
 		# only accept integer values but store as float for compatibility
 		this_engine["engine_name"] = engine_name
@@ -253,17 +256,17 @@ class VehicleFactory(object):
 
 		stats = temp_engine.engine_stats(starting_throttle, power_down_start_time, ignition_time, stage_jettison_time)
 
-		print("Max throttle of {} reached at {} seconds".format(engine_data[engine_name]['max_throt'], stats['max_reached_time']))
+		print("Max throttle of {:.1f} reached at {:.1f} seconds".format(engine_data[engine_name]['max_throt'], stats['max_reached_time']))
 		if power_down_start_time == float('inf'):
 			print("Throttle down does not occur during the sim. ")
 		else:
-			print("Throttle down will begin at {} seconds".format(power_down_start_time))
+			print("Throttle down will begin at {:.1f} seconds".format(power_down_start_time))
 		if stage_name != "orbiter":
 			if stats['throttle_at_end_time'] > 0:
-				print("Engine throttle at jettison is {}".format(stats['throttle_at_end_time']))
+				print("Engine throttle at jettison is {:.1f}".format(stats['throttle_at_end_time']))
 			else:
-				print("Engine throttle will reach min at {} seconds".format(stats['min_reached_time']))
-				print("Engine throttle will cut-off at {} seconds".format(stats['engine_cutoff_time']))
+				print("Engine throttle will reach min at {:.1f} seconds".format(stats['min_reached_time']))
+				print("Engine throttle will cut-off at {:.1f} seconds".format(stats['engine_cutoff_time']))
 
 		return this_engine
 
@@ -308,7 +311,7 @@ class VehicleFactory(object):
 		 '''
 		result = {}
 		result["name"] = event["name"]
-		print "\n", event["name"], "\n\n", event["description"], "\n"
+		print("\n", event["name"], "\n\n", event["description"], "\n")
 
 		if event["duration_type"] == "instant":
 			result["start_time"] = result["end_time"] = q.query_float("Event start time: ")
@@ -338,7 +341,7 @@ class VehicleFactory(object):
 			if field["type"] == "yes_no":
 				result[field_name] = q.query_yes_no(field["prompt"])
 
-		print result
+		print(result)
 		return result
 
 	@staticmethod

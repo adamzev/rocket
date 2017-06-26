@@ -377,8 +377,8 @@ class Vehicle(object):
 
 	def fuel_used_per_stage_report(self):
 		''' prints a report of stage names and fuel used '''
-		for name, stage in self.stages.iteritems():
-			print name, stage, stage.fuel_used
+		for name, stage in self.stages.items():
+			print(name, stage, stage.fuel_used)
 
 	def setEngineThrottleOverride(self, engineName, throt):
 		engines = self.find_engines(engineName)
@@ -419,7 +419,7 @@ class Vehicle(object):
 	def print_engines(self):
 		''' Prints the name, count and stage of the vehicles engines '''
 		for engine in self.engines:
-			print engine.name, engine.engine_count, engine.stage
+			print(engine.name, engine.engine_count, engine.stage)
 
 	def display_engine_messages(self):
 		''' Prints and empties the queue of engine messages '''
@@ -461,14 +461,6 @@ class Vehicle(object):
 	def handle_event(self, event):
 		''' Takes an event object (with name and event specific keys) and calls functions relating to that '''
 		event_handled = False
-		if event["name"] == "Adjust Weight":
-			event_handled = True
-			print "Adjusting weight"
-			self.lift_off_weight += event["amount"]
-		if event["name"] == "Adjust Acceleration":
-			event_handled = True
-			print "Adjusting weight"
-			self.cur.A.total += event["amount"]
 		if event["name"] == "Giveback V Vert":
 			event_handled = True
 			print("EVENT: Starting to giveback V vert to {}fps".format(event["target"]))

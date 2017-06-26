@@ -12,16 +12,18 @@ from generalEquations import *
 
 
 
+sys.path.append('/home/tutordelphia/www/rocket/')
+
 import libs.exceptions as exceptions
 import libs.edit_json as edit_json
 from libs.spec_manager import Spec_manager
 from libs import fileManager as fileMan
 from libs.vehicleFactory import VehicleFactory
 
-sys.path.append('/home/tutordelphia/www/')
-from rocket.libs.query import Query as q
-import rocket.util.title as title
-import rocket.util.func as func
+
+from libs.query import Query as q
+import util.title as title
+import util.func as func
 
 
 today = datetime.date.today().strftime("%B-%d-%Y")
@@ -262,7 +264,7 @@ def main():
 					raw_input("Press enter to quit")
 					exit()
 			else:
-				raise type(e), type(e)(e.message), sys.exc_info()[2]
+				raise
 		else:
 			if Rocketman:
 				restart_menu(Rocketman.specs["file_name"])

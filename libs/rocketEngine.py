@@ -30,7 +30,7 @@ class RocketEngine(object):
 		self.specImp_sl = 0.0
 		self.specImp_vac = 0.0
 
-		for key, value in engineStats.iteritems():
+		for key, value in engineStats.items():
 			setattr(self, key, value)
 
 		if self.power_down_start_time:

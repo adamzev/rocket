@@ -24,6 +24,7 @@ class Spec_manager(object):
 	@staticmethod
 	def create_stage_specs(stage_type, fuel_type):
 		''' query for stage specs '''
+		print(f"\n     {stage_type}\n")
 		stage_specs = {}
 		stage_specs['attached'] = True
 		stage_specs['adc_K'] = q.query_float("What is the ADC K of the {}? ". format(stage_type))
@@ -94,6 +95,9 @@ class Spec_manager(object):
 			"friendly_name" : friendly_name,
 			"file_name" : "save/specs/"+file_name
 		}
+
+		name_spec.update(VehicleFactory.collect_version())
+		name_spec['friendly_name'] += " " + name_spec['version_name']
 		return name_spec
 
 	@classmethod
@@ -113,7 +117,7 @@ class Spec_manager(object):
 			specs.update(cls.change_spec(specs, key))
 
 		selected_engines = []
-		for stage_name, stage_data in specs["stages"].iteritems():
+		for stage_name, stage_data in specs["stages"].items():
 			print('\n     ' + stage_name + '\n')
 			selected_engines += VehicleFactory.select_engines(stage_name, stage_data["jettison_time"], stage_data["fuel_type"])
 
@@ -121,8 +125,7 @@ class Spec_manager(object):
 				"engines" : selected_engines,
 			})
 
-		specs.update(VehicleFactory.collect_version())
-		specs['friendly_name'] += " " + specs['version_name']
+
 		specs.update(VehicleFactory.collect_launch_pad())
 		specs.update(VehicleFactory.collect_goals())
 

@@ -1,4 +1,7 @@
-from twoD import TwoD
+import sys
+sys.path.append('/home/tutordelphia/www/rocket/')
+
+from libs.twoD import TwoD
 
 from util import *
 class Acceleration(TwoD):

@@ -17,7 +17,7 @@ class Stage(object):
 		self.attached_engines = []
 		self.attached = True
 		self.jettison_time = None
-		for key, value in stage_specs.iteritems():
+		for key, value in stage_specs.items():
 			setattr(self, key, value)
 
 		if self.jettison_time:
@@ -41,7 +41,7 @@ class Stage(object):
 		''' Check if FuelValueError should be raised '''
 		fuel_remaining = fuel - fuel_used
 		if attached and fuel_remaining < 0:
-			print("ERROR: Fuel used is {} of {}".format(fuel_used, fuel))
+			print("ERROR: Fuel used is {:.2f} of {:.2f}".format(fuel_used, fuel))
 			#raise exceptions.FuelValueError("More fuel was used than available")
 
 	def check_state(self):

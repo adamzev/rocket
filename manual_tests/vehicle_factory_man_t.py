@@ -67,7 +67,7 @@ def test_collect_engine_details():
 	}
 
 	selected_engines = []
-	for stage_name, stage_data in specs["stages"].iteritems():
+	for stage_name, stage_data in specs["stages"].items():
 		selected_engines += VF.select_engines(stage_name, stage_data["jettison_time"], stage_data["fuel_type"])
 
 	specs.update({
