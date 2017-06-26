@@ -30,8 +30,6 @@ class VehicleFactory(object):
 		engines = cls.create_engines(specs["engines"])
 		cls.set_holding_engines(stages, engines)
 		cls.set_engine_initial_fuel_source(engines, stages)
-		for stage in stages.values():
-			stage.attached_engine_report()
 
 		rocket = Vehicle(specs, stages, engines)
 		rocket.adc_K = cls.get_total_adc_K(specs["stages"])
@@ -48,6 +46,71 @@ class VehicleFactory(object):
 
 
 		return rocket
+
+	@classmethod
+	def create_vehicle_copy(cls, old_rocket):
+		''' create a copy of a heavy lift vehicle '''
+		new_rocket = cls.create_vehicle(old_rocket.specs)
+		new_rocket.cur.alt = old_rocket.specs["initial_alt"]
+		new_rocket.V_v_target = old_rocket.specs["V_v_target"]
+		new_rocket.V_v_giveback_target = old_rocket.specs["V_v_giveback_target"]
+		new_rocket.V_v_giveback_time = round(old_rocket.specs["V_v_giveback_time"], 1)
+
+		new_rocket.ground_level =new_rocket.cur.alt
+		new_rocket.tower_height = old_rocket.specs["tower_height"]
+		#sets the initial thrusts and throttles of the engines
+
+		for i, old_engine in enumerate(old_rocket.engines):
+			new_rocket.engines[i].throt_prev = old_engine.throt_prev
+			new_rocket.engines[i].throt_cur = old_engine.throt_cur
+			new_rocket.engines[i].burn_rate = old_engine.burn_rate
+			new_rocket.engines[i].thrust_total = old_engine.thrust_total
+			new_rocket.engines[i].reached_max = old_engine.reached_max
+			new_rocket.engines[i].attached = old_engine.attached
+			try:
+				new_rocket.engines[i].power_down_in_progress = old_engine.power_down_in_progress
+			except AttributeError:
+				pass
+			try:
+				new_rocket.engines[i].power_down_start_time = old_engine.power_down_start_time
+				new_rocket.engines[i].burn_rate_per_engine = copy.copy(old_engine.burn_rate_per_engine)
+			except AttributeError:
+				pass
+
+		for name, old_stage in old_rocket.stages.items():
+			new_rocket.stages[name].fuel_used = old_stage.fuel_used
+			new_rocket.stages[name].attached = old_stage.attached
+
+		new_rocket.cur._alt = old_rocket.cur._alt
+		new_rocket.cur._big_G = old_rocket.cur._big_G
+		new_rocket.cur._weight = old_rocket.cur._weight
+		new_rocket.cur._ADC_predicted = old_rocket.cur._ADC_predicted
+		new_rocket.cur._ADC_actual = old_rocket.cur._ADC_actual
+		new_rocket.cur._ADC_error = old_rocket.cur._ADC_error
+		new_rocket.cur.force = old_rocket.cur.force
+		new_rocket.cur.A._horiz = old_rocket.cur.A._horiz 
+		new_rocket.cur.A._vert = old_rocket.cur.A._vert
+		new_rocket.cur.A._total = old_rocket.cur.A._total
+		new_rocket.cur.A._vert_eff = old_rocket.cur.A._vert_eff
+
+		new_rocket.cur.V._vert = old_rocket.cur.V._vert
+		new_rocket.cur.V._vert_inc = old_rocket.cur.V._vert_inc
+		new_rocket.cur.V._horiz = old_rocket.cur.V._horiz
+		new_rocket.cur.V._horiz_inc = old_rocket.cur.V._horiz_inc
+		new_rocket.cur.V._total = old_rocket.cur.V._total
+
+		new_rocket.load_time_incs = old_rocket.load_time_incs
+		new_rocket.V_v_target_hit = old_rocket.V_v_target_hit
+		new_rocket.V_v_start_giveback = old_rocket.V_v_start_giveback
+		new_rocket.V_v_giveback_target_hit = old_rocket.V_v_giveback_target_hit
+		new_rocket.A_v_giveback = old_rocket.A_v_giveback
+		new_rocket.time = old_rocket.time
+
+		new_rocket.A_ease_in = old_rocket.A_ease_in
+		new_rocket.A_ease_in_giveback = old_rocket.A_ease_in_giveback
+		new_rocket.A_hv_diff = old_rocket.A_hv_diff
+
+		return new_rocket
 
 	@classmethod
 	def set_holding_engines(cls, stages, engines):
@@ -90,7 +153,7 @@ class VehicleFactory(object):
 				engines.append(engine_data)
 			except KeyError:
 				print ("ERROR Engine {} not found".format(name))
-		func.pretty_json(engines)
+		#func.pretty_json(engines)
 		return engines
 
 

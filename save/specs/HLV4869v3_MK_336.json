@@ -1,0 +1,26 @@
+{
+	"stages": 
+	{
+		"SRB": 
+			{
+				"name": "SRB", "fuel_type": "Solid", "attached": true, "jettison_time": null, "jettison_weight": 1621829.0, "preburned": 0.0, "initial_weight": 6320000.0, "fuel": 4698171.0, "adc_K": 0.284, "lift_off_weight": 6320000.0
+			}, 
+		"orbiter": 
+			{
+				"name": "orbiter", "fuel_type": "Liquid", "attached": true, "jettison_time": null, "jettison_weight": 0, "preburned": 0.0, "initial_weight": 2900000.0, "fuel": 2900000.0, "adc_K": 0.475, "lift_off_weight": 2900000.0
+				
+			}, 
+		"RLV": 
+			{
+				"name": "RLV", "fuel_type": "Liquid", "attached": true, "jettison_time": 216.7, "jettison_weight": 1621829.0, "preburned": 60728.73, "initial_weight": 13032000.0, "fuel": 11349442.27, "adc_K": 1.073, "lift_off_weight": 12971271.27
+			}
+	}, 
+	
+	"name": "HLV * 4-8/6-9 v3", 
+	"engines": [
+		{"starting_throttle": 1.0, "stage": "SRB", "engine_count": 4.0, "engine_name": "SRM"}, 
+		{"stage": "orbiter", "engine_count": 3.0, "engine_name": "OME"}, 
+		{"ignition_time": null, "engine_name": "SSME", "starting_throttle": 0.95, "engine_count": 9.0, "power_down_start_time": Infinity, "stage": "orbiter"}, 
+		{"ignition_time": 216.71579, "engine_name": "RL-10A4-2", "starting_throttle": 0.0, "engine_count": 3.0, "power_down_start_time": Infinity, "stage": "orbiter"}, 
+		{"ignition_time": null, "engine_name": "RD-171M", "starting_throttle": 0.56, "engine_count": 8.0, "power_down_start_time": 137.0, "stage": "RLV"}, 
+		{"ignition_time": null, "engine_name": "RD-180", "starting_throttle": 0.95, "engine_count": 6.0, "power_down_start_time": 213.51579, "stage": "RLV"}], "file_name": "save/specs/HLV4869v3_MK_336", "initial_alt": 30.0, "friendly_name": "HLV * 4-8/6-9 v3 MK 3-36 06-25-2017", "earth_rotation_mph": 912.67, "MK": "3-36", "V_v_giveback_target": 1200.0, "tower_height": 300.0, "V_v_target": 2100.0, "V_v_giveback_time": 140.0, "version_name": "06-25-2017", "lift_off_weight": 22191271.27}

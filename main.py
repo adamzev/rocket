@@ -33,7 +33,7 @@ class Main_program(object):
 		''' initializes the main program '''
 		self.messages = []
 		self.alt = 30.0
-		self.COAST_SPEED = 16600
+		self.COAST_SPEED = 16850
 		self.endTime = 10.0
 
 		self.specs = Spec_manager.get_specs()
@@ -65,7 +65,6 @@ class Main_program(object):
 		rocket.burn_fuel(rocket.time_inc)
 		rocket.updateWeight(rocket.time_inc)
 		rocket.updateA()
-		self.check_for_event(rocket, True)
 		if not mode.GIVEN_AVS:
 			assigned_A_v = rocket.cur.A_vert_eff = rocket.select_A_vert()
 		if assigned_A_v == "a" or assigned_A_v == "all":
@@ -85,7 +84,7 @@ class Main_program(object):
 		rocket.cur.V.vert = rocket.prev.V.vert + rocket.cur.V.vert_inc
 		rocket.updateAlt(rocket.time_inc)
 
-		self.check_for_event(rocket)
+		rocket.events()
 
 		rocket.cur.force = rocket.get_total_thrust()
 		rocket.cur.set_big_G()
@@ -118,37 +117,32 @@ class Main_program(object):
 		ADC_error = 100000.0
 		ADC_prediction = rocket.cur.ADC_actual
 		tries = 0
+		min_ADC = 0
+		max_ADC = rocket.cur.ADC_actual * 5.0
+
 		while abs(ADC_error) > threshold:
-			rocket_copy = copy.deepcopy(rocket)
+			rocket_copy = VehicleFactory.create_vehicle_copy(rocket)
 			rocket_copy.cur.ADC_predicted = ADC_prediction
-			self.compute_row(rocket_copy, assigned_V, False)
-
-			ADC_error = rocket_copy.cur.ADC_error
-
-			ADC_prediction -= ADC_error/2.0
+			try:
+				self.compute_row(rocket_copy, assigned_V, False)
+			except ValueError:
+				# value error occurs when the ADC is too big (causing sqrt of neg)
+				max_ADC = ADC_prediction
+				ADC_prediction = (min_ADC + max_ADC) / 2.0
+			else:
+				if ADC_error < 0:
+					min_ADC = ADC_prediction
+				ADC_error = rocket_copy.cur.ADC_error
+				ADC_prediction -= ADC_error
 
 			rocket_copy = None
 			tries += 1
+			if tries > 20:
+				threshold *= 10
+				if threshold > 0.001:
+					raise ValueError("An error occured while predicting ADC")
 		return ADC_prediction
 
-	@staticmethod
-	def check_for_event(rocket, pre=False):
-		''' takes in a event dict and a vehicle (and optionally whether this a pre or
-		post computation event)
-		checks if the current time increment matches with an event and passes to the
-		correct handler
-		'''
-		if mode.GIVEN_INTERVALS:
-			decimal_precision = 4
-		else:
-			if rocket.get_time_inc() == 0.1:
-				decimal_precision = 1
-			elif rocket.get_time_inc() == 0.01:
-				decimal_precision = 2
-			else:
-				raise ValueError("Unsupported time inc")
-		if not pre:
-			rocket.events()
 
 	def add_unique_message(self, message):
 		''' adds a message if it does not match the previous message '''
@@ -157,7 +151,6 @@ class Main_program(object):
 
 	def initialize_rocket(self):
 		''' sims the first time inc '''
-		self.check_for_event(self.HLV, True)
 		self.HLV.cur.set_big_G()
 		self.HLV.prev = copy.deepcopy(self.HLV.cur)
 		self.HLV.cur.set_big_G()
@@ -170,15 +163,12 @@ class Main_program(object):
 		self.HLV.update_V_vert()
 		self.HLV.update_ADC_actual(self.HLV.time_inc)
 
-		self.check_for_event(self.HLV)
+		self.HLV.events()
 
 		self.HLV.cur.force = self.HLV.get_total_thrust()
-		if mode.QUICKRUN:
-			self.HLV.cur.ADC_predicted = 0.00023
-		else:
-			self.HLV.cur.ADC_predicted = self.predict_ADC(self.HLV, "a")
+		self.HLV.cur.ADC_predicted = self.predict_ADC(self.HLV, "a")
 		print(self.HLV)
-		self.HLV.display_engine_messages()
+		#self.HLV.display_engine_messages()
 		self.HLV.save_current_row(True)
 
 
@@ -200,7 +190,7 @@ class Main_program(object):
 				try:
 					assigned_A_v = asssigned_vs[i]
 				except IndexError:
-					print "Sim complete"
+					print("Sim complete")
 					break
 			else:
 				assigned_A_v = None
@@ -215,7 +205,7 @@ class Main_program(object):
 			else:
 				self.HLV.cur.ADC_predicted = self.predict_ADC(self.HLV, assigned_A_v)
 			if mode.GIVEN_INTERVALS or round(self.HLV.time, 1).is_integer():
-				self.HLV.display_engine_messages()
+				#self.HLV.display_engine_messages()
 				print(self.HLV)
 				self.HLV.save_current_row()
 			# self.HLV.fuel_used_per_stage_report()
@@ -258,10 +248,10 @@ def main():
 		# Catching all errors before exiting or allowing the user to try to fix the error
 		except Exception as e: #pylint: disable=W0703
 			if mode.PRETTY_ERRORS:
-				print "\nSorry, an error has occured. \n\nPlease email the following information to Adam (Adam@TutorDelphia.com) if modifying the spec or event file will not fix the error.\n"
-				print sys.exc_info()[0].__name__, os.path.basename(sys.exc_info()[2].tb_frame.f_code.co_filename), sys.exc_info()[2].tb_lineno
-				print e.__doc__
-				print e.message
+				print("\nSorry, an error has occured. \n\nPlease email the following information to Adam (Adam@TutorDelphia.com) if modifying the spec or event file will not fix the error.\n")
+				print(sys.exc_info()[0].__name__, os.path.basename(sys.exc_info()[2].tb_frame.f_code.co_filename), sys.exc_info()[2].tb_lineno)
+				print(e.__doc__)
+				print(e.message)
 				print("An error has occured.")
 				if mode.RESTART_ON_ERROR:
 					if Rocketman:

@@ -20,7 +20,10 @@ class Vehicle(object):
 			alt=0,
 			earth_rotation_mph=earth_rotation_mph
 		)
-
+		self.prev = PhysicalStatus(
+			alt=0,
+			earth_rotation_mph=earth_rotation_mph
+		)
 		self.specs = specs
 		self.time_incs = {}
 		self.time_inc = 0.1
@@ -49,7 +52,7 @@ class Vehicle(object):
 		self.A_hv_diff = 0.0
 		self.lift_off_weight = specs["lift_off_weight"]
 		self.cur.weight = self.lift_off_weight
-		self.prev = copy.deepcopy(self.cur)
+		self.copy_status()
 		self.name = "{} MK {}".format(specs["name"], specs["MK"])
 
 
@@ -142,11 +145,35 @@ class Vehicle(object):
 			else:
 				return A_vert_eff #enough force to lift off
 
+
+	def copy_status(self):
+		self.prev._alt = self.cur._alt
+		try:
+			self.prev._big_G = self.cur._big_G
+		except AttributeError:
+			pass
+		self.prev._weight = self.cur._weight
+		self.prev._ADC_predicted = self.cur._ADC_predicted
+		self.prev._ADC_actual = self.cur._ADC_actual
+		self.prev._ADC_error = self.cur._ADC_error
+		self.prev.force = self.cur.force
+		self.prev.A._horiz = self.cur.A._horiz
+		self.prev.A._vert = self.cur.A._vert
+		self.prev.A._total = self.cur.A._total
+		self.prev.A._vert_eff = self.cur.A._vert_eff
+		self.prev.V._vert = self.cur.V._vert
+		self.prev.V._vert_inc = self.cur.V._vert_inc
+		self.prev.V._horiz = self.cur.V._horiz
+		self.prev.V._horiz_inc = self.cur.V._horiz_inc
+		self.prev.V._total = self.cur.V._total
+
 	def tick(self):
 		if self.load_time_incs:
 			self.set_time_inc()
 		self.time += self.time_inc
-		self.prev = copy.deepcopy(self.cur)
+
+		self.copy_status()
+
 		self.cur = PhysicalStatus()
 		self.check_state()
 
