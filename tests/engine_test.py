@@ -97,6 +97,43 @@ class EngineTests(unittest.TestCase):
 		expected_result = 244.205664
 		assert almost_equal(SRM.specific_impulse_at_alt(alt), expected_result, 0.1)
 
+	def test_fuel_used_in_startup(self):
+		alt = 0
+		rdEng.setThrottleOverride(0.56)
+		rdEng.setThrottleOverride(0.56)
+		fuel_used = 0
+		time_inc = 0.1
+		while rdEng.throt_avg < 1:
+			rdEng.setThrottle(1, time_inc)
+			fuel_used += rdEng.get_eff_fuel_burn_rate() * time_inc
+		expected_result = 12057.760
+		assert almost_equal(fuel_used, expected_result, 0.0000000001)
+
+	def test_fuel_used_in_startup_full_shutdown(self):
+		alt = 0
+		rdEng.setThrottleOverride(0.74)
+		rdEng.setThrottleOverride(0.74)
+		fuel_used = 0
+		time_inc = 0.1
+		time = 0
+		while rdEng.throt_avg < 1:
+			time += time_inc
+			rdEng.setThrottle(1, time_inc)
+			fuel_used += rdEng.get_eff_fuel_burn_rate() * time_inc
+
+		while time < 145.8667:
+			time += time_inc
+			fuel_used += rdEng.get_eff_fuel_burn_rate() * time_inc
+
+		while rdEng.throt_avg > 0:
+			time += time_inc
+			rdEng.setThrottle(0, time_inc)
+			fuel_used += rdEng.get_eff_fuel_burn_rate() * time_inc
+
+		expected_result = 779587.76
+		assert almost_equal(fuel_used, expected_result, 1000)
+
+
 	def test_engine_stats(self):
 		stats = {
 			"max_reached_time": 2.0,

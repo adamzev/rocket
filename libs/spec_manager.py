@@ -15,14 +15,13 @@ class Spec_manager(object):
 					"keys" : ["name", "MK"],
 					"update_function" : cls.query_name_and_MK,
 					},
-				"lift_off_weight": cls.query_lift_off_weight,
 				"stages": cls.create_stages_specs,
 				"engines": lambda: cls.change_engines(specs),
 				"earth_rotation_mph": cls.query_earths_rotation
 		}
 
-	@staticmethod
-	def create_stage_specs(stage_type, fuel_type):
+	@classmethod
+	def create_stage_specs(cls, stage_type, fuel_type):
 		''' query for stage specs '''
 		print(f"\n     {stage_type}\n")
 		stage_specs = {}
@@ -36,7 +35,7 @@ class Spec_manager(object):
 
 		if stage_type != "orbiter":
 			stage_specs['jettison_weight'] = q.query_float("What is the jettison weight of the {}? ".format(stage_type))
-			if stage_type != "SRB":
+			if stage_type != "E-SRB" and stage_type != "R-SRB":
 				stage_specs['jettison_time'] = q.query_float("What is the jettison time of the {}? ".format(stage_type))
 			else:
 				stage_specs['jettison_time'] = None
@@ -47,23 +46,46 @@ class Spec_manager(object):
 		stage_specs['name'] = stage_type
 		stage_specs['fuel_type'] = fuel_type
 		print("Fuel to be burned in {} is {}".format(stage_type, stage_specs['fuel']))
-		return stage_specs
 
+		edit_again = q.query_yes_no("Discard changes and edit this field again?", "no")
+		if edit_again:
+			return cls.create_stage_specs(stage_type, fuel_type)
+		else:
+			return stage_specs
+
+	@classmethod
+	def select_stages(cls):
+		stage_types = ["RLV", "orbiter"]
+		attach_R_SRB = q.query_yes_no("Does the rocket have a R-SRB? ", "yes")
+		attach_E_SRB = q.query_yes_no("Does the rocket have a E-SRB? ", "no")
+		attach_LFB = q.query_yes_no("Does the rocket have a LFB? ", "no")
+		if attach_R_SRB:
+			print("A R-SRB will be attached")
+		if attach_E_SRB:
+			print("A E-SRB will be attached")
+		if attach_LFB:
+			print("A LFB will be attached")
+		
+		edit_again = q.query_yes_no("Discard changes and select stages again?", "no")
+		if edit_again:
+			return cls.select_stages()
+		else:
+			if attach_R_SRB:
+				stage_types = ["R-SRB"] + stage_types
+			if attach_E_SRB:
+				stage_types = ["E-SRB"] + stage_types
+			if attach_LFB:
+				stage_types = ["LFB"] + stage_types
+			return stage_types
 
 	@classmethod
 	def create_stages_specs(cls):
 		''' queries for stage specs '''
 		stages = {}
-		stage_types = ["RLV", "orbiter"]
-		attach_SRB = q.query_yes_no("Does the rocket have a SRB? ", "yes")
-		if attach_SRB:
-			stage_types = ["SRB"] + stage_types
-		attach_LFB = q.query_yes_no("Does the rocket have a LFB? ", "no")
-		if attach_LFB:
-			stage_types = ["LFB"] + stage_types
 
+		stage_types = cls.select_stages()
 		for stage_type in stage_types:
-			if stage_type == "SRB":
+			if stage_type == "E-SRB" or stage_type == "R-SRB":
 				fuel_type = "Solid"
 			else:
 				fuel_type = "Liquid"
@@ -72,7 +94,6 @@ class Spec_manager(object):
 
 	query_vehicle_name = staticmethod(partial(q.query_string, "What is the vehicle called (for example: HLV * 4-8/6-9)? "))
 	query_vehicle_MK = staticmethod(partial(q.query_string, "MK? ", "1"))
-	query_lift_off_weight = staticmethod(partial(q.query_float, "What is the HLV Gross Lift-Off Weight in Lbm? "))
 	query_earths_rotation = staticmethod(partial(
 										q.query_float,
 										"earth rotation mph (hit enter for the default value of 912.67)? ",
@@ -108,7 +129,6 @@ class Spec_manager(object):
 
 		keys = [
 			"Name and MK",
-			"lift_off_weight",
 			"stages",
 			"earth_rotation_mph"
 		]
@@ -160,22 +180,6 @@ class Spec_manager(object):
 				if engine["engine_name"] == selected_engine:
 					del specs["engines"][i]
 		return specs["engines"]
-
-	@classmethod
-	def change_specs(cls, specs):
-		''' chages the specs of a rocket
-			More generally, modify a dict using a dict of callbacks
-		'''
-
-		spec_functions = cls.get_spec_functions(specs)
-		change_another_property = True
-		while (change_another_property):
-			chosen_key = q.query_from_list("option", "Choose a property to change:", spec_functions.keys(), False)
-			cls.change_spec(specs, chosen_key)
-			change_another_property = q.query_yes_no("Change another property?")
-
-		fileMan.ask_to_save(specs, "Do you want to save these changes? ")
-
 
 	@classmethod
 	def print_spec_value(cls, specs, key):

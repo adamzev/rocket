@@ -38,6 +38,7 @@ class Vehicle(object):
 		self.V_v_target = 0.0
 		self.V_v_giveback_target = 0.0
 		self.V_v_giveback_time = None
+		self.A_vh_scale_factor = 1.0
 		self.time = 0
 		self.cur.V.horiz_mph = earth_rotation_mph
 		self.A_ease_in = 0.1 # used to adjust the acceleration to ease in to the target V_v
@@ -50,12 +51,16 @@ class Vehicle(object):
 		self.cur.A.vert = 0.0
 		self.V_v_accuracy = 0.0000001
 		self.A_hv_diff = 0.0
-		self.lift_off_weight = specs["lift_off_weight"]
+		self.lift_off_weight = self.sum_stage_weights()
 		self.cur.weight = self.lift_off_weight
 		self.copy_status()
 		self.name = "{} MK {}".format(specs["name"], specs["MK"])
 
-
+	def sum_stage_weights(self):
+		total = 0
+		for stage in self.stages.values():
+			total += stage.lift_off_weight
+		return total
 	def __str__(self):
 		V_as = self.cur.V.air_speed_mph
 		A_v = self.cur.A_vert_eff
@@ -216,7 +221,7 @@ class Vehicle(object):
 		''' increment the Velocity horizontal '''
 		self.cur.V.horiz_mph = self.prev.V.horiz_mph + self.prev.V.horiz_mph_inc
 
-	def A_vert_formula_v2(self):
+	def A_vert_formula(self, scale_factor):
 		A_horiz = A_vert_eff = 0.0
 		A = self.cur.A.total
 		G = self.prev.big_G
@@ -252,7 +257,7 @@ class Vehicle(object):
 			return self.max_A_v
 
 		A_horiz_bump = 0.002
-		while A_horiz <= A_vert_eff + self.A_hv_diff:
+		while A_horiz <= A_vert_eff + self.A_hv_diff * scale_factor:
 			A_horiz = X + A_horiz_bump
 			A_vert = equ.pythag(None, A_horiz, A)
 			A_vert_eff = A_vert - G
@@ -262,24 +267,6 @@ class Vehicle(object):
 			return self.max_A_v
 		else:
 			return A_vert_eff
-
-	def A_vert_formula(self, A_hv_diff):
-		A_horiz = A_vert_eff = 0.0
-		A = self.cur.A.total
-		G = self.prev.big_G
-
-		self.A_hv_diff = (self.prev.A.horiz + self.prev.A.vert_eff) * 0.4 -0.38
-		if self.A_hv_diff < 0.020:
-			self.A_hv_diff = 0.020
-		A_horiz_bump = 0.01
-		while A_horiz <= A_vert_eff + self.A_hv_diff:
-			A_horiz = ((sqrt(2.0*A**2.0 - G**2.0))-G)/2.0 + A_horiz_bump
-			A_vert = equ.pythag(None, A_horiz, A)
-			A_vert_eff = A_vert - G
-			A_horiz_bump += 0.01
-
-		return A_vert_eff
-
 
 	def select_A_vert_for_V_v_target(self):
 		''' In order to have the rocket approach and hit a vertical velocity target,
@@ -295,7 +282,7 @@ class Vehicle(object):
 		elif self.prev.V.vert > self.V_v_target - self.V_v_target * .05: # within 5 percent of the target
 			return self.A_ease_in
 		else:
-			return self.A_vert_formula_v2()
+			return self.A_vert_formula(self.A_vh_scale_factor)
 
 	def select_A_vert_for_V_v_giveback(self):
 		''' In order to have the rocket reduce to and hit a vertical velocity giveback target,
@@ -399,7 +386,7 @@ class Vehicle(object):
 		elif throt == "off":
 			engine.setThrottle(0.0)
 		else:
-			engine.setThrottle(throt,time_inc)
+			engine.setThrottle(throt, time_inc)
 
 
 	def setEngineAssignedThrustPerEngine(self, engineName, thrust):
@@ -425,7 +412,7 @@ class Vehicle(object):
 		''' Prints and empties the queue of engine messages '''
 		for engine in self.engines:
 			for message in engine.messages:
-				print (message)
+				print(message)
 			engine.messages = []
 
 	def find_engine_by_stage(self, engineName, stage):
@@ -508,15 +495,16 @@ class Vehicle(object):
 			self.V_v_start_giveback = True
 
 		try:
-			SRB = self.stages["SRB"]
-			if SRB.attached:
-				remaining = SRB.get_fuel_remaining()
-				for engine in SRB.attached_engines:
-					remaining_per_engine = remaining / engine.engine_count
-					if engine.attached and (remaining_per_engine - engine.burn_rate * self.get_time_inc() / engine.engine_count) <= engine.power_down_fuel_level:
-						if not engine.power_down_start_time:
-							print("EVENT: SRM Power down started at {} seconds with fuel level {} lbm per engine".format(self.time, remaining_per_engine))
-							engine.power_down_start_time = self.time
-						engine.power_down_by_burn_rates(self.time, self.cur.alt, SRB)
+			for srb_type in ["R-SRB", "E-SRB"]:
+				SRB = self.stages[srb_type]
+				if SRB.attached:
+					remaining = SRB.get_fuel_remaining()
+					for engine in SRB.attached_engines:
+						remaining_per_engine = remaining / engine.engine_count
+						if engine.attached and (remaining_per_engine - engine.burn_rate * self.get_time_inc() / engine.engine_count) <= engine.power_down_fuel_level:
+							if not engine.power_down_start_time:
+								print("EVENT: {} Power down started at {} seconds with fuel level {} lbm per engine".format(engine.name, self.time, remaining_per_engine))
+								engine.power_down_start_time = self.time
+							engine.power_down_by_burn_rates(self.time, self.cur.alt, SRB)
 		except KeyError:
 			pass # if no stage named SRB, don't handle it
