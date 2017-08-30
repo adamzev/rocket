@@ -59,7 +59,7 @@ class VehicleFactory(object):
 		new_rocket.V_v_giveback_target = old_rocket.specs["V_v_giveback_target"]
 		new_rocket.V_v_giveback_time = round(old_rocket.specs["V_v_giveback_time"], 1)
 
-		new_rocket.ground_level =new_rocket.cur.alt
+		new_rocket.ground_level = new_rocket.cur.alt
 		new_rocket.tower_height = old_rocket.specs["tower_height"]
 		#sets the initial thrusts and throttles of the engines
 
@@ -91,7 +91,7 @@ class VehicleFactory(object):
 		new_rocket.cur._ADC_actual = old_rocket.cur._ADC_actual
 		new_rocket.cur._ADC_error = old_rocket.cur._ADC_error
 		new_rocket.cur.force = old_rocket.cur.force
-		new_rocket.cur.A._horiz = old_rocket.cur.A._horiz 
+		new_rocket.cur.A._horiz = old_rocket.cur.A._horiz
 		new_rocket.cur.A._vert = old_rocket.cur.A._vert
 		new_rocket.cur.A._total = old_rocket.cur.A._total
 		new_rocket.cur.A._vert_eff = old_rocket.cur.A._vert_eff
@@ -155,7 +155,7 @@ class VehicleFactory(object):
 				engine_data.update(selected_engine)
 				engines.append(engine_data)
 			except KeyError:
-				print ("ERROR Engine {} not found".format(name))
+				print("ERROR Engine {} not found".format(name))
 		#func.pretty_json(engines)
 		return engines
 
@@ -170,9 +170,12 @@ class VehicleFactory(object):
 	@staticmethod
 	def set_engine_initial_fuel_source(engines, stages):
 		for engine in engines:
-			if engine.type == "Solid":
-				engine.set_fuel_source(stages["SRB"])
-				stages["SRB"].fueling(engine)
+			if engine.name == "SRM":
+				engine.set_fuel_source(stages["R-SRB"])
+				stages["R-SRB"].fueling(engine)
+			elif engine.name == "SRMU":
+				engine.set_fuel_source(stages["E-SRB"])
+				stages["E-SRB"].fueling(engine)
 			elif engine.stage == "LFB":
 				engine.set_fuel_source(stages["LFB"])
 				stages["LFB"].fueling(engine)
@@ -209,6 +212,7 @@ class VehicleFactory(object):
 		for engine in compatable_engines:
 			engine_name = list(engine)[0]
 			count = float(q.query_int("How many {} {}s? ".format(stage_name, engine_name)))
+			
 			if count > 0:
 				this_engine = cls.collect_engine_details(engine, stage_name, stage_jettison_time)
 				this_engine["engine_count"] = count
@@ -217,15 +221,15 @@ class VehicleFactory(object):
 
 		return selected_engines
 
-	@staticmethod
-	def collect_engine_details(engine_data, stage_name, stage_jettison_time):
+	@classmethod
+	def collect_engine_details(cls, engine_data, stage_name, stage_jettison_time):
 		engine_name = list(engine_data)[0]
 		this_engine = {}
 		# only accept integer values but store as float for compatibility
 		this_engine["engine_name"] = engine_name
 		this_engine["stage"] = stage_name
 		ignition_time = None
-		if stage_name == "SRB":
+		if stage_name == "E-SRB" or stage_name == "R-SRB":
 			this_engine["starting_throttle"] = 1.0
 			return this_engine
 
@@ -256,7 +260,7 @@ class VehicleFactory(object):
 
 		stats = temp_engine.engine_stats(starting_throttle, power_down_start_time, ignition_time, stage_jettison_time)
 
-		print("Max throttle of {:.1f} reached at {:.1f} seconds".format(engine_data[engine_name]['max_throt'], stats['max_reached_time']))
+		print("Max throttle of {:.2f} reached at {:.1f} seconds".format(engine_data[engine_name]['max_throt'], stats['max_reached_time']))
 		if power_down_start_time == float('inf'):
 			print("Throttle down does not occur during the sim. ")
 		else:
@@ -268,7 +272,11 @@ class VehicleFactory(object):
 				print("Engine throttle will reach min at {:.1f} seconds".format(stats['min_reached_time']))
 				print("Engine throttle will cut-off at {:.1f} seconds".format(stats['engine_cutoff_time']))
 
-		return this_engine
+		edit_again = q.query_yes_no("Discard changes and edit this field again?", "no")
+		if edit_again:
+			return cls.collect_engine_details(engine_data, stage_name, stage_jettison_time)
+		else:
+			return this_engine
 
 
 

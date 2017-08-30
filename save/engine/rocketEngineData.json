@@ -15,7 +15,7 @@
 				"specImp_vac" : 268.20,
 				"thrust_controlled" : "True",
 				"stages" : {
-					"SRB" : "always"
+					"R-SRB" : "always"
 				},
 				"type" : "Solid",
 				"event" : {
@@ -30,6 +30,38 @@
 						11200, 9800, 8400, 7900, 7500, 7100,
 						6700, 6100, 5500, 5100, 4800, 4500,
 						4200, 4000, 3800
+					]
+			},
+		"SRMU" :
+			{
+				"thrust_sl"  : 1700000.0,
+				"thrust_vac" : 1700000.0,
+				"min_throt" : 0.0,
+				"max_throt" : 1.0,
+				"throt_rate_of_change_limit" : 1.0,
+				"typical_throt_at_0" : 1.0,
+				"burn_rate" :  6984.87,
+				"weight_fueled" : 781000,
+				"weight_dry" : 85573,
+				"specImp_sl" : 257.70,
+				"specImp_vac" : 285.60,
+				"thrust_controlled" : "True",
+				"stages" : {
+					"E-SRB" : "always"
+				},
+				"type" : "Solid",
+				"event" : {
+					"rate": -10000,
+					"start_time": 24,
+					"name": "Change Thrust",
+					"end_time": 44
+				}, 
+				"power_down_fuel_level" : 45400,
+				"power_down_burn_rates" : 
+					[
+						5150, 4750, 4350, 4000, 3700, 3400,
+						3100, 2850, 2600, 2400, 2200, 2000,
+						1800, 1600, 1500
 					]
 			},
 		"RD-171M" :

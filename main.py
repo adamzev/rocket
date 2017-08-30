@@ -98,11 +98,32 @@ class Main_program(object):
 		''' initializes the main program '''
 		self.messages = []
 		self.alt = 30.0
-		self.COAST_SPEED = 16850
+		self.coast_speed = 17050
 		self.endTime = 10.0
 
 		self.specs = Spec_manager.get_specs()
 		assert self.specs is not False
+
+		self.manual_Av = False
+		self.manual_Av_frequency = None
+		print('\n\nSpecs are loaded. Starting launch. Set launch options. \n\n')
+
+		self.coast_speed = q.query_float(f"Enter the speed at which to end the simulation (or hit enter to select the default speed of {self.coast_speed}): ", self.coast_speed)
+
+		self.A_vh_scale_factor = q.query_float("What is the A_vh scale factor (default is 1.0)? ", 1.0)
+
+		self.change_weight = q.query_yes_no(f"The weight of the orbiter is {self.specs['stages']['orbiter']['initial_weight']}. \nThe lift-off-weight of the HLV is {self.specs['lift_off_weight']}. \nDo you want to change the weight of the orbiter? ", "no")
+		if self.change_weight:
+			self.specs['stages']['orbiter'] = Spec_manager.create_stage_specs("orbiter", "liquid")
+			self.specs['MK'] = q.query_string("What is the MK? ")
+			self.specs['friendly_name'] = "{} MK {}".format(self.specs['name'], self.specs['MK'])
+			clean_name = func.remove_non_alphanumeric(self.specs['name'])
+			clean_MK = func.remove_non_alphanumeric(self.specs['MK'])
+			self.specs['file_name'] = "save/specs/{}_MK_{}".format(clean_name, clean_MK)
+
+			version = VehicleFactory.collect_version()
+			self.specs['friendly_name'] += " " + version['version_name']
+			fileMan.ask_to_save(self.specs, "Do you want to save these specs? ")
 
 		if mode.QUICKRUN:
 			self.HLV = VehicleFactory.create_vehicle(self.specs, True)
@@ -111,6 +132,7 @@ class Main_program(object):
 		try:
 			self.HLV.cur.alt = self.specs["initial_alt"]
 			self.HLV.V_v_target = self.specs["V_v_target"]
+			self.HLV.A_vh_scale_factor = self.A_vh_scale_factor
 			self.HLV.V_v_giveback_target = self.specs["V_v_giveback_target"]
 			self.HLV.V_v_giveback_time = round(self.specs["V_v_giveback_time"], 1)
 
@@ -174,6 +196,9 @@ class Main_program(object):
 			if engine["engine_name"] == "SRM":
 				self.HLV.setEngineAssignedThrustPerEngine("SRM", 3600000)
 				self.HLV.setEngineAssignedThrustPerEngine("SRM", 3600000)
+			if engine["engine_name"] == "SRMU":
+				self.HLV.setEngineAssignedThrustPerEngine("SRMU", 1700000)
+				self.HLV.setEngineAssignedThrustPerEngine("SRMU", 1700000)
 
 
 	def predict_ADC(self, rocket, assigned_V):
@@ -245,7 +270,7 @@ class Main_program(object):
 		''' Main function for conducting a rocket simulation '''
 		i = 0
 
-		while self.HLV.cur.V.horiz_mph < self.COAST_SPEED:
+		while self.HLV.cur.V.horiz_mph < self.coast_speed:
 			# prints and clears the message queue
 			for message in self.messages:
 				print(message)
@@ -286,14 +311,12 @@ class Main_program(object):
 
 def restart_menu(last_spec_file=None):
 	if last_spec_file:
-		restart_menu_options = ["Restart", "Edit the specs", "Quit"]
+		restart_menu_options = ["Restart", "Quit"]
 	else:
 		restart_menu_options = ["Restart", "Quit"]
 	selection = q.query_from_list("option", "Select an option:", restart_menu_options, False)
 	if selection == "Restart":
 		main()
-	elif selection == "Edit the specs":
-		Spec_manager.change_specs(fileMan.load_json(last_spec_file+".json"))
 	elif selection == "Quit":
 		exit()
 	else:
