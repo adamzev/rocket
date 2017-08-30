@@ -56,11 +56,14 @@ class Vehicle(object):
 		self.copy_status()
 		self.name = "{} MK {}".format(specs["name"], specs["MK"])
 
+
+
 	def sum_stage_weights(self):
 		total = 0
 		for stage in self.stages.values():
 			total += stage.lift_off_weight
 		return total
+
 	def __str__(self):
 		V_as = self.cur.V.air_speed_mph
 		A_v = self.cur.A_vert_eff

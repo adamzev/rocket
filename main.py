@@ -49,10 +49,9 @@ class Main_program(object):
 
 		self.A_vh_scale_factor = q.query_float("What is the A_vh scale factor (default is 1.0)? ", 1.0)
 
-		self.change_weight = q.query_yes_no(f"The weight of the orbiter is {self.specs['stages']['orbiter']['initial_weight']}. \nThe lift-off-weight of the HLV is {self.specs['lift_off_weight']}. \nDo you want to change the orbiter? ", "no")
+		self.change_weight = q.query_yes_no(f"The weight of the orbiter is {self.specs['stages']['orbiter']['initial_weight']}. \nThe lift-off-weight of the HLV is {self.specs['lift_off_weight']}. \nDo you want to change the weight of the orbiter? ", "no")
 		if self.change_weight:
 			self.specs['stages']['orbiter'] = Spec_manager.create_stage_specs("orbiter", "liquid")
-			self.specs['lift_off_weight'] = self.HLV.sum_stage_weights()
 			self.specs['MK'] = q.query_string("What is the MK? ")
 			self.specs['friendly_name'] = "{} MK {}".format(self.specs['name'], self.specs['MK'])
 			clean_name = func.remove_non_alphanumeric(self.specs['name'])
