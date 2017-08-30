@@ -1,0 +1,52 @@
+{"stages": 
+{
+	"SRB": 
+		{
+			"name": "SRB", "fuel_type": "Solid", "attached": true, "jettison_time": null, 
+			"jettison_weight": 1621829.0, "preburned": 0.0, "initial_weight": 6374000.0,
+			"fuel": 4752171.0, "adc_K": 0.19, "lift_off_weight": 6374000.0
+		}, 
+
+	"orbiter": 
+		{
+			"name": "orbiter", "fuel_type": "Liquid", "attached": true, "jettison_time": null, 
+			"jettison_weight": 0, "preburned": 0.0, "initial_weight": 1600000.0, "fuel": 1600000.0, 
+			"adc_K": 0.313, "lift_off_weight": 1600000.0
+		}, 
+	"RLV": 
+		{
+			"name": "RLV", "fuel_type": "Liquid", "attached": true, "jettison_time": 212.0, 
+			"jettison_weight": 1372291.6, "preburned": 32814.2667, "initial_weight": 9212000.0, 
+			"fuel": 7806894.133300001, "adc_K": 0.828, "lift_off_weight": 9179185.7333
+		}
+}, 
+"name": "HLV * 4-6/4/2-6", 
+"engines": 
+	[
+		{
+			"starting_throttle": 1.0, "stage": "SRB", "engine_count": 4.0, 
+			"engine_name": "SRM"
+		}, 
+		{"stage": "orbiter", "engine_count": 2.0, "engine_name": "OME"}, 
+		{
+			"ignition_time": null, "engine_name": "SSME", "starting_throttle": 0.71, 
+			"engine_count": 6.0,
+ 			"power_down_start_time": Infinity, "stage": "orbiter"
+		}, 
+		{
+			"ignition_time": 212.0, "engine_name": "RL-10A4-2", 
+			"starting_throttle": 0.0, 
+			"engine_count": 1.0, 
+			"power_down_start_time": Infinity, "stage": "orbiter"
+		}, 
+		{
+			"ignition_time": null, "engine_name": "RD-171M", "starting_throttle": 0.7, 
+			"engine_count": 6.0, "power_down_start_time": 136.0, "stage": "RLV"}, 
+		{
+			"ignition_time": null, "engine_name": "SSME", "starting_throttle": 0.71, 
+			"engine_count": 2.0, "power_down_start_time": 209.08, "stage": "RLV"}, 
+		{"ignition_time": null, "engine_name": "RS-68A", "starting_throttle": 0.76, 
+		"engine_count": 4.0, "power_down_start_time": 209.08, "stage": "RLV"}
+	], 
+	"file_name": "save/specs/HLV46426_MK_15140s33", 
+	"initial_alt": 50.0, "friendly_name": "HLV * 4-6/4/2-6 MK 15-140s-33 06-25-2017", "earth_rotation_mph": 912.67, "MK": "15-140s-33", "V_v_giveback_target": 1200.0, "tower_height": 100.0, "V_v_target": 2000.0, "V_v_giveback_time": 139.0, "version_name": "06-25-2017", "lift_off_weight": 17153185.7333}
