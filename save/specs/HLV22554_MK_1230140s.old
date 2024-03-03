@@ -1,0 +1,108 @@
+{
+    "name": "HLV * 2.2-5/5-4",
+    "MK": "1.2-30-(140s)",
+    "friendly_name": "HLV * 2.2-5/5-4 MK 1.2-30-(140s) 08-20-2017",
+    "file_name": "save/specs/HLV22554_MK_1230140s",
+    "version_name": "08-20-2017",
+    "lift_off_weight": 14173775.45,
+    "stages": {
+        "E-SRB": {
+            "attached": true,
+            "adc_K": 0.056,
+            "initial_weight": 1562000,
+            "preburned": 1319.3636,
+            "lift_off_weight": 1560680.6364,
+            "jettison_weight": 174000,
+            "jettison_time": null,
+            "fuel": 1386680.6364,
+            "name": "E-SRB",
+            "fuel_type": "Solid"
+        },
+        "R-SRB": {
+            "attached": true,
+            "adc_K": 0.095,
+            "initial_weight": 3187000,
+            "preburned": 2975.2066,
+            "lift_off_weight": 3184024.7934,
+            "jettison_weight": 427000,
+            "jettison_time": null,
+            "fuel": 2757024.7934,
+            "name": "R-SRB",
+            "fuel_type": "Solid"
+        },
+        "RLV": {
+            "attached": true,
+            "adc_K": 0.7,
+            "initial_weight": 8271000,
+            "preburned": 41929.9817,
+            "lift_off_weight": 8229070.0183,
+            "jettison_weight": 981935,
+            "jettison_time": 208.8,
+            "fuel": 7247135.0183,
+            "name": "RLV",
+            "fuel_type": "Liquid"
+        },
+        "orbiter": {
+            "attached": true,
+            "adc_K": 0.23,
+            "initial_weight": 1200000,
+            "preburned": 0,
+            "lift_off_weight": 1200000,
+            "jettison_weight": 0,
+            "jettison_time": null,
+            "fuel": 1200000,
+            "name": "orbiter",
+            "fuel_type": "Liquid"
+        }
+    },
+    "earth_rotation_mph": 912.67,
+    "engines": [
+        {
+            "engine_name": "SRMU",
+            "stage": "E-SRB",
+            "starting_throttle": 1,
+            "engine_count": 2
+        },
+        {
+            "engine_name": "SRM",
+            "stage": "R-SRB",
+            "starting_throttle": 1,
+            "engine_count": 2
+        },
+        {
+            "engine_name": "RD-171M",
+            "stage": "RLV",
+            "starting_throttle": 1,
+            "engine_count": 5
+        },
+        {
+            "engine_name": "RD-180",
+            "stage": "RLV",
+            "starting_throttle": 1,
+            "engine_count": 5
+        },
+        {
+            "engine_name": "SSME",
+            "stage": "orbiter",
+            "starting_throttle": 1,
+            "engine_count": 4
+        },
+        {
+            "engine_name": "RL-10A4-2",
+            "stage": "orbiter",
+            "starting_throttle": 1,
+            "engine_count": 2
+        },
+        {
+            "engine_name": "OME",
+            "stage": "orbiter",
+            "starting_throttle": 1,
+            "engine_count": 2
+        }
+    ],
+    "initial_alt": 50,
+    "tower_height": 600,
+    "V_v_target": 2000,
+    "V_v_giveback_target": 1200,
+    "V_v_giveback_time": 209
+}
