@@ -1,5 +1,4 @@
 from math import sqrt
-import copy
 
 from colorama import Fore, Style
 
@@ -11,6 +10,7 @@ from libs import fileManager as fileMan
 
 import util.func as func
 import mode
+
 
 class Vehicle(object):
 

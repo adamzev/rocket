@@ -2,8 +2,8 @@ import json
 import sys
 import os
 import re
-import glob
 from colorama import init, Fore, Back, Style
+
 init()
 
 def is_float(the_string):

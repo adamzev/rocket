@@ -1,8 +1,6 @@
 import sys
-
-sys.path.append('/home/tutordelphia/www/')
-
 from rocket.util import func
+
 
 class Query(object):
 	''' query the user for multiple datatypes in a testable manner '''

@@ -1,18 +1,13 @@
-''' query for flight profile and spec information '''
+""" query for flight profile and spec information """
+
 from datetime import date
 import time
-from math import sqrt
 import copy
-import sys
 
 from colorama import Fore, Back, Style
 
-sys.path.append('/home/tutordelphia/www/rocket/')
-
 from libs.stage import Stage
 from libs.rocketEngine import RocketEngine, LiquidRocketEngine
-
-import util.func as func
 
 from libs.vehicle import Vehicle
 
