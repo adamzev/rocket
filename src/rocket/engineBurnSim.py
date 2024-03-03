@@ -1,5 +1,5 @@
-from rocketEngine import *
-from util import *
+from libs.rocketEngine import RocketEngine
+from util.func import current
 
 RD171M_data = {
 		"name": "RD-171M",

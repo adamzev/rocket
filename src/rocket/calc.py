@@ -1,12 +1,12 @@
-from generalEquations import *
-from libs.spec_creator import *
-from libs.rocketEngine import *
-from libs.stage import *
-import libs.vehicle
-import libs.vehicleFactory
-import libs.velocity
+import generalEquations as equ
+from libs.spec_manager import create_specs, get_json_file_data
+from libs.rocketEngine import RocketEngine
+from libs.stage import Stage
+from libs.vehicleFactory import VehicleFactory
+from libs import velocity
 from libs.query import Query as q
 import numpy as np
+from colorama import Fore, Style
 
 
 def prompt_thrust_at_alt():
@@ -32,27 +32,20 @@ def prompt_thrust_at_alt():
 
 
 def prompt_PATM():
-	print "Percent of Atm Pressure Calculator"
-	alt = float(raw_input("Alt? "))
-	print percentOfAtmosphericPressure(alt)
+    print(equ.percentOfAtmosphericPressure(alt))
 
 def prompt_vac():
-	print "Percent of Atm Vac Calculator"
-	alt = float(raw_input("Alt? "))
-	print percentOfVac(alt)
+    print(equ.percentOfVac(alt))
 
 def prompt_big_G():
-	print "Big G Calculator"
-	V_h = float(raw_input("Horizontal Velocity? "))
-	alt = float(raw_input("Alt? "))
-	print bigG(V_h, velocity.Velocity.get_orbital(alt))
+    print(equ.bigG(V_h, velocity.Velocity.get_orbital(alt)))
 
 def prompt_ADC():
 	print "ADC Calculator"
 	V_as = float(raw_input("Air Speed Velocity? "))
 	alt = float(raw_input("Alt? "))
 	adc_K = float(raw_input("ADC K? "))
-	print ADC(V_as, alt, adc_K)
+    print(equ.ADC(V_as, alt, adc_K))
 
 
 def prompt_row():

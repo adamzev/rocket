@@ -1,10 +1,7 @@
-import sys
-sys.path.append('/home/tutordelphia/www/rocket/')
-
-from util import *
 from libs.acceleration import Acceleration
 from libs.velocity import Velocity
 import generalEquations as equ
+
 
 class PhysicalStatus(object):
 	def __init__(self, A_horiz = 0.0, A_vert = 0.0, V_horiz = 0.0, V_vert = 0.0, alt = 0.0, force = 0.0, earth_rotation_mph = 912.67):

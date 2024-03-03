@@ -1,5 +1,5 @@
 import argparse
-from generalEquations import *
+import generalEquations as equ
 
 parser = argparse.ArgumentParser(description='Returns percent of atmospheric pressure.')
 parser.add_argument('alt', type=float)

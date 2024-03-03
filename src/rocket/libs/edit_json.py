@@ -1,14 +1,7 @@
-''' edit an existing json file '''
-
-import json
-import sys
-sys.path.append('/home/tutordelphia/www/rocket/')
+""" edit an existing json file """
 
 import libs.fileManager as fileMan
 from libs.query import Query as q
-import util.func as func
-
-
 
 
 def edit_list(list_to_edit):

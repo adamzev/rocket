@@ -1,9 +1,6 @@
-import sys
-sys.path.append('/home/tutordelphia/www/rocket/')
-
-from generalEquations import *
-from util import *
+import generalEquations as equ
 from libs.twoD import TwoD
+
 
 class Velocity(TwoD):
 	def __init__(self, horiz, vert, earth_rotation_mph = 912.67, vert_inc = 0.0, horiz_inc = 0.0):

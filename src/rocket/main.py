@@ -1,21 +1,14 @@
-''' Simulate a heavy lift vehicle '''
+""" Simulate a heavy lift vehicle """
+
 import sys
 import os
-import traceback
 import logging
 import datetime
 
 import copy
 import mode as mode
 
-from generalEquations import *
-
-
-
-sys.path.append('/home/tutordelphia/www/rocket/')
-
 import libs.exceptions as exceptions
-import libs.edit_json as edit_json
 from libs.spec_manager import Spec_manager
 from libs import fileManager as fileMan
 from libs.vehicleFactory import VehicleFactory
