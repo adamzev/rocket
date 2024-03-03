@@ -1,5 +1,5 @@
-''' Custom Exceptions for simulating vehicles '''
+""" Custom Exceptions for simulating vehicles """
+
 
 class FuelValueError(ValueError):
-	'''Raise when more fuel than available is used'''
-
+    """Raise when more fuel than available is used"""
