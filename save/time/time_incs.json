@@ -1,0 +1,77 @@
+{
+	"time_incs" : [
+		{
+
+			"time_inc" : 1.0,
+			"until" : 1.0
+		},
+		{
+			"time_inc" : 0.82,
+			"until" : 1.82
+		},
+		{
+			"time_inc" : 1.18,
+			"until" : 3.0
+		},
+		{
+			"time_inc" : 3.0,
+			"until" : 75.0
+		},
+		{
+			"time_inc" : 0.1,
+			"until" : 75.1
+		},
+		{
+			"time_inc" : 2.9,
+			"until" : 78
+		},
+		{
+			"time_inc" : 3.0,
+			"until" : 135.0
+		},
+		{
+			"time_inc" : 0.83,
+			"until" : 135.83
+		},
+		{
+			"time_inc" : 1.0,
+			"until" : 138.83
+		},
+		{
+			"time_inc" : 0.170,
+			"until" : 139.0
+		},
+		{
+			"time_inc" : 2.0,
+			"until" : 141.0
+		},
+		{
+			"time_inc" : 3.0,
+			"until" : 213.0
+		},
+		{
+			"time_inc" : 1.8078,
+			"until" : 214.8078
+		},
+		{
+			"time_inc" : 1.0,
+			"until" : 216.8078
+		},
+		{
+			"time_inc" : 1.334,
+			"until" : 218.1418
+		},
+		{
+			"time_inc" : 0.0582,
+			"until" : 218.2
+		},
+		{
+			"time_inc" : 0.8,
+			"until" : 219.0
+		},
+		{
+			"time_inc" : 3.0,
+			"until" : 378.0
+		}
+	]
+}
