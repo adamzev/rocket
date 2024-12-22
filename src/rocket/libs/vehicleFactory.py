@@ -138,6 +138,7 @@ class VehicleFactory(object):
                 fuel_type is None
                 or fuel_type == engine_data["type"]
                 and stage_name in engine_data["stages"]
+                and engine_data.get('active', True)
             ):
                 compatable_engines.append({engine_name: engine_data})
 
@@ -258,16 +259,19 @@ class VehicleFactory(object):
         V_v_target = q.query_float(
             "What is desired V vert target (typically 2000fps)? "
         )
-        print("\nGiveback V Vert Event\n")
-        V_v_giveback_target = q.query_float(
-            "What is desired V vert target (typically 1200fps)? "
-        )
-        V_v_giveback_time = q.query_float("Giveback start time (typically 205.50): ")
-        return {
+        results = {
             "V_v_target": V_v_target,
-            "V_v_giveback_target": V_v_giveback_target,
-            "V_v_giveback_time": V_v_giveback_time,
         }
+        if mode.USE_V_V_GIVEBACK:
+            print("\nGiveback V Vert Event\n")
+            V_v_giveback_target = q.query_float(
+                "What is desired V vert target (typically 1200fps)? "
+            )
+            V_v_giveback_time = q.query_float("Giveback start time (typically 205.50): ")
+            results["V_v_giveback_target"] = V_v_giveback_target
+            results["V_v_giveback_time"] = V_v_giveback_time
+
+        return results
 
     @staticmethod
     def collect_version():
