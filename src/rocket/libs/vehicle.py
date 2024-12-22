@@ -461,83 +461,74 @@ class Vehicle(object):
         for engine in engines:
             print(engine)
 
-    def handle_event(self, event):
-        """Takes an event object (with name and event specific keys) and calls functions relating to that"""
-        event_handled = False
-        if event["name"] == "Giveback V Vert":
-            event_handled = True
-            print("EVENT: Starting to giveback V vert to {}fps".format(event["target"]))
-            self.V_v_giveback_target = event["target"]
-            self.V_v_start_giveback = True
-        if not event_handled:
-            message = "Event {} was not handled".format(event["name"])
-            raise ValueError(message)
-
-    def handle_stage_event(self, event):
-        """Takes an event object (with name, stage and event specific keys) and calls functions relating to that"""
-        event_handled = False
-        stage = self.stages[event["stage"]]
-        start_time = event["start_time"]  # pylint: disable=W0612
-        end_time = event["end_time"]  # pylint: disable=W0612
-
-        if event["name"] == "Set Target Throttle By Stage":
-            event_handled = True
-            self.setEngineThrottleByStage(
-                event["engine"], event["target"], self.get_time_inc(), event["stage"]
-            )
-
-        if event["name"] == "Jettison":
-            # func.break_point()
-            event_handled = True
-            stage.jettison()
-            self.adc_K -= stage.adc_K
-            for engine in self.engines:
-                if engine.stage == stage.name:
-                    engine.setThrottleOverride(0)
-                    engine.setThrottleOverride(0)
-                if engine.stage == "orbiter" and stage.name == "RLV":
-                    # orbiter engines use RLV as fuel source until RLV is jettisoned
-                    engine.set_fuel_source(self.stages["orbiter"])
-
-        assert event_handled
-
-    def events(self):
-        """handles automatic events like auto power up"""
+    def handle_engine_events(self):
         for engine in self.engines:
             engine.events(self.time, self.get_time_inc())
 
+    def handle_stage_events(self):
         for stage_name, stage in self.stages.items():
             stage.events(self.time, self.get_time_inc())
 
-        if func.almost_equal(self.time, self.V_v_giveback_time, 0.001):
+
+    def check_v_v_giveback_time(self):
+        if self.V_v_giveback_time and func.almost_equal(self.time, self.V_v_giveback_time, 0.001):
             self.V_v_start_giveback = True
 
+    def process_srb_engines(self, SRB):
+        if SRB.attached:
+            remaining = SRB.get_fuel_remaining()
+            for engine in SRB.attached_engines:
+                remaining_per_engine = remaining / engine.engine_count
+                if (
+                    engine.attached
+                    and (
+                        remaining_per_engine
+                        - engine.burn_rate
+                        * self.get_time_inc()
+                        / engine.engine_count
+                    )
+                    <= engine.power_down_fuel_level
+                ):
+                    if not engine.power_down_start_time:
+                        print(
+                            "EVENT: {} Power down started at {} seconds with fuel level {} lbm per engine".format(
+                                engine.name, self.time, remaining_per_engine
+                            )
+                        )
+                        engine.power_down_start_time = self.time
+                    engine.power_down_by_burn_rates(
+                        self.time, self.cur.alt, SRB
+                    )
+
+    
+    def handle_srb_events(self):
         try:
             for srb_type in ["R-SRB", "E-SRB"]:
                 SRB = self.stages[srb_type]
-                if SRB.attached:
-                    remaining = SRB.get_fuel_remaining()
-                    for engine in SRB.attached_engines:
-                        remaining_per_engine = remaining / engine.engine_count
-                        if (
-                            engine.attached
-                            and (
-                                remaining_per_engine
-                                - engine.burn_rate
-                                * self.get_time_inc()
-                                / engine.engine_count
-                            )
-                            <= engine.power_down_fuel_level
-                        ):
-                            if not engine.power_down_start_time:
-                                print(
-                                    "EVENT: {} Power down started at {} seconds with fuel level {} lbm per engine".format(
-                                        engine.name, self.time, remaining_per_engine
-                                    )
-                                )
-                                engine.power_down_start_time = self.time
-                            engine.power_down_by_burn_rates(
-                                self.time, self.cur.alt, SRB
-                            )
+                self.process_srb_engines(SRB)
         except KeyError:
             pass  # if no stage named SRB, don't handle it
+
+    def check_and_adjust_throttle(self):
+        if self.cur.A.total > 2:
+            print(f"Total acceleration exceeded 2 Gs: {self.cur.A.total} Gs")
+            for engine in self.engines:
+                if engine.stage == "RLV" and engine.attached:
+                    # Calculate the new throttle value, reducing the current throttle by 1%
+                    new_throttle_value = engine.throt_cur * 0.99
+                    # Adjust the throttle using setThrottle, which considers the rate of change limit
+                    engine.setThrottle(new_throttle_value, self.get_time_inc())
+                    print(f"Adjusted {engine.name} throttle to {new_throttle_value:.2f} (reduced by 1%) due to exceeding acceleration limit.")
+
+
+
+    def events(self):
+        """handles automatic events like auto power up"""
+        self.handle_engine_events()
+        self.handle_stage_events()
+        self.check_v_v_giveback_time()
+        self.handle_srb_events()
+        self.check_and_adjust_throttle()
+
+
+
