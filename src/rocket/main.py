@@ -78,8 +78,10 @@ class Main_program(object):
             self.HLV.cur.alt = self.specs["initial_alt"]
             self.HLV.V_v_target = self.specs["V_v_target"]
             self.HLV.A_vh_scale_factor = self.A_vh_scale_factor
-            self.HLV.V_v_giveback_target = self.specs["V_v_giveback_target"]
-            self.HLV.V_v_giveback_time = round(self.specs["V_v_giveback_time"], 1)
+
+            if mode.USE_V_V_GIVEBACK:
+                self.HLV.V_v_giveback_target = self.specs["V_v_giveback_target"]
+                self.HLV.V_v_giveback_time = round(self.specs["V_v_giveback_time"], 1)
 
             self.HLV.ground_level = self.HLV.cur.alt
             self.HLV.tower_height = self.specs["tower_height"]

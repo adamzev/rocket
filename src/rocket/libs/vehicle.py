@@ -24,7 +24,7 @@ class Vehicle(object):
         self.max_A_v = 0.75
         self.stages = stages
         self.engines = engines
-        self.load_time_incs = False
+        self.load_time_incs = mode.GIVEN_INTERVALS
         self.V_v_target_hit = False  # Has the rocket hit the V_v target
         self.V_v_start_giveback = False
         self.V_v_giveback_target_hit = (

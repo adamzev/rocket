@@ -13,6 +13,7 @@ from libs.vehicle import Vehicle
 
 from libs.query import Query as q
 from libs import fileManager as fileMan
+import mode
 
 
 class VehicleFactory(object):
@@ -22,7 +23,7 @@ class VehicleFactory(object):
         pass
 
     @classmethod
-    def create_vehicle(cls, specs, load_time_incs=False):
+    def create_vehicle(cls, specs):
         """create a heavy lift vehicle"""
         stages = cls.init_stages(specs["stages"])
         engines = cls.create_engines(specs["engines"])
@@ -33,7 +34,7 @@ class VehicleFactory(object):
         rocket.adc_K = cls.get_total_adc_K(specs["stages"])
 
         rocket.time = 0.0
-        if load_time_incs:
+        if mode.GIVEN_INTERVALS:
             time_incs_json = fileMan.load_json("save/time/time_incs.json")
             rocket.time_incs = time_incs_json["time_incs"]
             rocket.set_time_inc()

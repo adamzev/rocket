@@ -5,7 +5,7 @@ import util.func as func
 from libs.vehicleFactory import VehicleFactory
 from libs.query import Query as q
 import libs.fileManager as fileMan
-
+import mode
 
 class Spec_manager(object):
     """manages the creator and editing of spec files"""
@@ -72,13 +72,18 @@ class Spec_manager(object):
     @classmethod
     def select_stages(cls):
         stage_types = ["RLV", "orbiter"]
-        attach_R_SRB = q.query_yes_no("Does the rocket have a R-SRB? ", "yes")
-        attach_E_SRB = q.query_yes_no("Does the rocket have a E-SRB? ", "no")
+        if mode.USE_SRB:
+            attach_R_SRB = q.query_yes_no("Does the rocket have a R-SRB? ", "yes")
+            attach_E_SRB = q.query_yes_no("Does the rocket have a E-SRB? ", "no")
+            if attach_R_SRB:
+                print("A R-SRB will be attached")
+            if attach_E_SRB:
+                print("A E-SRB will be attached")
+        else:
+            attach_R_SRB = False
+            attach_E_SRB = False
         attach_LFB = q.query_yes_no("Does the rocket have a LFB? ", "no")
-        if attach_R_SRB:
-            print("A R-SRB will be attached")
-        if attach_E_SRB:
-            print("A E-SRB will be attached")
+
         if attach_LFB:
             print("A LFB will be attached")
 
