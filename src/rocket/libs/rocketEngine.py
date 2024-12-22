@@ -225,17 +225,15 @@ class RocketEngine(object):
         patm = equ.percentOfAtmosphericPressure(alt)
         pctVac = 1.0 - patm
         if mode.THROTTLE_FINAL_UP and self.get_throt("prev") < self.get_throt():
-            self.thrust_total = (
-                self.engine_count
-                * self.get_throt()
-                * (self.thrust_sl + (pctVac * (self.thrust_vac - self.thrust_sl)))
-            )
+            throt = self.get_throt()
         else:
-            self.thrust_total = (
-                self.engine_count
-                * self.throt_avg
-                * (self.thrust_sl + (pctVac * (self.thrust_vac - self.thrust_sl)))
-            )
+            throt = self.throt_avg
+        self.thrust_total = (
+            self.engine_count
+            * throt
+            * (self.thrust_sl + (pctVac * (self.thrust_vac - self.thrust_sl)))
+        )
+        
         return self.get_thrust_total()
 
     def get_eff_fuel_burn_rate(self, for_all=True):
@@ -261,7 +259,6 @@ class RocketEngine(object):
         return self.specImp_sl + (pctVac * (self.specImp_vac - self.specImp_sl))
 
     def events(self, time, time_inc):
-        decimal_precision = 3
         if self.throt_avg > 0.0 and not self.reached_max:
             self.setThrottle(self.max_throt, time_inc)
             if self.throt_avg == self.max_throt:

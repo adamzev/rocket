@@ -35,7 +35,8 @@ class Main_program(object):
         self.endTime = 10.0
 
         self.specs = Spec_manager.get_specs()
-        assert self.specs is not False
+        if not self.specs:
+            raise ValueError("Specs not defined")
 
         self.manual_Av = False
         self.manual_Av_frequency = None
@@ -188,7 +189,6 @@ class Main_program(object):
         """sims the first time inc"""
         self.HLV.cur.set_big_G()
         self.HLV.prev = copy.deepcopy(self.HLV.cur)
-        self.HLV.cur.set_big_G()
         self.HLV.prev.force = self.HLV.get_total_thrust()
         self.HLV.updateA()
         self.HLV.update_V_inc(self.HLV.time_inc)
