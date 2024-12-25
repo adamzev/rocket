@@ -1,4 +1,0 @@
-{
-  "tests/engine_test.py::EngineTests::test_fuel_used_in_startup": true,
-  "tests/engine_test.py::EngineTests::test_fuel_used_in_startup_full_shutdown": true
-}
