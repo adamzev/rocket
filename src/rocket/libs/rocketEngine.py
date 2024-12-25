@@ -156,15 +156,7 @@ class RocketEngine(object):
 
     @property
     def throt_avg(self):
-        return equ.average(self.get_throt(), self.get_throt("prev"))
-
-    def get_throt(self, when="current"):
-        if when == "current":
-            return self.throt_cur
-        elif when == "prev":
-            return self.throt_prev
-        else:
-            raise ValueError("Only current and prev values stored")
+        return equ.average(self.throt_cur, self.throt_prev)
 
     def get_burn_rate(self, when="current"):
         return self.burn_rate
@@ -172,7 +164,8 @@ class RocketEngine(object):
     def get_thrust_total(self, when="current"):
         return self.thrust_total
 
-    def get_thrust_per_engine(self):
+    @property
+    def thrust_per_engine(self):
         return self.thrust_total / self.engine_count
 
     def setThrottle(self, requested_throt, time_inc):
@@ -180,22 +173,22 @@ class RocketEngine(object):
         # Limit the throttle to its max change limit
         requested_throt = self.requested_throt_to_float(requested_throt)
 
-        if requested_throt == self.get_throt():
+        if requested_throt == self.throt_cur:
             self.throt_cur = requested_throt
             return requested_throt
 
-        if requested_throt > self.get_throt():
+        if requested_throt > self.throt_cur:
             direction = 1.0
             verb = "increased"
         else:
             direction = -1.0
             verb = "decreased"
         # direction 1 for pos and -1 for neg changes
-        if abs(requested_throt - self.get_throt()) > (
+        if abs(requested_throt - self.throt_cur) > (
             self.throt_rate_of_change_limit * time_inc
         ):
             throt = (
-                self.get_throt()
+                self.throt_cur
                 + time_inc * self.throt_rate_of_change_limit * direction
             )
         else:
@@ -213,10 +206,10 @@ class RocketEngine(object):
         else:
             self.throt_cur = throt
 
-        if self.get_throt("prev") != self.get_throt():
+        if self.throt_prev != self.throt_cur:
             self.messages.append(
                 "\nEVENT: {} Throttle {} from {} to {} time inc {}".format(
-                    self.name, verb, self.get_throt("prev"), self.get_throt(), time_inc
+                    self.name, verb, self.throt_prev, self.throt_cur, time_inc
                 )
             )
 
@@ -224,8 +217,8 @@ class RocketEngine(object):
         """calculates the thrust at altitude and stores and returns that value"""
         patm = equ.percentOfAtmosphericPressure(alt)
         pctVac = 1.0 - patm
-        if mode.THROTTLE_FINAL_UP and self.get_throt("prev") < self.get_throt():
-            throt = self.get_throt()
+        if mode.THROTTLE_FINAL_UP and self.throt_prev < self.throt_cur:
+            throt = self.throt_cur
         else:
             throt = self.throt_avg
         self.thrust_total = (
@@ -282,7 +275,7 @@ class SolidRocketEngine(RocketEngine):
         if self.throt_avg > 0.0:
             self.burn_rate = self.get_thrust_total() / self.specific_impulse_at_alt(alt)
             self.fuel_source.fuel_used += (
-                self.get_burn_rate() * time_inc * self.get_throt()
+                self.get_burn_rate() * time_inc * self.throt_cur
             )
         # print "solid rocket {} at alt {}".format(self.get_burn_rate(), alt)
 
@@ -293,7 +286,7 @@ class SolidRocketEngine(RocketEngine):
         self.set_assigned_thrust_per_engine(thrust)
 
     def change_thrust(self, rate, time_inc):
-        currentThrust = self.get_thrust_per_engine()
+        currentThrust = self.thrust_per_engine
         newThrust = currentThrust + rate * time_inc
         self.set_assigned_thrust_per_engine(newThrust)
         message = None
@@ -307,7 +300,7 @@ class SolidRocketEngine(RocketEngine):
             self.messages.append(message)
 
     def thrustAtAlt(self, alt):
-        return self.get_thrust_total() * self.get_throt()
+        return self.get_thrust_total() * self.throt_cur
 
     def events(self, time, time_inc):
         super(SolidRocketEngine, self).events(time, time_inc)
