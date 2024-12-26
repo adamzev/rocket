@@ -24,7 +24,7 @@ class Vehicle(object):
         self.max_A_v = 0.75
         self.stages = stages
         self.engines = engines
-        self.load_time_incs = mode.GIVEN_INTERVALS
+        self.given_time_incs = mode.GIVEN_INTERVALS
         self.V_v_target_hit = False  # Has the rocket hit the V_v target
         self.V_v_start_giveback = False
         self.V_v_giveback_target_hit = (
@@ -127,10 +127,20 @@ class Vehicle(object):
             fileMan.create_csv(headers, "data/rows.csv")
         fileMan.update_csv(row1 + row2, "data/rows.csv")
 
+    def get_assigned_A_vert(self):
+        """sets the assigned A vert based on the current time and the time_incs object"""
+        for A_vert_assigned_by_time in self.assigned_A_vert:
+            # this may need to be <= instead of < to get the correct A_vert
+            # since time incs get added on after but the assigned A_vert is
+            # used for the current row
+            if round(self.time, 6) <= A_vert_assigned_by_time["until"]:
+                return A_vert_assigned_by_time["A_vert"]
+        raise ValueError("No assigned A_vert found for time {}".format(self.time))
+
     def set_time_inc(self):
         """sets the current time increment based on the current time and the time_incs object"""
         for timeIncrements in self.time_incs:
-            if round(self.time, 4) < timeIncrements["until"]:
+            if round(self.time, 6) < timeIncrements["until"]:
                 self.time_inc = timeIncrements["time_inc"]
                 break
 
@@ -138,7 +148,7 @@ class Vehicle(object):
         """get the current time interval"""
         if mode.GIVEN_INTERVALS:
             for timeIncrements in self.time_incs:
-                if round(self.time, 4) < timeIncrements["until"]:
+                if round(self.time, 6) < timeIncrements["until"]:
                     return timeIncrements["time_inc"]
         else:
             return self.time_inc
@@ -178,7 +188,7 @@ class Vehicle(object):
         self.prev.V._total = self.cur.V._total
 
     def tick(self):
-        if self.load_time_incs:
+        if self.given_time_incs:
             self.set_time_inc()
         self.time += self.time_inc
 

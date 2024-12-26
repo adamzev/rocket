@@ -100,6 +100,8 @@ class Main_program(object):
         rocket.updateA()
         if not mode.GIVEN_AVS:
             assigned_A_v = rocket.cur.A_vert_eff = rocket.select_A_vert()
+        else:
+            assigned_A_v = rocket.cur.A_vert_eff = rocket.get_assigned_A_vert()
         if assigned_A_v == "a" or assigned_A_v == "all":
             rocket.cur.A.vert = rocket.cur.A.total
             rocket.cur.A.horiz = 0.0
@@ -200,7 +202,10 @@ class Main_program(object):
         self.HLV.events()
 
         self.HLV.cur.force = self.HLV.get_total_thrust()
-        self.HLV.cur.ADC_predicted = self.predict_ADC(self.HLV, "a")
+        if self.HLV.given_drag:
+             self.HLV.cur.ADC_predicted = self.HLV.drag_intervals.pop(0)
+        else:
+            self.HLV.cur.ADC_predicted = self.predict_ADC(self.HLV, "a")
         print(self.HLV)
         if mode.LOGLEVEL == "DEBUG":
             self.HLV.display_engine_messages()
@@ -220,7 +225,15 @@ class Main_program(object):
             i += 1
 
             self.compute_row(self.HLV, assigned_A_v)
-            self.HLV.cur.ADC_predicted = self.predict_ADC(self.HLV, assigned_A_v)
+            if self.HLV.given_drag:
+                try:
+                    self.HLV.cur.ADC_predicted = self.HLV.drag_intervals.pop(0)
+                except IndexError:
+                    print("External drag values exhausted. Falling back to computed drag.")
+                    self.HLV.given_drag = False  # Disable GIVEN_DRAG mode
+                    self.HLV.cur.ADC_predicted = self.predict_ADC(self.HLV, assigned_A_v)
+            else:
+                self.HLV.cur.ADC_predicted = self.predict_ADC(self.HLV, assigned_A_v)
             if mode.GIVEN_INTERVALS or round(self.HLV.time, 1).is_integer():
                 # self.HLV.display_engine_messages()
                 print(self.HLV)

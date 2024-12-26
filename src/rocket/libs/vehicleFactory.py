@@ -38,11 +38,22 @@ class VehicleFactory(object):
             time_incs_json = fileMan.load_json("save/time/time_incs.json")
             rocket.time_incs = time_incs_json["time_incs"]
             rocket.set_time_inc()
-            rocket.load_time_incs = True
+            rocket.given_time_incs = True
         else:
             rocket.time_inc = 0.1
-            rocket.load_time_incs = False
+            rocket.given_time_incs = False
 
+        if mode.GIVEN_DRAG:
+            drag_intervals = fileMan.load_json("save/drag/drag.json")
+            rocket.drag_intervals = drag_intervals
+            rocket.given_drag = True
+        else:
+            rocket.given_drag = False
+
+        if mode.GIVEN_AVS:
+            assigened_A_vert = fileMan.load_json("save/A_vert/A_vert.json")
+            rocket.assigned_A_vert = assigened_A_vert
+            rocket.given_avs = True
         return rocket
 
     @classmethod
