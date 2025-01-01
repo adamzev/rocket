@@ -524,11 +524,11 @@ class Vehicle(object):
             print(f"Total acceleration exceeded 2 Gs: {self.cur.A.total} Gs")
             for engine in self.engines:
                 if engine.stage == "RLV" and engine.attached:
-                    # Calculate the new throttle value, reducing the current throttle by 1%
-                    new_throttle_value = engine.throt_cur * 0.99
+                    # Calculate the new throttle value, reducing the current throttle proportionally to the time interval
+                    new_throttle_value = engine.throt_cur * (1 - 0.01 * self.get_time_inc())
                     # Adjust the throttle using setThrottle, which considers the rate of change limit
                     engine.setThrottle(new_throttle_value, self.get_time_inc())
-                    print(f"Adjusted {engine.name} throttle to {new_throttle_value:.2f} (reduced by 1%) due to exceeding acceleration limit.")
+                    print(f"Adjusted {engine.name} throttle to {new_throttle_value:.2f} (reduced proportionally to time interval) due to exceeding acceleration limit.")
 
 
 
